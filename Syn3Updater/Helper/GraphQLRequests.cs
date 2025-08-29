@@ -61,7 +61,7 @@ namespace Cyanlabs.Syn3Updater.Helper
                             [{ _or: [ {licensekeys: { _null: true}}, {licensekeys: { _empty: true}}," + license + @"],
                             status: { _in: [""published"", ""private""] }, regions: {_in: """ + selectedRegion + @"""},
                             " + "" + @"compatibility: {_contains: """ + compat + @"""} }]
-                        }){ name, regions, esn }
+                        }){ name, notes, regions, esn }
                 }"
             };
         }

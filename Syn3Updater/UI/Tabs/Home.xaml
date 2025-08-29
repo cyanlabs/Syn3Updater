@@ -276,7 +276,7 @@
                           SelectedIndex="{Binding SelectedReleaseIndex}"
                           IsEnabled="{Binding SVersionsEnabled}" ItemsSource="{Binding SVersion}"
                           SelectedItem="{Binding SelectedRelease}" Grid.Row="1" Grid.Column="2"
-                          Grid.ColumnSpan="2" />
+                          Grid.ColumnSpan="2" DisplayMemberPath="Name" SelectedValuePath="Name" />
 
                 <iconPacks:PackIconVaadinIcons Kind="MapMarker" Height="18" Width="18" Foreground="White"
                                                Margin="5,5,0,0"

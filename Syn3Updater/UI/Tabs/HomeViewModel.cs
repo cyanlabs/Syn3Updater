@@ -3,21 +3,17 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Xml.Linq;
 using AsyncAwaitBestPractices.MVVM;
 using Cyanlabs.Syn3Updater.Helper;
 using Cyanlabs.Syn3Updater.Model;
 using Cyanlabs.Syn3Updater.Services;
-using Cyanlabs.Updater.Common;
 using GraphQL;
 using ModernWpf.Controls;
 using Nito.AsyncEx;
-using Nito.Disposables.Internals;
 using Ookii.Dialogs.Wpf;
+using Windows.System;
 
 namespace Cyanlabs.Syn3Updater.UI.Tabs
 {
@@ -92,9 +88,9 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
             }
         }
 
-        private string _selectedRelease;
+        private Api.Release _selectedRelease;
 
-        public string SelectedRelease
+        public Api.Release SelectedRelease
         {
             get => _selectedRelease;
             set
@@ -156,9 +152,9 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
             set => SetProperty(ref _sRegions, value);
         }
 
-        private ObservableCollection<string> _sVersion;
+        private ObservableCollection<Api.Release> _sVersion;
 
-        public ObservableCollection<string> SVersion
+        public ObservableCollection<Api.Release> SVersion
         {
             get => _sVersion;
             set => SetProperty(ref _sVersion, value);
@@ -365,7 +361,7 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
                     new() {Code = "ANZ", Name = "Australia, New Zealand, South America, Turkey & Taiwan"},
                     new() {Code = "ROW", Name = "Middle East, Africa, India, Sri Lanka, Israel, South East Asia, Caribbean & Central America"}
                 };
-                SVersion = new ObservableCollection<string>();
+                SVersion = new ObservableCollection<Api.Release>();
                 SMapVersion = new ObservableCollection<Api.Release>();
                 IvsuList = new ObservableCollection<SModel.Ivsu>();
 
@@ -480,25 +476,37 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
                 DriveLetter = SelectedDrive?.Letter;
             }
         }
-
+        bool Launch = true;
         private async Task UpdateSelectedRegion()
         {
             NotesVisibility = false;
             SVersion?.Clear();
             SMapVersion?.Clear();
-            if (SelectedRegion.Code != "")
+            if(Launch)
+            {
+                Launch = false;
+            }
+            else
             {
                 IvsuList?.Clear();
                 SelectedMapVersion = null;
                 SelectedRelease = null;
+                try
+                {
+                    GraphQLResponse<Api.ReleasesRoot> graphQlResponse = await AppMan.App.GraphQlClient.SendQueryAsync<Api.ReleasesRoot>(GraphQlRequests.GetReleases(SelectedRegion.Code));
+                    _jsonReleases = graphQlResponse.Data;
+                }
+                catch (GraphQL.Client.Http.GraphQLHttpRequestException ex)
+                {
+                    string message = "Syn3 Updater requires a connection to the backend to function. Please ensure you are running the latest version from cyanlabs.net. If the issue persists, check our website for service status updates.";
+                    MessageBox.Show(message, "Unable To Connect To CyanLabs", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                if (AppMan.App.Settings.CurrentNav && AppMan.App.Settings.CurrentVersion >= Api.ReformatVersion)
+                    SVersion?.Add(new Api.Release { Name = LM.GetValue("String.OnlyMaps") });
 
-                GraphQLResponse<Api.ReleasesRoot> graphQlResponse = await AppMan.App.GraphQlClient.SendQueryAsync<Api.ReleasesRoot>(GraphQlRequests.GetReleases(SelectedRegion.Code));
-                _jsonReleases = graphQlResponse.Data;
-                
-                if (AppMan.App.Settings.CurrentNav && AppMan.App.Settings.CurrentVersion >= Api.ReformatVersion) SVersion?.Add(LM.GetValue("String.OnlyMaps"));
-
-                foreach (Api.Release item in _jsonReleases.Releases)
-                    SVersion?.Add(item.Name);
+            foreach (Api.Release item in _jsonReleases.Releases)
+                    SVersion?.Add(item);
 
                 SVersionsEnabled = true;
                 StartEnabled = SelectedRelease != null && SelectedRegion != null && SelectedMapVersion != null && SelectedDrive != null;
@@ -506,8 +514,8 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
 
                 if (SVersion != null && _magnetActions != null && _magnetActions?.Count != 0 && _magnetActions.ContainsKey("Release") && _magnetActions.ContainsKey("Region"))
                 {
-                   if(SVersion.Contains("Sync " + _magnetActions?["Release"]))
-                       SelectedRelease = "Sync " + _magnetActions?["Release"];
+                    if (SVersion.Any(r => r.Name == "Sync " + _magnetActions?["Release"]))
+                       SelectedRelease.Name = "Sync " + _magnetActions?["Release"];
                 }
             }
         }
@@ -517,29 +525,22 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
             SMapVersion?.Clear();
             if (!AppMan.App.Settings.CurrentNav)
                 SMapVersion?.Add(new Api.Release { Name = LM.GetValue("String.NonNavAPIM")});
-            else if (AppMan.App.Settings.CurrentVersion >= Api.ReformatVersion && _selectedRelease != LM.GetValue("String.OnlyMaps"))
+            else if (AppMan.App.Settings.CurrentVersion >= Api.ReformatVersion && _selectedRelease.Name != LM.GetValue("String.OnlyMaps"))
                 SMapVersion?.Add(new Api.Release { Name = LM.GetValue("String.KeepExistingMaps")});
 
             string license = string.Empty;
             if (AppMan.App.MainSettings.LicenseKey?.Length > 10) license = @"{licensekeys:{_contains:""" + AppMan.App.MainSettings.LicenseKey + @"""}},";
 
-            if (!string.IsNullOrWhiteSpace(SelectedRelease))
+            if (!string.IsNullOrWhiteSpace(SelectedRelease.Name))
             {
                 SelectedMapVersion = null;
                 IvsuList?.Clear();
 
                 foreach (Api.Release item in _jsonReleases.Releases)
-                    if (item.Name == SelectedRelease)
+                    if (item.Name == SelectedRelease.Name)
                     {
                         _stringCompatibility = item.Version.Substring(0, 3);
-                        if (item.Notes == null)
-                        {
-                            NotesVisibility = false;
-                            continue;
-                        }
 
-                        NotesVisibility = true;
-                        Notes = item.Notes.Replace("\n", Environment.NewLine);
 
                         if (item.Feedbackurl == null)
                         {
@@ -550,7 +551,7 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
                         FeedbackUrl = item.Feedbackurl;
                         FeedbackVisibility = true;
                     }
-                if (SelectedRelease == LM.GetValue("String.OnlyMaps")) _stringCompatibility = "3.4";
+                if (SelectedRelease.Name == LM.GetValue("String.OnlyMaps")) _stringCompatibility = "3.4";
 
                 if (AppMan.App.Settings.CurrentNav)
                 {
@@ -559,7 +560,7 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
 
                     foreach (Api.Release item in _jsonMapReleases.MapReleases)
                     {
-                        if (SelectedRelease == LM.GetValue("String.OnlyMaps") || AppMan.App.Settings.My20v2 == true)
+                        if (SelectedRelease.Name == LM.GetValue("String.OnlyMaps") || AppMan.App.Settings.My20v2 == true)
                         {
                             if (item.ESN == true) { item.IsEnabled = false; }
                         }
@@ -580,6 +581,11 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
                     if (SMapVersion != null && _magnetActions?.Count != 0 && SMapVersion.Any(x => x.Name == mapReleaseTmp)) 
                         SelectedMapVersion.Name = mapReleaseTmp;
                 }
+                if (SelectedRelease.Notes != null)
+                {
+                    Notes = "Release Notes:" + Environment.NewLine + SelectedRelease.Notes.Replace("\n", Environment.NewLine);
+                    NotesVisibility = true;
+                }
             }
         }
 
@@ -587,14 +593,19 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
         {
             if (!string.IsNullOrWhiteSpace(SelectedMapVersion.Name))
             {
+                if (SelectedMapVersion.Notes != null) {
+                    Notes = "Map Release Notes:" + Environment.NewLine + SelectedMapVersion.Notes.Replace("\n", Environment.NewLine) + Environment.NewLine + Environment.NewLine + Notes;
+                    NotesVisibility = true;
+                }
+
                 IvsuList?.Clear();
 
                 UpdateInstallMode();
                 
                 string navtype = AppMan.App.Settings.CurrentNav ? "nav" : "nonnav";
-                if (SelectedRelease != LM.GetValue("String.OnlyMaps"))
+                if (SelectedRelease.Name != LM.GetValue("String.OnlyMaps"))
                 {
-                    var graphQlResponse = await AppMan.App.GraphQlClient.SendQueryAsync<Api.ReleasesRoot>(GraphQlRequests.GetReleaseIvsus(SelectedRelease,navtype));
+                    var graphQlResponse = await AppMan.App.GraphQlClient.SendQueryAsync<Api.ReleasesRoot>(GraphQlRequests.GetReleaseIvsus(SelectedRelease.Name, navtype));
                     Api.ReleasesRoot jsonIvsUs = graphQlResponse.Data;
 
                     foreach (Api.ReleasesIvsus item in jsonIvsUs.Releases[0].IvsusList.Where(ivsus => ivsus.Ivsu != null))
@@ -614,7 +625,6 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
                 }
                 else
                 {
-                    NotesVisibility = false;
                     InstallMode = "autoinstall";
                     AppMan.App.InstallMode = InstallMode;
                 }
@@ -645,7 +655,7 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
         public void UpdateInstallMode()
         {
             bool cancelled = false;
-            if (!string.IsNullOrWhiteSpace(SelectedMapVersion?.Name) && !string.IsNullOrWhiteSpace(SelectedRelease) && !string.IsNullOrWhiteSpace(SelectedRegion.Code))
+            if (!string.IsNullOrWhiteSpace(SelectedMapVersion?.Name) && !string.IsNullOrWhiteSpace(SelectedRelease.Name) && !string.IsNullOrWhiteSpace(SelectedRegion.Code))
             {
                 //MY20 and Less than 3.2
                 if(AppMan.App.Settings.CurrentVersion < Api.ReformatVersion && AppMan.App.Settings.My20v2 == true)
@@ -678,7 +688,7 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
                         Application.Current.Dispatcher.Invoke(() => UIHelper.ShowErrorDialog(LM.GetValue("MessageBox.MY20InvalidConfiguration")));
                         cancelled = true;
                     }
-                    else if (AppMan.App.Settings.My20v2 == true || SelectedRelease == LM.GetValue("String.OnlyMaps"))
+                    else if (AppMan.App.Settings.My20v2 == true || SelectedRelease.Name == LM.GetValue("String.OnlyMaps"))
                     {
                         InstallMode = "autoinstall"; //Option C
                     }
@@ -703,7 +713,7 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
                         Application.Current.Dispatcher.Invoke(() => UIHelper.ShowErrorDialog(LM.GetValue("MessageBox.MY20InvalidConfiguration")));
                         cancelled = true;
                     }
-                    else if (AppMan.App.Settings.My20v2 == true || SelectedRelease == LM.GetValue("String.OnlyMaps"))
+                    else if (AppMan.App.Settings.My20v2 == true || SelectedRelease.Name == LM.GetValue("String.OnlyMaps"))
                     {
                         InstallMode = "autoinstall"; //Option F
                     }
@@ -749,7 +759,7 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
                 AppMan.App.DownloadOnly = false;
             }
 
-            if (!await HomeViewModelService.Download(InstallMode, IvsuList, SelectedRegion, SelectedRelease, SelectedMapVersion.Name, DriveLetter, SelectedDrive))
+            if (!await HomeViewModelService.Download(InstallMode, IvsuList, SelectedRegion, SelectedRelease.Name, SelectedMapVersion.Name, DriveLetter, SelectedDrive))
             {
                 StartEnabled = SelectedRelease != null && SelectedRegion != null && SelectedMapVersion != null && SelectedDrive != null;
                 DownloadOnlyEnabled = SelectedRelease != null && SelectedRegion != null && SelectedMapVersion != null;  
