@@ -23,7 +23,7 @@ namespace Cyanlabs.Syn3Updater.Converter
 
                 if (targetType == typeof(string))
                 {
-                    return boolValue ? "ESN Locked (Pre MY20 Only)" : "Not ESN Locked";
+                    return boolValue ? "ESN Locked (Pre MY20 only as requires REFORMAT)" : "Not ESN locked (no reformat required)";
                 }
                 else if (targetType == typeof(Brush))
                 {
@@ -48,7 +48,7 @@ namespace Cyanlabs.Syn3Updater.Converter
         {
             if (value is string stringValue)
             {
-                return stringValue == "ESN Locked (Pre MY20 Only)";
+                return stringValue == "ESN Locked (Pre MY20 only as requires REFORMAT)";
             }
 
             return false; // Default value
@@ -72,7 +72,7 @@ namespace Cyanlabs.Syn3Updater.Converter
 
                 if (targetType == typeof(string))
                 {
-                    return boolValue ? "Not ESN Locked" : "ESN Locked (Pre MY20 Only)";
+                    return boolValue ? "Not ESN locked (no reformat required)" : "ESN Locked (Pre MY20 only as requires REFORMAT)";
                 }
                 else if (targetType == typeof(Brush))
                 {
@@ -97,7 +97,7 @@ namespace Cyanlabs.Syn3Updater.Converter
         {
             if (value is string stringValue)
             {
-                return stringValue == "Not ESN Locked";
+                return stringValue == "Not ESN locked (no reformat required)";
             }
 
             return false; // Default value
