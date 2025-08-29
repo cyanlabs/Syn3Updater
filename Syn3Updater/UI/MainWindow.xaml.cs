@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Cyanlabs.Syn3Updater.Helper;
 using Cyanlabs.Syn3Updater.Model;
 using Microsoft.Win32;
 
@@ -21,9 +22,15 @@ namespace Cyanlabs.Syn3Updater.UI
         {
             InitializeComponent();
             AppMan.Logger.Debug("MainWindow Initialized");
-            if (Environment.OSVersion.Version.Major < 10)
+            try
             {
-                MessageBox.Show("This application requires Windows 10 or newer, It may work but no support will be provided!", "Unsupported Operating System", MessageBoxButton.OK, MessageBoxImage.Error);
+                if (SystemHelper.GetOsBuildNumber() < 10000)
+                {
+                    MessageBox.Show("This application requires Windows 10 or newer, It may work but no support will be provided!", "Unsupported Operating System", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception)
+            {
             }
 
             if (CryptoConfig.AllowOnlyFipsAlgorithms)
