@@ -102,6 +102,20 @@ namespace Cyanlabs.Syn3Updater.Helper
             return $"{result} ({Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ReleaseId", "")})";
         }
 
+        public static int GetOsBuildNumber()
+        {
+            int result = 0;
+            ManagementObjectSearcher searcher = new("SELECT BuildNumber FROM Win32_OperatingSystem");
+            foreach (ManagementBaseObject o in searcher.Get())
+            {
+                ManagementObject os = (ManagementObject)o;
+                result = Convert.ToInt16(os["BuildNumber"]);
+                break;
+            }
+
+            return result;
+        }
+
         public static void WriteRegistryHandler()
         {
             try

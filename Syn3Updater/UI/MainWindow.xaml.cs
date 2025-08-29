@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Windows;
@@ -20,6 +21,11 @@ namespace Cyanlabs.Syn3Updater.UI
         {
             InitializeComponent();
             AppMan.Logger.Debug("MainWindow Initialized");
+            if (Environment.OSVersion.Version.Major < 10)
+            {
+                MessageBox.Show("This application requires Windows 10 or newer, It may work but no support will be provided!", "Unsupported Operating System", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
             if (CryptoConfig.AllowOnlyFipsAlgorithms)
             {
                 // Do not replace with ContentDialog

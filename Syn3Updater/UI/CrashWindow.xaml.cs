@@ -30,18 +30,26 @@ namespace Cyanlabs.Syn3Updater.UI
 
         public string SendReport(Exception exception)
         {
-            try
+            if (SystemHelper.GetOsBuildNumber() < 10000)
             {
-                CrashContainer crashContainer = new();
-                StackTrace st = new(exception, true);
-                StackFrame frame = st.GetFrame(st.FrameCount - 1);
+                // Disable logging on Windows versions below 10
+                MessageBox.Show("Something went wrong, As you are on a unsupported OS no support will be provided", "Unsupported Operating System", MessageBoxButton.OK, MessageBoxImage.Error);
+                return null;
+            } 
+            else
+            {
+                try
+                {
+                    CrashContainer crashContainer = new();
+                    StackTrace st = new(exception, true);
+                    StackFrame frame = st.GetFrame(st.FrameCount - 1);
 
-                crashContainer.ErrorName = exception.GetType().ToString();
-                if (frame != null)
-                    crashContainer.ErrorLocation = $"{frame.GetFileName()}/{frame.GetMethod().Name}/{frame.GetFileLineNumber()}";
-                crashContainer.Logs = AppMan.Logger.Log;
-                
-                Dictionary<string, string> values = new()
+                    crashContainer.ErrorName = exception.GetType().ToString();
+                    if (frame != null)
+                        crashContainer.ErrorLocation = $"{frame.GetFileName()}/{frame.GetMethod().Name}/{frame.GetFileLineNumber()}";
+                    crashContainer.Logs = AppMan.Logger.Log;
+
+                    Dictionary<string, string> values = new()
                 {
                     {"computername", Environment.MachineName},
                     {"detail", JsonConvert.SerializeObject(crashContainer)},
@@ -51,23 +59,24 @@ namespace Cyanlabs.Syn3Updater.UI
                     {"operatingsystem", SystemHelper.GetOsFriendlyName()},
                     {"branch", AppMan.App.LauncherPrefs.ReleaseTypeInstalled.ToString()}
                 };
-                
-                HttpRequestMessage httpRequestMessage = new()
-                {
-                    Method = HttpMethod.Post,
-                    RequestUri = new Uri(Api.CrashLogPost),
-                    Headers = { 
+
+                    HttpRequestMessage httpRequestMessage = new()
+                    {
+                        Method = HttpMethod.Post,
+                        RequestUri = new Uri(Api.CrashLogPost),
+                        Headers = {
                         { nameof(HttpRequestHeader.Authorization), $"Bearer {ApiSecret.GetToken()}" },
                     },
-                    Content = new FormUrlEncodedContent(values)
-                };
+                        Content = new FormUrlEncodedContent(values)
+                    };
 
-                HttpResponseMessage response = AppMan.Client.SendAsync(httpRequestMessage).GetAwaiter().GetResult();
-                return response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-            }
-            catch (HttpRequestException)
-            {
-                return null;
+                    HttpResponseMessage response = AppMan.Client.SendAsync(httpRequestMessage).GetAwaiter().GetResult();
+                    return response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                }
+                catch (HttpRequestException)
+                {
+                    return null;
+                }
             }
         }
 
