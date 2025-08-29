@@ -57,7 +57,7 @@ namespace Cyanlabs.Syn3Updater.UI
                     Method = HttpMethod.Post,
                     RequestUri = new Uri(Api.CrashLogPost),
                     Headers = { 
-                        { nameof(HttpRequestHeader.Authorization), $"Bearer {ApiSecret.Token}" },
+                        { nameof(HttpRequestHeader.Authorization), $"Bearer {ApiSecret.GetToken()}" },
                     },
                     Content = new FormUrlEncodedContent(values)
                 };

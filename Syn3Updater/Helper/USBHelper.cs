@@ -221,7 +221,7 @@ namespace Cyanlabs.Syn3Updater.Helper
                     Method = HttpMethod.Post,
                     RequestUri = new Uri(Api.LogPost),
                     Headers = {
-                        { nameof(HttpRequestHeader.Authorization), $"Bearer {ApiSecret.Token}" },
+                        { nameof(HttpRequestHeader.Authorization), $"Bearer {ApiSecret.GetToken()}" },
                     },
                     Content = new FormUrlEncodedContent(values)
                 };
@@ -257,7 +257,7 @@ namespace Cyanlabs.Syn3Updater.Helper
                     Method = HttpMethod.Post,
                     RequestUri = new Uri(Api.AsBuiltPost),
                     Headers = {
-                        { nameof(HttpRequestHeader.Authorization), $"Bearer {ApiSecret.Token}" },
+                        { nameof(HttpRequestHeader.Authorization), $"Bearer {ApiSecret.GetToken()}" },
                     },
                     Content = formContent
                 };
