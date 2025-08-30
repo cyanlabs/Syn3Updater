@@ -519,9 +519,10 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
                 }
             }
         }
-
+        string ReleaseNotes = "", MapReleaseNotes = "";
         private async Task UpdateSelectedRelease()
         {
+            ReleaseNotes = "";
             SMapVersion?.Clear();
             if (!AppMan.App.Settings.CurrentNav)
                 SMapVersion?.Add(new Api.Release { Name = LM.GetValue("String.NonNavAPIM")});
@@ -581,22 +582,23 @@ namespace Cyanlabs.Syn3Updater.UI.Tabs
                     if (SMapVersion != null && _magnetActions?.Count != 0 && SMapVersion.Any(x => x.Name == mapReleaseTmp)) 
                         SelectedMapVersion.Name = mapReleaseTmp;
                 }
-                if (SelectedRelease.Notes != null)
-                {
-                    Notes = "Release Notes:" + Environment.NewLine + SelectedRelease.Notes.Replace("\n", Environment.NewLine);
-                    NotesVisibility = true;
-                }
+                ReleaseNotes = "Release Notes:" + Environment.NewLine + SelectedRelease.Notes.Replace("\n", Environment.NewLine);
+                if(ReleaseNotes != null) NotesVisibility = true;
+                Notes = ReleaseNotes;
             }
         }
 
         private async Task UpdateSelectedMapVersion()
         {
+            MapReleaseNotes = "";
             if (!string.IsNullOrWhiteSpace(SelectedMapVersion.Name))
             {
                 if (SelectedMapVersion.Notes != null) {
-                    Notes = "Map Release Notes:" + Environment.NewLine + SelectedMapVersion.Notes.Replace("\n", Environment.NewLine) + Environment.NewLine + Environment.NewLine + Notes;
+                    MapReleaseNotes = "Map Release Notes:" + Environment.NewLine + SelectedMapVersion.Notes.Replace("\n", Environment.NewLine) + Environment.NewLine + Environment.NewLine;
                     NotesVisibility = true;
                 }
+                if (ReleaseNotes != null || MapReleaseNotes != null) NotesVisibility = true;
+                Notes = MapReleaseNotes + ReleaseNotes;
 
                 IvsuList?.Clear();
 
