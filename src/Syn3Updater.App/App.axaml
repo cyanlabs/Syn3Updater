@@ -72,6 +72,7 @@
     <Style Selector="TextBlock.label"><Setter Property="FontSize" Value="12" /><Setter Property="Foreground" Value="{DynamicResource Muted}" /></Style>
     <Style Selector="TextBlock.mono"><Setter Property="FontFamily" Value="Cascadia Mono,Consolas,Menlo,DejaVu Sans Mono,monospace" /></Style>
 
+    <Style Selector="TextBlock.warning"><Setter Property="Foreground" Value="{DynamicResource WarnFg}" /><Setter Property="FontSize" Value="12.5" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="TextWrapping" Value="Wrap" /></Style>
     <Style Selector="TextBlock.dlgerr"><Setter Property="Foreground" Value="#ef6b62" /></Style>
     <Style Selector="TextBlock.dlgwarn"><Setter Property="Foreground" Value="#f0a43c" /></Style>
 

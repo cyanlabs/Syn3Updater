@@ -18,7 +18,7 @@
       <Border Classes="card blue">
         <StackPanel Spacing="12">
           <TextBlock Text="{svc:T Settings.CarConfiguration}" Classes="section" />
-          <TextBlock Text="{Binding WarningText}" Foreground="{DynamicResource WarnFg}" FontSize="10.5" TextWrapping="Wrap" />
+          <TextBlock x:Name="CarWarning" Classes="warning" Text="{Binding WarningText}" />
           <!-- region, version and navigation share one row; the row wraps when the window gets narrow -->
           <WrapPanel ItemSpacing="14" LineSpacing="12">
             <StackPanel Spacing="6" Width="300"><TextBlock Text="{svc:T Settings.Region}" Classes="label" /><ComboBox ItemsSource="{Binding Regions}" SelectedItem="{Binding Region}" /></StackPanel>
@@ -31,8 +31,8 @@
       <Border Classes="card blue">
         <StackPanel Spacing="12">
           <TextBlock Text="{svc:T Settings.AdvancedOptions}" Classes="section" />
+          <TextBlock x:Name="AdvancedWarning" Classes="warning" Text="{svc:T App.AdvancedWarning}" />
           <CheckBox IsChecked="{Binding Advanced}" Content="{svc:T Settings.AdvancedModeToggle}" />
-          <TextBlock x:Name="AdvancedWarning" Text="{svc:T App.AdvancedWarning}" IsVisible="{Binding Advanced}" Foreground="{DynamicResource WarnFg}" FontWeight="SemiBold" FontSize="12.5" TextWrapping="Wrap" />
           <Grid ColumnDefinitions="*,*" ColumnSpacing="14" IsVisible="{Binding Advanced}">
             <StackPanel Spacing="6"><TextBlock Text="{svc:T Settings.InstallMode}" Classes="label" /><ComboBox ItemsSource="{Binding ModeOptions}" SelectedItem="{Binding Mode}" /></StackPanel>
             <StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="{svc:T Settings.My20Mode}" Classes="label" /><ComboBox ItemsSource="{Binding My20Options}" SelectedItem="{Binding My20}" /></StackPanel>

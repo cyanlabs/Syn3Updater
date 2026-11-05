@@ -278,7 +278,7 @@
   "App.SelectUsbFirst": "Select a USB drive",
   "App.SelectUsbTip": "Select a USB drive above to enable this button.",
   "App.OpenLogFirstTip": "Open an interrogator log (XML) first to enable this button.",
-  "App.AdvancedWarning": "These settings can make the USB created by Syn3 Updater incompatible with your car. Despite what many YouTube videos say, don't change them unless you know what you are doing.",
+  "App.AdvancedWarning": "These settings can make the USB created by Syn3 Updater incompatible with your car, and may also brick your SYNC 3 unit. Despite what many YouTube videos say, don't change them unless you know what you are doing.",
   "App.Step2Title": "2. In the car",
   "App.Step2a": "Insert Drive in car",
   "App.Step2b": "Await \"Install Complete\" on screen",
