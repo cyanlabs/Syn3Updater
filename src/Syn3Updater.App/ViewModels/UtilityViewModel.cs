@@ -30,8 +30,18 @@ public partial class UtilityViewModel : PageViewModel
 
     public override void OnShown() => _ = RefreshAsync();
 
+    public bool CanEjectSelected => SelectedDrive is { IsFolder: false, IsChooser: false };
+
+    [RelayCommand]
+    private async Task EjectSelectedAsync()
+    {
+        if (SelectedDrive is not { IsFolder: false, IsChooser: false } drive) return;
+        if (await EjectFlow.RunAsync(drive, drive.MountPath)) { SelectedDrive = null; await RefreshAsync(); }
+    }
+
     partial void OnSelectedDriveChanged(DriveInfoModel? value)
     {
+        OnPropertyChanged(nameof(CanEjectSelected));
         if (value?.Encrypted == true) { _ = Dialogs.Error(Ctx.T("MessageBox.EncryptedDrive")); SelectedDrive = null; return; }
         DriveInfo = value == null ? "" : $"{value.PartitionType} {value.FileSystem} · {Format.Bytes(value.SizeBytes)}";
     }

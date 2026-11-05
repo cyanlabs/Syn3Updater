@@ -9,6 +9,23 @@ namespace Cyanlabs.Syn3Updater.Core.Services;
 
 public record ValidationResult(bool Ok, string Message = "");
 
+/// <summary>Thread-safe running byte total for one transfer, reported at most every ~100 ms (so 8 connections do not flood the UI).</summary>
+internal sealed class ByteReporter(IProgress<long>? target)
+{
+    private long _total, _lastTicks;
+    public long Total => Interlocked.Read(ref _total);
+    public void Add(long n)
+    {
+        var t = Interlocked.Add(ref _total, n);
+        if (target == null) return;
+        var now = Environment.TickCount64;
+        var last = Interlocked.Read(ref _lastTicks);
+        if (now - last >= 100 && Interlocked.CompareExchange(ref _lastTicks, now, last) == last) target.Report(t);
+    }
+    public void Reset() => Interlocked.Exchange(ref _total, 0);
+    public void Flush() => target?.Report(Total);
+}
+
 public class RangeNotSupportedException : IOException { public RangeNotSupportedException() : base("Server does not support ranged downloads") { } }
 
 /// <summary>Download, checksum and copy operations. Progress is reported as 0-100.</summary>
@@ -18,8 +35,10 @@ public class FileService
     public FileService(HttpClient http) { _http = http; }
 
     // ---------- download ----------
-    public async Task<bool> DownloadAsync(string url, string destination, int connections, IProgress<int> progress, CancellationToken ct)
+    /// <param name="bytes">Optional: cumulative bytes received for this file across all connections (throttled).</param>
+    public async Task<bool> DownloadAsync(string url, string destination, int connections, IProgress<int> progress, CancellationToken ct, IProgress<long>? bytes = null)
     {
+        var counter = new ByteReporter(bytes);
         var temp = destination + ".part";
         try
         {
@@ -29,15 +48,16 @@ public class FileService
 
             if (length > 0 && connections > 1)
             {
-                try { await DownloadParallelAsync(url, temp, length, Math.Clamp(connections, 1, 8), progress, ct); }
+                try { await DownloadParallelAsync(url, temp, length, Math.Clamp(connections, 1, 8), progress, ct, counter); }
                 catch (RangeNotSupportedException)
                 {
                     TryDelete(temp);   // server ignores Range: fall back to one connection instead of failing
-                    await DownloadSingleAsync(url, temp, length, progress, ct);
+                    counter.Reset();
+                    await DownloadSingleAsync(url, temp, length, progress, ct, counter);
                 }
             }
             else
-                await DownloadSingleAsync(url, temp, length, progress, ct);
+                await DownloadSingleAsync(url, temp, length, progress, ct, counter);
 
             if (File.Exists(destination)) File.Delete(destination);
             File.Move(temp, destination);
@@ -57,7 +77,7 @@ public class FileService
         return -1;
     }
 
-    private async Task DownloadSingleAsync(string url, string file, long length, IProgress<int> progress, CancellationToken ct)
+    private async Task DownloadSingleAsync(string url, string file, long length, IProgress<int> progress, CancellationToken ct, ByteReporter counter)
     {
         using var resp = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct);
         resp.EnsureSuccessStatusCode();
@@ -68,13 +88,13 @@ public class FileService
         while ((n = await input.ReadAsync(buf, ct)) > 0)
         {
             await output.WriteAsync(buf.AsMemory(0, n), ct);
-            total += n;
+            total += n; counter.Add(n);
             if (length > 0) { int p = (int)(total * 100 / length); if (p != last) { last = p; progress.Report(p); } }
         }
-        progress.Report(100);
+        counter.Flush(); progress.Report(100);
     }
 
-    private async Task DownloadParallelAsync(string url, string file, long length, int connections, IProgress<int> progress, CancellationToken ct)
+    private async Task DownloadParallelAsync(string url, string file, long length, int connections, IProgress<int> progress, CancellationToken ct, ByteReporter counter)
     {
         await using (var fs = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.None)) fs.SetLength(length);
         long downloaded = 0; int last = -1;
@@ -96,7 +116,7 @@ public class FileService
             while ((n = await input.ReadAsync(buf, token)) > 0)
             {
                 await output.WriteAsync(buf.AsMemory(0, n), token);
-                long d = Interlocked.Add(ref downloaded, n);
+                long d = Interlocked.Add(ref downloaded, n); counter.Add(n);
                 int p = (int)(d * 100 / length);
                 if (p != Volatile.Read(ref last)) { Volatile.Write(ref last, p); progress.Report(p); }
             }
@@ -108,7 +128,7 @@ public class FileService
             try { await Task.WhenAll(tasks); } catch { /* already failing */ }
             throw;
         }
-        progress.Report(100);
+        counter.Flush(); progress.Report(100);
     }
 
     // ---------- checksum ----------
@@ -160,8 +180,9 @@ public class FileService
     }
 
     // ---------- copy ----------
-    public static async Task<bool> CopyAsync(string source, string destination, IProgress<int> progress, CancellationToken ct)
+    public static async Task<bool> CopyAsync(string source, string destination, IProgress<int> progress, CancellationToken ct, IProgress<long>? bytes = null)
     {
+        var counter = new ByteReporter(bytes);
         const int buffer = 512 * 1024;
         try
         {
@@ -171,10 +192,11 @@ public class FileService
             while ((n = await input.ReadAsync(buf, ct)) > 0)
             {
                 await output.WriteAsync(buf.AsMemory(0, n), ct);
-                total += n;
+                total += n; counter.Add(n);
                 int p = size == 0 ? 100 : (int)(total * 100 / size);
                 if (p != last) { last = p; progress.Report(p); }
             }
+            counter.Flush();
             return true;
         }
         catch (OperationCanceledException) { TryDelete(destination); return false; }

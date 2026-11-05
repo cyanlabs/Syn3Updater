@@ -47,6 +47,11 @@ public static class Format
 
 public class FormatException(string message) : Exception(message);
 
+public record EjectResult(bool Ok, string Message);
+
+/// <summary>Runs an external program. Injectable so the exact commands each platform issues can be verified without hardware.</summary>
+public delegate Task<ProcessResult> CommandRunner(string file, IEnumerable<string> args, string? stdin, CancellationToken ct, int timeoutMs);
+
 public interface IDriveService
 {
     /// <summary>Lists USB / external drives that are safe candidates to write to.</summary>
@@ -60,6 +65,12 @@ public interface IDriveService
 
     /// <summary>Flushes pending writes so the stick can be unplugged.</summary>
     Task FlushAsync(DriveInfoModel drive, CancellationToken ct = default);
+
+    /// <summary>
+    /// Unmounts the drive and, where the OS supports it, powers it off so it can be pulled out safely.
+    /// <paramref name="mountPath"/> is where the drive is mounted now (a format may have changed it).
+    /// </summary>
+    Task<EjectResult> EjectAsync(DriveInfoModel drive, string? mountPath, CancellationToken ct = default);
 
     string OsDescription { get; }
 }

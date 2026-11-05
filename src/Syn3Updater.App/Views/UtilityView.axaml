@@ -10,7 +10,7 @@
             <Border Classes="ico teal"><PathIcon Data="M15,7V11H16V13H13V5H15L12,1L9,5H11V13H8V10.93C8.7,10.56 9.2,9.85 9.2,9C9.2,7.8 8.2,6.8 7,6.8C5.8,6.8 4.8,7.8 4.8,9C4.8,9.85 5.3,10.56 6,10.93V13A2,2 0 0,0 8,15H11V18.05C10.3,18.4 9.8,19.1 9.8,20C9.8,21.1 10.7,22 11.8,22C12.9,22 13.8,21.1 13.8,20C13.8,19.1 13.3,18.4 12.6,18.05V15H16A2,2 0 0,0 18,13V11H19V7H15Z" /></Border>
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1"><TextBlock Text="{svc:T Utility.SelectUSBDrive}" Classes="section" /></StackPanel>
           </Grid>
-          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
             <ComboBox ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive}" MinHeight="48" PlaceholderText="{svc:T Utility.SelectUSBDrive}">
               <ComboBox.ItemTemplate>
                 <DataTemplate DataType="d:DriveInfoModel">
@@ -19,6 +19,7 @@
               </ComboBox.ItemTemplate>
             </ComboBox>
             <Button Grid.Column="1" Command="{Binding RefreshCommand}" MinHeight="48"><StackPanel Orientation="Horizontal" Spacing="8"><PathIcon Data="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" Width="16" Height="16" /><TextBlock Text="{svc:T Home.Refresh}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button Grid.Column="2" Command="{Binding EjectSelectedCommand}" IsEnabled="{Binding CanEjectSelected}" ToolTip.Tip="{svc:T App.EjectDrive}" MinHeight="48" MinWidth="48"><PathIcon Data="M5,17H19V19H5V17M12,5L5.33,15H18.67L12,5Z" Width="18" Height="18" /></Button>
           </Grid>
           <TextBlock Text="{Binding DriveInfo}" Classes="muted" />
         </StackPanel>

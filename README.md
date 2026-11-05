@@ -28,6 +28,18 @@ Without a token the app still builds, but API calls are rejected.
 | macOS | `diskutil` (external only) | `diskutil eraseDisk` |
 | Windows | PowerShell storage cmdlets | `diskpart` (app requests Administrator) |
 
+**Safe eject** (button beside Refresh on Home and Utilities, on the Downloads page, and offered when a run finishes):
+
+| | Eject |
+|---|---|
+| Linux | `sync`, then `udisksctl unmount` for every partition and `udisksctl power-off` (needs `udisks2`; falls back to `umount`) |
+| macOS | `diskutil eject` |
+| Windows | flush the volume cache, then the shell "Eject" verb; confirms the drive has disappeared |
+
+Only drives the app itself would list (USB / external, never a system disk) can be ejected, and the command sequences for all
+three platforms are covered by tests that script the OS commands. Before any run the app also checks there is enough free space in
+the download folder and on the drive (accounting for files already downloaded or already on the stick).
+
 Before any format the target device is re-validated and the confirmation dialog names the exact device.
 Only the Linux path has been run on real hardware by the author of this port; the Windows and macOS
 drive code is covered by parser unit tests but untested against real devices.

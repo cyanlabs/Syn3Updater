@@ -63,7 +63,8 @@ var work = Dispatcher.UIThread.InvokeAsync(async () =>
         vm.News.Changelogs.Add(new Changelog { Version = "2.14.0.0", Date = "29-08-2025", ReleaseNotes = "Added: displaying of Map Release notes\nNotice: **All old versions** will stop working shortly\n\n**Full Changelog**: https://github.com/cyanlabs/Syn3Updater/compare/2.13.3.0...2.14.0.0" });
         vm.Downloads.Headline = "Sync 3.4.26057 - NA - Keep Existing Maps"; vm.Downloads.IsRunning = true;
             vm.Downloads.Status = "Downloading: PU5T-14G381-AB_1722.TAR.GZ"; vm.Downloads.CurrentFile = "PU5T-14G381-AB_1722.TAR.GZ";
-            vm.Downloads.FileProgress = 63; vm.Downloads.TotalProgress = 31; vm.Downloads.FileCounter = "File 2 of 4";
+            vm.Downloads.SpeedText = "12.3MB/s"; vm.Downloads.EtaText = "2 min 10 s left"; vm.Downloads.ConnectionsText = "8 connections"; vm.Downloads.CanEject = true;
+        vm.Downloads.FileProgress = 63; vm.Downloads.TotalProgress = 31; vm.Downloads.FileCounter = "File 2 of 4";
             vm.Downloads.Completed.Add(new QueueItem("PU5T-14G386-BB.TAR.GZ", "3 KB", 0) { IsDone = true });
             vm.Downloads.PhaseLabel = "Downloading files"; vm.Downloads.Queue.Add(new QueueItem("PU5T-14G381-AB_1722.TAR.GZ", "1.3 GB", 1) { IsActive = true });
             vm.Downloads.Queue.Add(new QueueItem("PU5T-14G391-AC.TAR.GZ", "296 MB", 2));

@@ -5,13 +5,27 @@ namespace Cyanlabs.Syn3Updater.Core.Drives;
 /// <summary>Linux: lists with lsblk, formats with sfdisk + mkfs.exfat through pkexec (graphical sudo prompt).</summary>
 public class LinuxDriveService : IDriveService
 {
+    private readonly CommandRunner _run;
+    private readonly Func<string, bool> _exists;
+    private readonly Func<int, CancellationToken, Task> _delay;
+
+    public LinuxDriveService(CommandRunner? run = null, Func<string, bool>? exists = null, Func<int, CancellationToken, Task>? delay = null)
+    {
+        _run = run ?? ((file, args, stdin, ct, timeout) => ProcessRunner.RunAsync(file, args, stdin, ct, timeout));
+        _exists = exists ?? ProcessRunner.Exists;
+        _delay = delay ?? Task.Delay;
+    }
+
+    private Task<ProcessResult> Run(string file, IEnumerable<string> args, string? stdin = null, CancellationToken ct = default, int timeoutMs = 120_000) =>
+        _run(file, args, stdin, ct, timeoutMs);
+
     public string OsDescription => "Linux";
 
     private const string Columns = "NAME,PATH,TYPE,SIZE,FSTYPE,LABEL,MOUNTPOINT,TRAN,HOTPLUG,RM,MODEL,PTTYPE,FSAVAIL";
 
     public async Task<IReadOnlyList<DriveInfoModel>> ListAsync(CancellationToken ct = default)
     {
-        var r = await ProcessRunner.RunAsync("lsblk", new[] { "-J", "-b", "-o", Columns }, ct: ct);
+        var r = await Run("lsblk", new[] { "-J", "-b", "-o", Columns }, ct: ct);
         if (!r.Ok) throw new IOException("lsblk failed: " + r.StdErr);
         return ParseLsblk(r.StdOut);
     }
@@ -119,14 +133,14 @@ public class LinuxDriveService : IDriveService
         var current = await ListAsync(ct);
         if (!current.Any(d => d.DeviceId == drive.DeviceId))
             throw new Drives.FormatException($"{drive.DeviceId} is no longer a removable USB drive; refusing to format it.");
-        if (!ProcessRunner.Exists("mkfs.exfat"))
+        if (!_exists("mkfs.exfat"))
             throw new Drives.FormatException("mkfs.exfat was not found. Install exFAT tools (Arch: sudo pacman -S exfatprogs).");
-        if (!ProcessRunner.Exists("pkexec"))
+        if (!_exists("pkexec"))
             throw new Drives.FormatException("pkexec (polkit) was not found; run the app as root or install polkit to format drives.");
 
         log.Report($"Re-creating partition table as MBR and formatting {drive.DeviceId} as exFAT (authentication required)");
         // Arguments are passed positionally so nothing from the device list is ever interpolated into the script.
-        var r = await ProcessRunner.RunAsync("pkexec", new[] { "/bin/sh", "-c", FormatScript, "format-usb", drive.DeviceId }, ct: ct, timeoutMs: 600_000);
+        var r = await Run("pkexec", new[] { "/bin/sh", "-c", FormatScript, "format-usb", drive.DeviceId }, ct: ct, timeoutMs: 600_000);
         if (!r.Ok)
             throw new Drives.FormatException(r.ExitCode is 126 or 127 && string.IsNullOrWhiteSpace(r.StdErr)
                 ? "Authentication was cancelled." : $"Formatting failed: {r.StdErr.Trim()}");
@@ -139,22 +153,22 @@ public class LinuxDriveService : IDriveService
     public async Task<string> EnsureMountedAsync(DriveInfoModel drive, CancellationToken ct = default)
     {
         if (!string.IsNullOrEmpty(drive.MountPath)) return drive.MountPath;
-        var r = await ProcessRunner.RunAsync("lsblk", new[] { "-nrpo", "PATH,TYPE", drive.DeviceId }, ct: ct);
+        var r = await Run("lsblk", new[] { "-nrpo", "PATH,TYPE", drive.DeviceId }, ct: ct);
         var part = r.StdOut.Split('\n', StringSplitOptions.RemoveEmptyEntries)
             .Select(l => l.Split(' ')).FirstOrDefault(p => p.Length > 1 && p[1] == "part")?[0] ?? drive.DeviceId;
         return await MountPartitionAsync(part, ct);
     }
 
-    private static async Task<string> MountPartitionAsync(string part, CancellationToken ct)
+    private async Task<string> MountPartitionAsync(string part, CancellationToken ct)
     {
         // The desktop may already have auto-mounted it.
-        await Task.Delay(500, ct);
-        var existing = await ProcessRunner.RunAsync("findmnt", new[] { "-nro", "TARGET", "-S", part }, ct: ct);
+        await _delay(500, ct);
+        var existing = await Run("findmnt", new[] { "-nro", "TARGET", "-S", part }, ct: ct);
         if (existing.Ok && !string.IsNullOrWhiteSpace(existing.StdOut)) return existing.StdOut.Trim().Split('\n')[0];
 
-        if (!ProcessRunner.Exists("udisksctl"))
+        if (!_exists("udisksctl"))
             throw new Drives.FormatException($"{part} is not mounted and udisksctl (udisks2) is not installed. Mount it manually and press Refresh.");
-        var m = await ProcessRunner.RunAsync("udisksctl", new[] { "mount", "-b", part }, ct: ct);
+        var m = await Run("udisksctl", new[] { "mount", "-b", part }, ct: ct);
         if (!m.Ok) throw new Drives.FormatException("Could not mount the drive: " + m.StdErr.Trim());
         // "Mounted /dev/sdb1 at /run/media/user/CYANLABS"
         var at = m.StdOut.LastIndexOf(" at ", StringComparison.Ordinal);
@@ -162,5 +176,45 @@ public class LinuxDriveService : IDriveService
     }
 
     public async Task FlushAsync(DriveInfoModel drive, CancellationToken ct = default) =>
-        await ProcessRunner.RunAsync("sync", Array.Empty<string>(), ct: ct);
+        await Run("sync", Array.Empty<string>(), ct: ct);
+
+    /// <summary>
+    /// sync, unmount every partition of the stick, then power it off (udisks2). Only a drive that ListAsync would offer
+    /// (USB / hotplug, not holding the running system) is ever touched.
+    /// </summary>
+    public async Task<EjectResult> EjectAsync(DriveInfoModel drive, string? mountPath, CancellationToken ct = default)
+    {
+        if (!System.Text.RegularExpressions.Regex.IsMatch(drive.DeviceId ?? "", @"^/dev/[A-Za-z0-9_\-]+$"))
+            return new(false, "Not a valid device.");
+        if (!(await ListAsync(ct)).Any(d => d.DeviceId == drive.DeviceId))
+            return new(false, $"{drive.DeviceId} is not a removable drive; refusing to eject it.");
+
+        await Run("sync", Array.Empty<string>(), ct: ct);
+        var parts = await Run("lsblk", new[] { "-nrpo", "PATH,TYPE,MOUNTPOINT", drive.DeviceId }, ct: ct);
+        var mounted = parts.StdOut.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(l => l.Split(' ', 3)).Where(p => p.Length == 3 && p[2].Length > 0)
+            .Select(p => (Path: p[0], Mount: p[2].Replace("\\x20", " "))).ToList();
+
+        if (_exists("udisksctl"))
+        {
+            foreach (var (path, _) in mounted)
+            {
+                var u = await Run("udisksctl", new[] { "unmount", "-b", path }, ct: ct);
+                if (!u.Ok && !u.StdErr.Contains("not mounted", StringComparison.OrdinalIgnoreCase))
+                    return new(false, $"Could not unmount {path}: {u.StdErr.Trim()}\nClose anything that is using the drive (file manager windows, terminals) and try again.");
+            }
+            var off = await Run("udisksctl", new[] { "power-off", "-b", drive.DeviceId }, ct: ct);
+            return off.Ok
+                ? new(true, "The drive was ejected. You can remove it now.")
+                : new(true, "The drive was unmounted. You can remove it now.");        // some sticks cannot be powered off; they are still safe to pull once unmounted
+        }
+
+        // no udisks2: plain umount works when the drive was mounted by this user or the system allows it
+        foreach (var (_, mount) in mounted)
+        {
+            var u = await Run("umount", new[] { mount }, ct: ct);
+            if (!u.Ok) return new(false, $"Could not unmount {mount}: {u.StdErr.Trim()}\nInstall udisks2 (Arch: sudo pacman -S udisks2) or unmount the drive from your file manager, then remove it.");
+        }
+        return new(true, "The drive was unmounted. You can remove it now.");
+    }
 }

@@ -30,6 +30,65 @@ public partial class DownloadViewModel : PageViewModel
     [ObservableProperty] private string _phaseLabel = "";
     private string _phase = "";
     private List<QueueItem> _all = new();
+
+    // ---- speed / ETA: one meter fed with the bytes moved over ALL connections, so it is the true overall rate ----
+    private readonly ThroughputMeter _meter = new();
+    private readonly System.Diagnostics.Stopwatch _clock = System.Diagnostics.Stopwatch.StartNew();
+    private long _remainingBytes;
+    private int _connections;
+    private Avalonia.Threading.DispatcherTimer? _tick;
+    [ObservableProperty] private string _speedText = "";
+    [ObservableProperty] private string _etaText = "";
+    [ObservableProperty] private string _connectionsText = "";
+    public bool HasStats => SpeedText.Length > 0 || EtaText.Length > 0 || ConnectionsText.Length > 0;
+    partial void OnSpeedTextChanged(string value) => OnPropertyChanged(nameof(HasStats));
+    partial void OnEtaTextChanged(string value) => OnPropertyChanged(nameof(HasStats));
+    partial void OnConnectionsTextChanged(string value) => OnPropertyChanged(nameof(HasStats));
+
+    /// <summary>Recomputes speed and ETA. Also runs on a timer so the numbers fall to nothing while a checksum is verified.</summary>
+    internal void RefreshStats(long? nowTicks = null)
+    {
+        var now = nowTicks ?? _clock.Elapsed.Ticks;
+        var speed = _meter.BytesPerSecond(now);
+        SpeedText = TransferText.Speed(speed);
+        EtaText = speed >= 1 && _remainingBytes > 0 ? Ctx.T("App.TimeLeft", TransferText.Eta(_meter.Eta(_remainingBytes, now))) : "";
+        ConnectionsText = _connections > 1 ? Ctx.T("App.ConnectionsN", _connections) : _connections == 1 ? Ctx.T("App.ConnectionsOne") : "";
+    }
+
+    internal void ApplyTransfer(RunProgress p, long? nowTicks = null)
+    {
+        var now = nowTicks ?? _clock.Elapsed.Ticks;
+        if (p.Phase.Length > 0 && p.Phase != _phaseForMeter) { _phaseForMeter = p.Phase; _meter.Reset(); }
+        _meter.Add(p.TransferredBytes, now);
+        _remainingBytes = p.RemainingBytes; _connections = p.Connections;
+        RefreshStats(now);
+    }
+    private string _phaseForMeter = "";
+
+    // ---- eject ----
+    private DriveInfoModel? _ejectDrive; private string? _ejectPath;
+    [ObservableProperty] private bool _canEject;
+    [ObservableProperty] private bool _ejecting;
+    public bool CanPressEject => CanEject && !Ejecting;
+    partial void OnCanEjectChanged(bool value) => OnPropertyChanged(nameof(CanPressEject));
+    partial void OnEjectingChanged(bool value) => OnPropertyChanged(nameof(CanPressEject));
+
+    [RelayCommand]
+    public async Task EjectAsync()
+    {
+        if (_ejectDrive == null || Ejecting) return;
+        Ejecting = true;
+        try { if (await EjectFlow.RunAsync(_ejectDrive, _ejectPath)) { CanEject = false; await MainWindowViewModel.Instance.Home.RefreshDrivesAsync(); } }
+        finally { Ejecting = false; }
+    }
+
+    /// <summary>Completion message; when a real drive was written it also offers to eject it right away.</summary>
+    private async Task CompletedAsync(string message)
+    {
+        if (!CanEject) { await Dialogs.Info(message); return; }
+        var choice = await Dialogs.Show(message, Ctx.T("String.Notice"), new[] { Ctx.T("String.OK"), Ctx.T("App.EjectDrive") }, 0);
+        if (choice == 1) await EjectAsync();
+    }
     [ObservableProperty] private string _fileCounter = "";
     [ObservableProperty] private string _currentFile = "";
     private int _activeIndex = -1;
@@ -67,7 +126,10 @@ public partial class DownloadViewModel : PageViewModel
         _cts = new CancellationTokenSource();
         _runLog.Clear(); Log = ""; FileProgress = 0; TotalProgress = 0;
         Headline = $"{spec.Release} - {spec.Region} - {spec.MapVersion}".Trim(' ', '-');
-        _activeIndex = -1; _phase = "";
+        _activeIndex = -1; _phase = ""; _phaseForMeter = ""; _meter.Reset(); _remainingBytes = 0; _connections = 0; RefreshStats();
+        CanEject = false; _ejectDrive = null; _ejectPath = null;
+        _tick ??= new Avalonia.Threading.DispatcherTimer(TimeSpan.FromMilliseconds(500), Avalonia.Threading.DispatcherPriority.Background, (_, _) => RefreshStats());
+        _tick.Start();
         _all = req.Queue.Select((i, n) => new QueueItem(i.FileName, Format.Bytes(i.FileSize), n)).ToList();
         ResetQueue(); PhaseLabel = "";
         Ctx.Log.Info($"Install mode: {req.InstallMode}");
@@ -76,6 +138,7 @@ public partial class DownloadViewModel : PageViewModel
         {
             if (!string.IsNullOrEmpty(p.Status)) Status = p.Status;
             FileProgress = p.FilePercent; TotalProgress = p.TotalPercent;
+            ApplyTransfer(p);
             if (p.Phase.Length > 0 && p.Phase != _phase)
             {
                 _phase = p.Phase; _activeIndex = -1; ResetQueue();            // downloading -> copying: every file is to do again
@@ -100,6 +163,7 @@ public partial class DownloadViewModel : PageViewModel
         catch (Exception e) { Ctx.Log.Error(e.ToString()); ok = false; await Dialogs.Error(e.Message); }
 
         IsRunning = false; Workflow.Busy = false;
+        _tick?.Stop(); _meter.Reset(); _remainingBytes = 0; SpeedText = ""; EtaText = ""; ConnectionsText = "";
         bool cancelled = _cts.IsCancellationRequested;
         if (!ok)
         {
@@ -125,6 +189,7 @@ public partial class DownloadViewModel : PageViewModel
         }
 
         var root = Ctx.Runner.TargetRoot ?? req.Drive!.MountPath;   // the drive may have been remounted under a new name by the format
+        if (req.Drive is { IsFolder: false } stick) { _ejectDrive = stick; _ejectPath = root; CanEject = true; }
         var isUtilityLog = spec.Action is UpdateAction.LogUtility or UpdateAction.LogUtilityMy20;
         if (!isUtilityLog)
         {
@@ -144,17 +209,17 @@ public partial class DownloadViewModel : PageViewModel
                     await Dialogs.OpenUrl(root);
                     await Dialogs.Info(Ctx.T("MessageBox.CompletedFolder"));
                 }
-                else await Dialogs.Info(Ctx.T("MessageBox.Completed"));
+                else await CompletedAsync(Ctx.T("MessageBox.Completed"));
                 MainWindowViewModel.Instance.Home.ClearSelections();
                 break;
             case UpdateAction.LogUtility:
-                await Dialogs.Info(Ctx.T("MessageBox.LogUtilityComplete"));
+                await CompletedAsync(Ctx.T("MessageBox.LogUtilityComplete"));
                 break;
             case UpdateAction.LogUtilityMy20:
-                await Dialogs.Info(Ctx.T("MessageBox.LogUtilityCompleteMy20"));
+                await CompletedAsync(Ctx.T("MessageBox.LogUtilityCompleteMy20"));
                 break;
             default:
-                await Dialogs.Info(Ctx.T("MessageBox.GenericUtilityComplete"));
+                await CompletedAsync(Ctx.T("MessageBox.GenericUtilityComplete"));
                 break;
         }
         Return(spec);

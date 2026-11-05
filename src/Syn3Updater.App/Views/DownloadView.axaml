@@ -23,12 +23,20 @@
             <ProgressBar Value="{Binding FileProgress}" Maximum="100" Height="8" VerticalAlignment="Center" />
             <TextBlock Grid.Column="1" Text="{Binding FileProgress, StringFormat={}{0}%}" HorizontalAlignment="Right" />
           </Grid>
+          <WrapPanel ItemSpacing="8" LineSpacing="6" IsVisible="{Binding HasStats}">
+            <Border Classes="chip" Margin="0" IsVisible="{Binding SpeedText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"><TextBlock Text="{Binding SpeedText}" FontWeight="SemiBold" /></Border>
+            <Border Classes="chip" Margin="0" IsVisible="{Binding EtaText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"><TextBlock Text="{Binding EtaText}" /></Border>
+            <Border Classes="chip" Margin="0" IsVisible="{Binding ConnectionsText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"><TextBlock Text="{Binding ConnectionsText}" Classes="muted" /></Border>
+          </WrapPanel>
           <TextBlock Text="{svc:T Download.TotalDownload}" Classes="label" />
           <Grid ColumnDefinitions="*,52" ColumnSpacing="10">
             <ProgressBar Value="{Binding TotalProgress}" Maximum="100" Height="8" VerticalAlignment="Center" />
             <TextBlock Grid.Column="1" Text="{Binding TotalProgress, StringFormat={}{0}%}" HorizontalAlignment="Right" />
           </Grid>
-          <Button Content="{svc:T Download.CancelButton}" Command="{Binding CancelCommand}" IsEnabled="{Binding IsRunning}" HorizontalAlignment="Right" />
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="{svc:T App.EjectDrive}" Command="{Binding EjectCommand}" IsEnabled="{Binding CanPressEject}" IsVisible="{Binding CanEject}" />
+            <Button Content="{svc:T Download.CancelButton}" Command="{Binding CancelCommand}" IsEnabled="{Binding IsRunning}" />
+          </StackPanel>
         </StackPanel>
       </Border>
 

@@ -17,6 +17,11 @@ public sealed class RemountingDrives(string remountedAt) : IDriveService
     { Formats++; Directory.CreateDirectory(remountedAt); return Task.FromResult(remountedAt); }
     public Task<string> EnsureMountedAsync(DriveInfoModel drive, CancellationToken ct = default) => Task.FromResult(drive.MountPath);
     public Task FlushAsync(DriveInfoModel drive, CancellationToken ct = default) => Task.CompletedTask;
+
+    public List<(string Device, string? Mount)> Ejected { get; } = new();
+    public EjectResult EjectAnswer { get; set; } = new(true, "The drive was ejected. You can remove it now.");
+    public Task<EjectResult> EjectAsync(DriveInfoModel drive, string? mountPath, CancellationToken ct = default)
+    { Ejected.Add((drive.DeviceId, mountPath)); return Task.FromResult(EjectAnswer); }
 }
 
 public class FormatRemountTests

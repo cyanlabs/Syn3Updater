@@ -22,7 +22,21 @@ public class UpdateRequest
     public string Branch { get; init; } = "Stable";
 }
 
-public record RunProgress(string Status, int FilePercent, int TotalPercent, string? CurrentFile, string Phase = "");
+public record RunProgress(string Status, int FilePercent, int TotalPercent, string? CurrentFile, string Phase = "")
+{
+    /// <summary>Bytes actually moved so far in this phase (downloaded or copied), summed over all parallel connections.</summary>
+    public long TransferredBytes { get; init; }
+    /// <summary>Estimate of the bytes still to move in this phase (files already in place are not counted).</summary>
+    public long RemainingBytes { get; init; }
+    /// <summary>Connections in use for the current transfer (1 while copying).</summary>
+    public int Connections { get; init; }
+}
+
+/// <summary>An IProgress that runs its callback immediately on the reporting thread (Progress&lt;T&gt; would reorder updates through a SynchronizationContext).</summary>
+internal sealed class InlineProgress<T>(Action<T> action) : IProgress<T>
+{
+    public void Report(T value) => action(value);
+}
 
 /// <summary>Runs the whole job: (format) -> download -> validate -> copy -> write autoinstall.lst/reformat.lst.</summary>
 public class UpdateRunner
@@ -43,6 +57,8 @@ public class UpdateRunner
 
     private void Info(string m) { _log.Info(m); }
 
+    private static bool HasSize(string path, long size) => size > 0 && File.Exists(path) && new FileInfo(path).Length == size;
+
     public async Task<bool> RunAsync(UpdateRequest req, IProgress<RunProgress> progress, CancellationToken ct)
     {
         LastError = null; TargetRoot = null;
@@ -60,11 +76,26 @@ public class UpdateRunner
             Directory.CreateDirectory(req.DownloadDir);
             int steps = queue.Count * (req.DownloadOnly ? 2 : 4), done = 0;
             string phase = "download";
-            void Total(string status, int file = 0, string? cur = null) =>
-                progress.Report(new(status, file, steps == 0 ? 0 : Math.Min(100, done * 100 / steps), cur, phase));
+            int connections = req.Connections;
+            // byte accounting for speed / ETA: what has been moved in this phase and what is still expected
+            long planned = queue.Sum(i => HasSize(Path.Combine(req.DownloadDir, i.FileName), i.FileSize) ? 0 : i.FileSize);
+            long movedBefore = 0, fileBytes = 0; int filePct = 0; string? currentFile = null;
+            var gate = new object();
+            void Total(string status, int file = 0, string? cur = null)
+            {
+                lock (gate)
+                {
+                    filePct = file; currentFile = cur ?? currentFile;
+                    var transferred = movedBefore + fileBytes;
+                    progress.Report(new(status, file, steps == 0 ? 0 : Math.Min(100, done * 100 / steps), cur, phase)
+                    {
+                        TransferredBytes = transferred, RemainingBytes = Math.Max(0, planned - transferred), Connections = phase == "download" ? connections : 1,
+                    });
+                }
+            }
+            IProgress<long> Bytes(string file) => new InlineProgress<long>(b => { fileBytes = b; Total("", filePct, file); });
 
             // ---- download + validate ----
-            int connections = req.Connections;
             var extras = new List<Ivsu>();
             foreach (var item in queue)
             {
@@ -85,8 +116,12 @@ public class UpdateRunner
                     {
                         ct.ThrowIfCancellationRequested();
                         Info(attempt == 1 ? $"Downloading: {item.FileName}" : $"Downloading (Attempt #{attempt}): {item.FileName}");
+                        // a file that was thought to be in place (same size, bad checksum) or a retry still has to be transferred
+                        if (attempt > 1 || HasSize(local, item.FileSize)) lock (gate) planned += item.FileSize;
+                        fileBytes = 0;
                         Total($"Downloading{(attempt > 1 ? $" (attempt #{attempt})" : "")}: {item.FileName}", 0, item.FileName);
-                        if (!await _files.DownloadAsync(item.Url, local, connections, fp, ct)) return false;
+                        if (!await _files.DownloadAsync(item.Url, local, connections, fp, ct, Bytes(item.FileName))) return false;
+                        lock (gate) { movedBefore += fileBytes; fileBytes = 0; }
                         done++;
                         Total($"Validating: {item.FileName}", 0, item.FileName);
                         var v = await _files.ValidateAsync(item.Url, local, item.Md5, false, fp, ct);
@@ -126,9 +161,13 @@ public class UpdateRunner
             // ---- copy ----
             queue.AddRange(extras);
             steps = queue.Count * 4; // download steps already counted above; extras only copy
-            phase = "copy";
             var syncDir = Path.Combine(target!, "SyncMyRide");
             Directory.CreateDirectory(syncDir);
+            lock (gate)
+            {
+                phase = "copy"; movedBefore = 0; fileBytes = 0;
+                planned = queue.Where(i => i.Source != "naviextras").Sum(i => HasSize(Path.Combine(syncDir, i.FileName), i.FileSize) ? 0 : i.FileSize);
+            }
             Info("Preparing USB drive");
             foreach (var item in queue)
             {
@@ -149,8 +188,11 @@ public class UpdateRunner
                 {
                     ct.ThrowIfCancellationRequested();
                     Info(attempt == 1 ? $"Copying: {item.FileName}" : $"Copying (Attempt #{attempt}): {item.FileName}");
+                    if (attempt > 1) lock (gate) planned += item.FileSize;
+                    fileBytes = 0;
                     Total($"Copying{(attempt > 1 ? $" (attempt #{attempt})" : "")}: {item.FileName}", 0, item.FileName);
-                    if (!await FileService.CopyAsync(src, dst, fp, ct)) return false;
+                    if (!await FileService.CopyAsync(src, dst, fp, ct, Bytes(item.FileName))) return false;
+                    lock (gate) { movedBefore += fileBytes; fileBytes = 0; }
                     done++;
                     Total($"Validating: {item.FileName}", 0, item.FileName);
                     if ((await _files.ValidateAsync(src, dst, item.Md5, true, fp, ct)).Ok) { done++; ok = true; Info($"Copied: {item.FileName}"); }

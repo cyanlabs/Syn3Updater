@@ -259,5 +259,14 @@
   "App.Continue": "Continue",
   "App.DisclaimerPopupTitle": "Before you start",
   "App.DisclaimerBody": "Updating your SYNC3 system carries real risk. Please read this before you continue.\n\n- **Use at your own risk.** A wrong setting or an interrupted update can leave your SYNC unit (APIM) unusable, and repairs can be expensive.\n- **Check your details.** Enter your SYNC version, region and navigation setting exactly as they appear in your car, and answer the MY20 question honestly. Wrong answers are the most common cause of a bricked unit.\n- **Follow the instructions.** Use the guides at cyanlabs.net for your install mode, and never unplug the USB drive or switch off the car during an update.\n- **No warranty, no liability.** Syn3 Updater and CyanLabs are provided as is. To the fullest extent the law allows, they are not responsible for any loss or damage, including to your vehicle, your data or your warranty, arising from using this app or its guides.\n- **Not affiliated with Ford.** This is an unofficial tool. It is not made, approved or endorsed by Ford Motor Company, and using it may affect your vehicle's warranty.\n\nBy choosing **I understand and accept** you confirm that you have read this and accept the risks.",
-  "App.DisclaimerAgreementShort": "I have read the notice above and accept the risks."
+  "App.DisclaimerAgreementShort": "I have read the notice above and accept the risks.",
+  "App.SpaceDownload": "There is not enough free space in your download folder.\n\nNeeded: {0}\nFree: {1}\nFolder: {2}\n\nFree up at least {3} or choose another download location in Settings.",
+  "App.SpaceTarget": "The selected drive is too small for these packages.\n\nNeeded: {0}\nAvailable: {1}\n\nUse a larger drive, or select fewer packages.",
+  "App.EjectDrive": "Eject drive",
+  "App.Ejecting": "Ejecting...",
+  "App.ConnectionsN": "{0} connections",
+  "App.ConnectionsOne": "1 connection",
+  "App.TimeLeft": "{0} left",
+  "App.Speed": "Speed",
+  "App.EjectedTitle": "Drive ejected"
 }

@@ -82,6 +82,8 @@ public static class Workflow
             skipFormat = check.Value;
         }
 
+        if (!await EnoughSpaceAsync(queue, drive, skipFormat, spec.DownloadOnly)) return false;
+
         var req = new UpdateRequest
         {
             Queue = queue, Tools = tools, Action = spec.Action, InstallMode = spec.Mode, Release = spec.Release,
@@ -95,6 +97,39 @@ public static class Workflow
         MainWindowViewModel.Instance.ShowDownloads();
         _ = MainWindowViewModel.Instance.Downloads.RunAsync(req, spec);
         return true;
+    }
+
+    /// <summary>Stops before anything is downloaded or erased if the download folder or the drive cannot hold the selected packages.</summary>
+    internal static async Task<bool> EnoughSpaceAsync(List<Ivsu> queue, DriveInfoModel? drive, bool skipFormat, bool downloadOnly)
+    {
+        var dlDir = Ctx.Main.DownloadPath!;
+        var dlNeeded = SpaceCheck.DownloadNeeded(queue, dlDir);
+        var dlFree = SpaceCheck.FreeBytes(dlDir);
+
+        long targetNeeded = 0; long? targetAvailable = null;
+        if (!downloadOnly && drive != null)
+        {
+            string? mount = string.IsNullOrEmpty(drive.MountPath) ? null : drive.MountPath;
+            var syncDir = !skipFormat || mount == null ? null : Path.Combine(mount, "SyncMyRide");
+            targetNeeded = SpaceCheck.TargetNeeded(queue, syncDir);
+            if (drive.IsFolder)
+            {
+                var free = SpaceCheck.FreeBytes(drive.MountPath);
+                targetAvailable = free < 0 ? null : free + (skipFormat ? 0 : SpaceCheck.FolderSize(drive.MountPath));   // a folder about to be cleared gives its space back
+            }
+            else if (!skipFormat) targetAvailable = drive.SizeBytes > 0 ? (long)(drive.SizeBytes * 0.98) : null;                                    // freshly formatted: the whole stick, minus file system overhead
+            else if (mount != null) { var free = SpaceCheck.FreeBytes(mount); targetAvailable = free < 0 ? null : free; }
+        }
+
+        var verdict = SpaceCheck.Evaluate(dlNeeded, dlFree, targetNeeded, targetAvailable);
+        if (verdict.Ok) return true;
+
+        var parts = new List<string>();
+        if (!verdict.DownloadOk) parts.Add(Ctx.T("App.SpaceDownload", Format.Bytes(verdict.DownloadNeeded), Format.Bytes(verdict.DownloadFree), dlDir, Format.Bytes(verdict.DownloadShortfall)));
+        if (!verdict.TargetOk) parts.Add(Ctx.T("App.SpaceTarget", Format.Bytes(verdict.TargetNeeded), Format.Bytes(verdict.TargetAvailable ?? 0)));
+        Ctx.Log.Error("Not enough free space: " + string.Join(" | ", parts).Replace("\n", " "));
+        await Dialogs.Error(string.Join("\n\n", parts));
+        return false;
     }
 
     /// <summary>Port of SanityCheckHelper.CancelDownloadCheck. Returns skipFormat, or null if the user backed out.</summary>

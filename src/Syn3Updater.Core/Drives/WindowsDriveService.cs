@@ -5,6 +5,20 @@ namespace Cyanlabs.Syn3Updater.Core.Drives;
 /// <summary>Windows: PowerShell storage cmdlets to list, diskpart to format (requires an elevated process).</summary>
 public class WindowsDriveService : IDriveService
 {
+    private readonly CommandRunner _run;
+    private readonly Func<string, bool> _exists;
+    private readonly Func<int, CancellationToken, Task> _delay;
+
+    public WindowsDriveService(CommandRunner? run = null, Func<string, bool>? exists = null, Func<int, CancellationToken, Task>? delay = null)
+    {
+        _run = run ?? ((file, args, stdin, ct, timeout) => ProcessRunner.RunAsync(file, args, stdin, ct, timeout));
+        _exists = exists ?? ProcessRunner.Exists;
+        _delay = delay ?? Task.Delay;
+    }
+
+    private Task<ProcessResult> Run(string file, IEnumerable<string> args, string? stdin = null, CancellationToken ct = default, int timeoutMs = 120_000) =>
+        _run(file, args, stdin, ct, timeoutMs);
+
     public string OsDescription => "Windows";
 
     private const string ListScript = """
@@ -27,7 +41,7 @@ public class WindowsDriveService : IDriveService
 
     public async Task<IReadOnlyList<DriveInfoModel>> ListAsync(CancellationToken ct = default)
     {
-        var r = await ProcessRunner.RunAsync("powershell", new[] { "-NoProfile", "-NonInteractive", "-Command", ListScript }, ct: ct);
+        var r = await Run("powershell", new[] { "-NoProfile", "-NonInteractive", "-Command", ListScript }, ct: ct);
         if (!r.Ok) throw new IOException("PowerShell failed: " + r.StdErr);
         return Parse(r.StdOut);
     }
@@ -66,9 +80,9 @@ public class WindowsDriveService : IDriveService
         log.Report("Re-creating partition table as MBR and formatting as exFAT on the selected USB drive");
         var script = $"SELECT DISK={number}\nCLEAN\nCONVERT MBR\nCREATE PARTITION PRIMARY\nFORMAT FS=EXFAT LABEL=\"CYANLABS\" QUICK\n" +
                      (letter != "" ? $"ASSIGN LETTER={letter}\n" : "ASSIGN\n") + "EXIT\n";
-        var r = await ProcessRunner.RunAsync("diskpart", Array.Empty<string>(), stdin: script, ct: ct, timeoutMs: 600_000);
+        var r = await Run("diskpart", Array.Empty<string>(), stdin: script, ct: ct, timeoutMs: 600_000);
         if (!r.Ok) throw new Drives.FormatException("diskpart failed (run Syn3 Updater as Administrator): " + (r.StdErr + r.StdOut).Trim());
-        await Task.Delay(5000, ct);
+        await _delay(5000, ct);
         var after = (await ListAsync(ct)).FirstOrDefault(d => d.DeviceId == drive.DeviceId);
         return after?.MountPath is { Length: > 0 } m ? m : (letter != "" ? letter + @":\" : throw new Drives.FormatException("Formatted, but no drive letter was assigned."));
     }
@@ -77,4 +91,23 @@ public class WindowsDriveService : IDriveService
         Task.FromResult(string.IsNullOrEmpty(drive.MountPath) ? throw new Drives.FormatException("The drive has no drive letter.") : drive.MountPath);
 
     public Task FlushAsync(DriveInfoModel drive, CancellationToken ct = default) => Task.CompletedTask;
+
+    /// <summary>Flushes the volume cache, then uses the shell's Eject verb (the same as "Eject" in Explorer).</summary>
+    public async Task<EjectResult> EjectAsync(DriveInfoModel drive, string? mountPath, CancellationToken ct = default)
+    {
+        var letter = System.Text.RegularExpressions.Regex.Match(mountPath ?? drive.MountPath ?? "", @"^([A-Za-z]):");
+        if (!letter.Success) return new(false, "The drive has no drive letter.");
+        var l = char.ToUpperInvariant(letter.Groups[1].Value[0]);
+        if (!(await ListAsync(ct)).Any(d => d.MountPath.StartsWith(l + ":", StringComparison.OrdinalIgnoreCase)))
+            return new(false, $"{l}: is not a removable USB drive; refusing to eject it.");     // never touch a system or fixed disk
+        var script = $"$l='{l}:'; try {{ Write-VolumeCache -DriveLetter {l} -ErrorAction Stop }} catch {{ }}; " +
+                     "$i = (New-Object -ComObject Shell.Application).Namespace(17).ParseName($l); if ($null -eq $i) { exit 3 }; $i.InvokeVerb('Eject')";
+        var r = await Run("powershell", new[] { "-NoProfile", "-NonInteractive", "-Command", script }, ct: ct);
+        if (r.ExitCode == 3) return new(false, $"Windows does not list drive {l}: any more.");
+        if (!r.Ok) return new(false, "Could not eject the drive: " + r.StdErr.Trim());
+        await _delay(1500, ct);                                    // the verb returns before Windows has finished
+        var still = (await ListAsync(ct)).Any(d => d.MountPath.StartsWith(l + ":", StringComparison.OrdinalIgnoreCase));
+        return still ? new(false, "Windows could not eject the drive. Close anything that is using it (such as Explorer windows) and try again.")
+                     : new(true, "The drive was ejected. You can remove it now.");
+    }
 }

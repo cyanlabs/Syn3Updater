@@ -202,6 +202,15 @@ public partial class HomeViewModel : PageViewModel
         }
     }
 
+    public bool CanEjectSelected => SelectedDrive is { IsFolder: false, IsChooser: false };
+
+    [RelayCommand]
+    private async Task EjectSelectedAsync()
+    {
+        if (SelectedDrive is not { IsFolder: false, IsChooser: false } drive) return;
+        if (await EjectFlow.RunAsync(drive, drive.MountPath)) { SelectedDrive = null; await RefreshDrivesAsync(); }
+    }
+
     [RelayCommand]
     private async Task ChooseFolderAsync()
     {
@@ -226,6 +235,7 @@ public partial class HomeViewModel : PageViewModel
             SelectedDrive = null; return;
         }
         _lastSelection = value;
+        OnPropertyChanged(nameof(CanEjectSelected));
         DriveInfo = value == null ? "" : value.IsFolder ? value.MountPath
             : value.MountPath.Length > 0 ? $"Mounted at {value.MountPath}" : "Not mounted yet - it will be mounted automatically";
         if (value != null) Ctx.Log.Info($"USB Drive selected - Name: {value.Name} - FileSystem: {value.FileSystem} - PartitionType: {value.PartitionType} - Path: {value.MountPath}");
