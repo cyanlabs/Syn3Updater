@@ -213,7 +213,7 @@
   "App.SelectAll": "All",
   "App.SelectNone": "None",
   "App.Mode.autoinstall": "Installs the update over your current system.",
-  "App.Mode.reformat": "Reformats the APIM first, then installs. Takes longer.",
+  "App.Mode.reformat": "Reformats the APIM first, then installs. The preferred method for non-MY20 units.",
   "App.Mode.downgrade": "Downgrades the APIM first, then installs the selected version.",
   "App.NoMode": "Pick a version and maps to see the install mode.",
   "App.SelectedSummary": "{0} of {1} selected",
