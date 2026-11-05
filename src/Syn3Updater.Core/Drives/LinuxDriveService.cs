@@ -79,6 +79,40 @@ public class LinuxDriveService : IDriveService
         return v.ValueKind == JsonValueKind.String && long.TryParse(v.GetString(), out var l) ? l : 0;
     }
 
+    /// <summary>
+    /// Run as root through pkexec with the device as $1. Handles the two ways a re-used stick fails:
+    /// old filesystem signatures that reappear inside the new partition (e.g. "contains a ntfs signature"),
+    /// and desktop automounters mounting the fresh partition before mkfs can open it ("Device or resource busy").
+    /// </summary>
+    public const string FormatScript = """
+        set -eu
+        dev="$1"
+        err=$(mktemp); trap 'rm -f "$err"' EXIT
+        parts() { lsblk -nrpo PATH "$dev" | tail -n +2; }
+        release() { for p in $(parts); do umount -f "$p" 2>/dev/null || umount -l "$p" 2>/dev/null || true; done; }
+
+        release
+        for p in $(parts); do wipefs -a "$p" >/dev/null 2>&1 || true; done
+        wipefs -a "$dev" >/dev/null
+        dd if=/dev/zero of="$dev" bs=1M count=16 conv=fsync status=none
+
+        printf 'label: dos\n,,7\n' | sfdisk --quiet --wipe always --wipe-partitions always "$dev"
+        udevadm settle || true
+        sleep 1
+        part=$(lsblk -nrpo PATH "$dev" | sed -n 2p)
+        [ -n "$part" ] || { echo "partition not created" >&2; exit 1; }
+
+        ok=0
+        for i in 1 2 3 4 5 6; do
+          umount -f "$part" 2>/dev/null || umount -l "$part" 2>/dev/null || true
+          if mkfs.exfat -n CYANLABS "$part" >/dev/null 2>"$err"; then ok=1; break; fi
+          sleep 1
+        done
+        [ "$ok" = 1 ] || { cat "$err" >&2; exit 1; }
+        sync
+        echo "$part"
+        """;
+
     public async Task<string> FormatAsync(DriveInfoModel drive, IProgress<string> log, CancellationToken ct = default)
     {
         // Re-validate right before the destructive step: the device must still be a removable disk we would have listed.
@@ -92,20 +126,7 @@ public class LinuxDriveService : IDriveService
 
         log.Report($"Re-creating partition table as MBR and formatting {drive.DeviceId} as exFAT (authentication required)");
         // Arguments are passed positionally so nothing from the device list is ever interpolated into the script.
-        const string script = """
-            set -e
-            dev="$1"
-            for p in $(lsblk -nrpo PATH "$dev" | tail -n +2); do umount "$p" 2>/dev/null || true; done
-            wipefs -a "$dev" >/dev/null
-            printf 'label: dos\n,,7\n' | sfdisk --quiet "$dev"
-            udevadm settle || true
-            sleep 1
-            part=$(lsblk -nrpo PATH "$dev" | sed -n 2p)
-            [ -n "$part" ] || { echo "partition not created" >&2; exit 1; }
-            mkfs.exfat -n CYANLABS "$part" >/dev/null
-            echo "$part"
-            """;
-        var r = await ProcessRunner.RunAsync("pkexec", new[] { "/bin/sh", "-c", script, "format-usb", drive.DeviceId }, ct: ct, timeoutMs: 600_000);
+        var r = await ProcessRunner.RunAsync("pkexec", new[] { "/bin/sh", "-c", FormatScript, "format-usb", drive.DeviceId }, ct: ct, timeoutMs: 600_000);
         if (!r.Ok)
             throw new Drives.FormatException(r.ExitCode is 126 or 127 && string.IsNullOrWhiteSpace(r.StdErr)
                 ? "Authentication was cancelled." : $"Formatting failed: {r.StdErr.Trim()}");

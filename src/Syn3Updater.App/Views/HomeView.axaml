@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:d="using:Cyanlabs.Syn3Updater.Core.Drives" xmlns:m="using:Cyanlabs.Syn3Updater.Core.Models" x:Class="Cyanlabs.Syn3Updater.App.Views.HomeView">
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:d="using:Cyanlabs.Syn3Updater.Core.Drives" xmlns:ctl="using:Cyanlabs.Syn3Updater.App.Controls" xmlns:m="using:Cyanlabs.Syn3Updater.Core.Models" x:Class="Cyanlabs.Syn3Updater.App.Views.HomeView">
   <Grid RowDefinitions="*,Auto">
     <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled">
       <StackPanel MaxWidth="880" Spacing="16" Margin="32,28,32,24">
@@ -7,9 +7,16 @@
         <Grid ColumnDefinitions="*,Auto">
           <StackPanel Spacing="10">
             <TextBlock Text="{svc:T Main.Home}" Classes="title" />
-            <ItemsControl ItemsSource="{Binding ConfigChips}">
+            <ItemsControl ItemsSource="{Binding ConfigItems}">
               <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate><DataTemplate x:DataType="x:String"><Border Classes="chip"><TextBlock Text="{Binding}" /></Border></DataTemplate></ItemsControl.ItemTemplate>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:ConfigItem">
+                  <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,18,8">
+                    <TextBlock Text="{Binding Label, StringFormat={}{0}:}" Classes="muted" VerticalAlignment="Center" FontSize="13" />
+                    <Border Classes="chip" Margin="0"><TextBlock Text="{Binding Value}" /></Border>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
             </ItemsControl>
           </StackPanel>
           <Button Grid.Column="1" Content="{svc:T App.Edit}" Command="{Binding EditConfigCommand}" VerticalAlignment="Top" />
@@ -67,12 +74,19 @@
               <ComboBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" ItemsSource="{Binding MapVersions}" SelectedItem="{Binding SelectedMap}" PlaceholderText="{svc:T Home.MapVersion}" />
             </Grid>
             <ProgressBar IsIndeterminate="True" IsVisible="{Binding Loading}" Height="4" />
-            <Expander Header="{svc:T App.ReleaseNotes}" IsVisible="{Binding HasNotes}" Padding="8,6">
-              <StackPanel Spacing="8">
-                <SelectableTextBlock Text="{Binding Notes}" TextWrapping="Wrap" Classes="muted" />
-                <Button Content="{svc:T Home.FeedbackButton}" Command="{Binding OpenFeedbackCommand}" IsVisible="{Binding HasFeedback}" HorizontalAlignment="Left" />
-              </StackPanel>
-            </Expander>
+
+          </StackPanel>
+        </Border>
+
+        <!-- release notes: highlighted so they are not missed -->
+        <Border Classes="callout" IsVisible="{Binding HasNotes}">
+          <StackPanel Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <PathIcon Data="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" Foreground="{DynamicResource Brand}" Width="20" Height="20" />
+              <TextBlock Text="{svc:T App.ReleaseNotes}" FontWeight="SemiBold" Foreground="{DynamicResource Brand}" VerticalAlignment="Center" />
+            </StackPanel>
+            <ScrollViewer MaxHeight="220" HorizontalScrollBarVisibility="Disabled"><ctl:MarkdownText Text="{Binding Notes}" FontSize="13.5" /></ScrollViewer>
+            <Button Content="{svc:T Home.FeedbackButton}" Command="{Binding OpenFeedbackCommand}" IsVisible="{Binding HasFeedback}" HorizontalAlignment="Left" />
           </StackPanel>
         </Border>
 
@@ -84,13 +98,23 @@
               <Button Grid.Column="1" Classes="link" Content="{svc:T App.SelectAll}" Command="{Binding SelectAllCommand}" />
               <Button Grid.Column="2" Classes="link" Content="{svc:T App.SelectNone}" Command="{Binding SelectNoneCommand}" />
             </Grid>
+            <TextBlock Text="{Binding SelectionSummary}" Classes="muted" FontSize="13" />
             <ItemsControl ItemsSource="{Binding Packages}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:PackageRow">
-                  <Grid ColumnDefinitions="*,Auto" Margin="0,2">
-                    <CheckBox IsChecked="{Binding Selected}" Content="{Binding Display}" />
-                    <TextBlock Grid.Column="1" Text="{Binding SizeText}" Classes="label" VerticalAlignment="Center" />
-                  </Grid>
+                  <Button Classes="tile" Classes.selected="{Binding Selected}" Command="{Binding ToggleCommand}" Margin="0,0,0,8">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="14">
+                      <Border Width="44" Height="44" CornerRadius="12" Background="{Binding IconBackground}">
+                        <PathIcon Data="{Binding IconData}" Foreground="{Binding IconBrush}" Width="22" Height="22" />
+                      </Border>
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Subtitle}" Classes="label" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="2" Text="{Binding SizeText}" Classes="label" VerticalAlignment="Center" />
+                      <CheckBox Grid.Column="3" IsChecked="{Binding Selected}" IsHitTestVisible="False" MinWidth="0" Padding="0" />
+                    </Grid>
+                  </Button>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -102,12 +126,23 @@
     <!-- sticky action bar: what will happen + Start -->
     <Border Grid.Row="1" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,1,0,0" Padding="32,12">
       <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
-        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-          <TextBlock Text="{svc:T Home.InstallMode}" Classes="label" VerticalAlignment="Center" />
-          <Border Classes="badge" IsVisible="{Binding HasMode}"><TextBlock Text="{Binding InstallMode}" /></Border>
-          <Border Classes="chip" Margin="0" IsVisible="{Binding ModeIsForced}"><TextBlock Text="{svc:T Home.InstallModeForced}" /></Border>
-          <Button Classes="link" Content="{svc:T App.LearnMore}" Command="{Binding OpenInstructionsCommand}" IsVisible="{Binding HasMode}" />
-        </StackPanel>
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+          <Border Width="40" Height="40" CornerRadius="12" Background="{Binding ModeBackground}" IsVisible="{Binding HasMode}">
+            <PathIcon Data="{Binding ModeIcon}" Foreground="{Binding ModeBrush}" Width="20" Height="20" />
+          </Border>
+          <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1" IsVisible="{Binding HasMode}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="{Binding ModeTitle}" FontWeight="SemiBold" FontSize="15" Foreground="{Binding ModeBrush}" />
+              <Border Classes="chip" Margin="0" Padding="8,1" IsVisible="{Binding ModeIsForced}"><TextBlock Text="{svc:T Home.InstallModeForced}" FontSize="11" /></Border>
+            </StackPanel>
+            <TextBlock Text="{Binding ModeDescription}" Classes="label" TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+          <Button Grid.Column="2" Classes="link" Content="{svc:T App.LearnMore}" Command="{Binding OpenInstructionsCommand}" IsVisible="{Binding HasMode}" VerticalAlignment="Center" />
+          <StackPanel Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Center" IsVisible="{Binding !HasMode}">
+            <TextBlock Text="{svc:T Home.InstallMode}" Classes="label" />
+            <TextBlock Text="{svc:T App.NoMode}" Classes="muted" TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+        </Grid>
         <Button Grid.Column="1" Content="{svc:T Home.StartDownloadOnly}" Command="{Binding DownloadOnlyCommand}" IsEnabled="{Binding DownloadOnlyEnabled}" MinHeight="40" />
         <Button Grid.Column="2" Content="{svc:T Home.StartButton}" Classes="accent" Command="{Binding StartCommand}" IsEnabled="{Binding StartEnabled}" MinWidth="120" MinHeight="40" HorizontalContentAlignment="Center" FontWeight="SemiBold" />
       </Grid>

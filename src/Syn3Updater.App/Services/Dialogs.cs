@@ -9,7 +9,46 @@ using Avalonia.Threading;
 namespace Cyanlabs.Syn3Updater.App.Services;
 
 /// <summary>Modal message boxes plus file/folder pickers and URL launching, all marshalled onto the UI thread.</summary>
+/// <summary>Everything the app asks of the UI layer. Tests replace the backend with a scripted fake.</summary>
+public interface IDialogBackend
+{
+    Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex);
+    Task<string?> PickFolder(string title);
+    Task<string?> PickFile(string title, string filterName, string[] patterns);
+    Task SetClipboard(string text);
+    Task OpenUrl(string url);
+}
+
 public static class Dialogs
+{
+    public static IDialogBackend Backend { get; set; } = new AvaloniaDialogBackend();
+    public static Window? MainWindow => DialogsImpl.MainWindow;
+
+    public static Task Error(string message) => Backend.Show(message, Ctx.T("String.Error"), new[] { Ctx.T("String.OK") }, false, true, 0);
+    public static Task Info(string message, string? title = null) => Backend.Show(message, title ?? Ctx.T("String.Notice"), new[] { Ctx.T("String.OK") }, false, false, 0);
+
+    /// <summary>Yes/No question. Returns true for yes.</summary>
+    public static async Task<bool> Confirm(string message, string? title = null, string? yes = null, string? no = null, bool warning = false) =>
+        await Backend.Show(message, title ?? Ctx.T("String.Notice"), new[] { no ?? Ctx.T("String.No"), yes ?? Ctx.T("String.Yes") }, warning, false, 0) == 1;
+
+    public static Task<int> Show(string message, string title, string[] buttons, int defaultIndex = 0) => Backend.Show(message, title, buttons, false, false, defaultIndex);
+    public static Task<string?> PickFolder(string title) => Backend.PickFolder(title);
+    public static Task<string?> PickFile(string title, string filterName, params string[] patterns) => Backend.PickFile(title, filterName, patterns);
+    public static Task SetClipboard(string text) => Backend.SetClipboard(text);
+    public static Task OpenUrl(string url) => Backend.OpenUrl(url);
+}
+
+internal sealed class AvaloniaDialogBackend : IDialogBackend
+{
+    public Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex) =>
+        DialogsImpl.Show(message, title, buttons, error ? Brushes.Firebrick : warning ? Brushes.DarkOrange : null, defaultIndex);
+    public Task<string?> PickFolder(string title) => DialogsImpl.PickFolder(title);
+    public Task<string?> PickFile(string title, string filterName, string[] patterns) => DialogsImpl.PickFile(title, filterName, patterns);
+    public Task SetClipboard(string text) => DialogsImpl.SetClipboard(text);
+    public Task OpenUrl(string url) => DialogsImpl.OpenUrl(url);
+}
+
+public static class DialogsImpl
 {
     public static Window? MainWindow =>
         (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
@@ -17,13 +56,7 @@ public static class Dialogs
     private static Task<T> OnUi<T>(Func<Task<T>> f) =>
         Dispatcher.UIThread.CheckAccess() ? f() : Dispatcher.UIThread.InvokeAsync(f);
 
-    public static Task Error(string message) => Show(message, Ctx.T("String.Error"), new[] { Ctx.T("String.OK") }, accent: Brushes.Firebrick);
-    public static Task Info(string message, string? title = null) => Show(message, title ?? Ctx.T("String.Notice"), new[] { Ctx.T("String.OK") });
 
-    /// <summary>Yes/No question. Returns true for yes.</summary>
-    public static async Task<bool> Confirm(string message, string? title = null, string? yes = null, string? no = null, bool warning = false) =>
-        await Show(message, title ?? Ctx.T("String.Notice"), new[] { no ?? Ctx.T("String.No"), yes ?? Ctx.T("String.Yes") },
-            accent: warning ? Brushes.DarkOrange : null, defaultIndex: 0) == 1;
 
     public static Task<int> Show(string message, string title, string[] buttons, IBrush? accent = null, int defaultIndex = 0) => OnUi(async () =>
     {
@@ -97,7 +130,7 @@ public static class Dialogs
         catch (Exception)
         {
             await SetClipboard(url);
-            await Info(Ctx.T("MessageBox.NoBrowser"));
+            await Dialogs.Info(Ctx.T("MessageBox.NoBrowser"));
         }
     }
 }

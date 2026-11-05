@@ -31,7 +31,6 @@
             <StackPanel Spacing="6"><TextBlock Text="{svc:T Settings.DownloadConnections}" Classes="label" /><ComboBox ItemsSource="{Binding ConnectionOptions}" SelectedItem="{Binding Connections}" /></StackPanel>
             <StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="{svc:T Settings.MapKey}" Classes="label" /><TextBox Text="{Binding LicenseKey}" /></StackPanel>
           </Grid>
-          <StackPanel Spacing="6"><TextBlock Text="CyanLabs API token (or set SYN3_API_TOKEN)" Classes="label" /><TextBox Text="{Binding ApiToken}" PasswordChar="•" /></StackPanel>
         </StackPanel>
       </Border>
 
@@ -46,14 +45,6 @@
         </StackPanel>
       </Border>
 
-      <Border Classes="card">
-        <StackPanel Spacing="12">
-          <TextBlock Text="{svc:T App.Sponsor}" Classes="section" />
-          <StackPanel Spacing="6"><TextBlock Text="Banner image URL (728x90)" Classes="label" /><TextBox Text="{Binding AdImageUrl}" Watermark="https://example.com/banner.png" /></StackPanel>
-          <StackPanel Spacing="6"><TextBlock Text="Click-through URL" Classes="label" /><TextBox Text="{Binding AdLinkUrl}" /></StackPanel>
-          <CheckBox IsChecked="{Binding ShowAdSlot}" Content="Show the ad space (placeholder when no banner is set)" />
-        </StackPanel>
-      </Border>
 
       <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="10">
         <Button Content="{svc:T Settings.Apply}" Classes="accent" Command="{Binding ApplyClickCommand}" MinWidth="130" />

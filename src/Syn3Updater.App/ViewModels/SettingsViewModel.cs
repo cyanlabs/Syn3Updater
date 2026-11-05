@@ -53,11 +53,7 @@ public partial class SettingsViewModel : PageViewModel
     [ObservableProperty] private string _downloadPath = "";
     [ObservableProperty] private string _logPath = "";
     [ObservableProperty] private string _licenseKey = "";
-    [ObservableProperty] private string _apiToken = "";
     [ObservableProperty] private bool _advanced;
-    [ObservableProperty] private string _adImageUrl = "";
-    [ObservableProperty] private string _adLinkUrl = "";
-    [ObservableProperty] private bool _showAdSlot = true;
     [ObservableProperty] private string _message = "";
 
     private bool _loading;
@@ -83,10 +79,9 @@ public partial class SettingsViewModel : PageViewModel
         My20 = My20Options[p.My20v2 switch { null => 0, true => 1, false => 2 }];
         Mode = ModeOptions.FirstOrDefault(o => o.Value == p.InstallMode) ?? ModeOptions[0];
         Theme = ThemeOptions.FirstOrDefault(o => o.Value == (m.Theme ?? "Dark")) ?? ThemeOptions[0];
-        AdImageUrl = m.AdImageUrl ?? ""; AdLinkUrl = m.AdLinkUrl ?? ""; ShowAdSlot = m.ShowAdSlot;
         Connections = Math.Clamp(p.DownloadConnections, 1, 8);
         DownloadPath = m.DownloadPath ?? ""; LogPath = m.LogPath ?? "";
-        LicenseKey = m.LicenseKey ?? ""; ApiToken = m.ApiToken ?? "";
+        LicenseKey = m.LicenseKey ?? "";
         Advanced = false; Message = "";
         _loading = false; _dirty = false;
     }
@@ -166,11 +161,6 @@ public partial class SettingsViewModel : PageViewModel
         m.Lang = Language?.Code ?? m.Lang;
         m.Theme = Theme?.Value ?? "Default";
         m.LicenseKey = LicenseKey.Trim();
-        m.AdImageUrl = string.IsNullOrWhiteSpace(AdImageUrl) ? null : AdImageUrl.Trim();
-        m.AdLinkUrl = string.IsNullOrWhiteSpace(AdLinkUrl) ? null : AdLinkUrl.Trim();
-        m.ShowAdSlot = ShowAdSlot;
-        _ = MainWindowViewModel.Instance.LoadAdAsync();
-        m.ApiToken = string.IsNullOrWhiteSpace(ApiToken) ? null : ApiToken.Trim();
         var before = (p.CurrentRegion, p.CurrentVersion, p.CurrentNav, p.My20v2, p.InstallMode);
         p.CurrentRegion = Region?.Code;
         p.CurrentVersion = digits.Length == 7 ? int.Parse(digits) : 0;

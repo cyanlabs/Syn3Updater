@@ -24,14 +24,52 @@ public class MapItem
     public override string ToString() => Display;
 }
 
+/// <summary>How each package type is presented: friendly name, icon and colour.</summary>
+public static class PackageStyle
+{
+    public record Info(string Label, string Icon, string Color);
+    private static readonly Dictionary<string, Info> Map = new()
+    {
+        ["APPS"] = new("Apps", "M4,8H8V4H4V8M10,20H14V16H10V20M4,20H8V16H4V20M4,14H8V10H4V14M10,14H14V10H10V14M16,4V8H20V4H16M10,8H14V4H10V8M16,14H20V10H16V14M16,20H20V16H16V20Z", "#2fa1ab"),
+        ["MAP"] = new("Navigation map", "M15,19L9,16.89V5L15,7.11M20.5,3C20.4,3 20.4,3 20.3,3L15,5.1L9,3L3.4,4.9C3.2,5 3,5.2 3,5.5V20.5A0.5,0.5 0 0,0 3.5,21C3.6,21 3.6,21 3.7,21L9,18.9L15,21L20.6,19.1C20.8,19 21,18.8 21,18.5V3.5A0.5,0.5 0 0,0 20.5,3Z", "#4cc38a"),
+        ["MAP_LICENSE"] = new("Map licence", "M7,14A2,2 0 0,1 5,12A2,2 0 0,1 7,10A2,2 0 0,1 9,12A2,2 0 0,1 7,14M12.65,10C11.83,7.67 9.61,6 7,6A6,6 0 0,0 1,12A6,6 0 0,0 7,18C9.61,18 11.83,16.33 12.65,14H17V18H21V14H23V10H12.65Z", "#e0b341"),
+        ["VOICE"] = new("Voice (navigation prompts)", "M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z", "#a77bff"),
+        ["GRACENOTES"] = new("Gracenotes (album info)", "M12,3V13.55C11.41,13.21 10.73,13 10,13A4,4 0 0,0 6,17A4,4 0 0,0 10,21A4,4 0 0,0 14,17V7H18V3H12Z", "#f06fa6"),
+        ["ENH_DAB"] = new("DAB radio", "M20,6H8.3L16.8,2.5L16.2,1L3.2,6.4C2.5,6.7 2,7.3 2,8V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V8A2,2 0 0,0 20,6M7,20A3,3 0 0,1 4,17A3,3 0 0,1 7,14A3,3 0 0,1 10,17A3,3 0 0,1 7,20M20,12H18V10H16V12H4V8H20V12Z", "#4f8cff"),
+        ["TOOL"] = new("Tool", "M22.7,19L13.6,9.9C14.5,7.6 14,4.9 12.1,3C10.1,1 7.1,0.6 4.7,1.7L9,6L6,9L1.6,4.7C0.4,7.1 0.9,10.1 2.9,12.1C4.8,14 7.5,14.5 9.8,13.6L18.9,22.7C19.3,23.1 19.9,23.1 20.3,22.7L22.6,20.4C23.1,20 23.1,19.3 22.7,19Z", "#f08a3c"),
+    };
+    private static readonly Info Fallback = new("Package", "M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5Z", "#93a3a9");
+    public static Info For(string? type) => type != null && Map.TryGetValue(type.ToUpperInvariant(), out var i) ? i : Fallback;
+}
+
 public partial class PackageRow : ObservableObject
 {
     public Ivsu Ivsu { get; }
     [ObservableProperty] private bool _selected = true;
-    public PackageRow(Ivsu i) { Ivsu = i; }
+    public event Action? SelectionChanged;
+    public PackageRow(Ivsu i)
+    {
+        Ivsu = i;
+        var s = PackageStyle.For(i.Type);
+        TypeLabel = s.Label; IconData = s.Icon;
+        var c = Avalonia.Media.Color.Parse(s.Color);
+        IconBrush = new Avalonia.Media.SolidColorBrush(c);
+        IconBackground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromArgb(0x33, c.R, c.G, c.B));
+    }
+    partial void OnSelectedChanged(bool value) => SelectionChanged?.Invoke();
+    [RelayCommand] private void Toggle() => Selected = !Selected;
+
+    public string TypeLabel { get; }
+    public string IconData { get; }
+    public Avalonia.Media.IBrush IconBrush { get; }
+    public Avalonia.Media.IBrush IconBackground { get; }
     public string Display => $"{Ivsu.Type} - {Ivsu.Name}{(string.IsNullOrEmpty(Ivsu.Version) ? "" : " " + Ivsu.Version)}";
+    public string Title => Ivsu.Name;
+    public string Subtitle => string.IsNullOrEmpty(Ivsu.Version) ? TypeLabel : $"{TypeLabel}  ·  {Ivsu.Version}";
     public string SizeText => Format.Bytes(Ivsu.FileSize);
 }
+
+public record ConfigItem(string Label, string Value);
 
 public partial class HomeViewModel : PageViewModel
 {
@@ -67,7 +105,15 @@ public partial class HomeViewModel : PageViewModel
     [ObservableProperty] private bool _configMissing;
     [ObservableProperty] private bool _noDrives;
     [ObservableProperty] private string _installDocsUrl = "";
-    public ObservableCollection<string> ConfigChips { get; } = new();
+    public ObservableCollection<ConfigItem> ConfigItems { get; } = new();
+    [ObservableProperty] private string _selectionSummary = "";
+
+    // install mode presentation
+    [ObservableProperty] private string _modeTitle = "";
+    [ObservableProperty] private string _modeDescription = "";
+    [ObservableProperty] private Avalonia.Media.IBrush _modeBrush = Avalonia.Media.Brushes.Gray;
+    [ObservableProperty] private Avalonia.Media.IBrush _modeBackground = Avalonia.Media.Brushes.Transparent;
+    [ObservableProperty] private string _modeIcon = "";
 
     private bool _suppress;
     private string _releaseNotes = "", _mapNotes = "";
@@ -79,7 +125,7 @@ public partial class HomeViewModel : PageViewModel
     public bool HasFeedback => !string.IsNullOrEmpty(FeedbackUrl);
     public bool ModeIsForced => Ctx.ModeForced;
     partial void OnNotesChanged(string value) => OnPropertyChanged(nameof(HasNotes));
-    partial void OnInstallModeChanged(string value) { OnPropertyChanged(nameof(HasMode)); OnPropertyChanged(nameof(ModeIsForced)); }
+    partial void OnInstallModeChanged(string value) { OnPropertyChanged(nameof(HasMode)); OnPropertyChanged(nameof(ModeIsForced)); UpdateModePresentation(); }
     partial void OnFeedbackUrlChanged(string? value) => OnPropertyChanged(nameof(HasFeedback));
 
     public HomeViewModel()
@@ -101,15 +147,15 @@ public partial class HomeViewModel : PageViewModel
         ProfileName = Ctx.Main.Profile;
         DownloadPath = Ctx.Main.DownloadPath ?? "";
         ConfigMissing = (p.CurrentVersion ?? 0) == 0 || string.IsNullOrEmpty(p.CurrentRegion);
-        ConfigChips.Clear();
+        ConfigItems.Clear();
         if (!ConfigMissing)
         {
-            ConfigChips.Add(p.VersionString);
-            ConfigChips.Add(p.CurrentRegion!);
-            ConfigChips.Add(Ctx.T(p.CurrentNav ? "Home.Nav" : "String.NonNavAPIM"));
+            ConfigItems.Add(new(Ctx.T("Home.Version"), p.VersionString));
+            ConfigItems.Add(new(Ctx.T("Home.Region"), p.CurrentRegion!));
+            ConfigItems.Add(new(Ctx.T("Home.Nav"), CurrentNav));
         }
-        ConfigChips.Add($"{Ctx.T("Home.MY20Protection")}: {My20Text}");
-        ConfigChips.Add($"{Ctx.T("Home.Profile")}: {Ctx.Main.Profile}");
+        ConfigItems.Add(new(Ctx.T("Home.MY20Protection"), My20Text));
+        ConfigItems.Add(new(Ctx.T("Home.Profile"), Ctx.Main.Profile));
         if (SelectedRegion == null && Regions.FirstOrDefault(r => r.Code == p.CurrentRegion) is { } r0)
             SelectedRegion = r0;
     }
@@ -212,7 +258,7 @@ public partial class HomeViewModel : PageViewModel
         _suppress = true;
         SelectedMap = null; MapVersions.Clear(); Packages.Clear(); _mapNotes = "";
         _suppress = false;
-        _releaseNotes = rel.Release?.Notes is { Length: > 0 } n ? "Release Notes:\n" + n : "";
+        _releaseNotes = rel.Release?.Notes is { Length: > 0 } n ? n : "";
         FeedbackUrl = rel.Release?.FeedbackUrl;
         Notes = _releaseNotes;
         UpdateButtons();
@@ -252,9 +298,9 @@ public partial class HomeViewModel : PageViewModel
     {
         var rel = SelectedRelease; var region = SelectedRegion;
         if (rel == null || region == null) return;
-        Packages.Clear();
-        _mapNotes = map.Release?.Notes is { Length: > 0 } n ? "Map Release Notes:\n" + n + "\n\n" : "";
-        Notes = _mapNotes + _releaseNotes;
+        Packages.Clear(); UpdateSelectionSummary();
+        _mapNotes = map.Release?.Notes is { Length: > 0 } n ? n : "";
+        Notes = ComposeNotes(_releaseNotes, _mapNotes);
         ResolveInstallMode();
 
         Loading = true;
@@ -266,19 +312,54 @@ public partial class HomeViewModel : PageViewModel
                 var root = await Ctx.Api.GetReleaseIvsus(rel.Release!.Name, navType);
                 foreach (var ri in root.Releases?.FirstOrDefault()?.Ivsus?.Where(x => x.Ivsu != null) ?? Enumerable.Empty<ReleaseIvsu>())
                     if (ri.Ivsu!.Regions?.Contains("ALL") == true || ri.Ivsu.Regions?.Contains(region.Code) == true)
-                        Packages.Add(new PackageRow(ri.Ivsu.ToIvsu()));
+                        AddRow(ri.Ivsu.ToIvsu());
             }
             if (map.Kind == MapChoice.MapPackage && map.Release != null)
             {
                 var root = await Ctx.Api.GetMapReleaseIvsus(map.Release.Name);
                 foreach (var ri in root.MapReleases?.FirstOrDefault()?.Ivsus?.Where(x => x.MapIvsu != null) ?? Enumerable.Empty<ReleaseIvsu>())
                     if (ri.MapIvsu!.Regions?.Contains("ALL") == true || ri.MapIvsu.Regions?.Contains(region.Code) == true)
-                        Packages.Add(new PackageRow(ri.MapIvsu.ToIvsu()));
+                        AddRow(ri.MapIvsu.ToIvsu());
             }
         }
         catch (ApiException e) { await ShowApiError(e); }
         finally { Loading = false; }
         UpdateButtons();
+    }
+
+    /// <summary>Release and map notes share one callout; headings are only needed when both are present.</summary>
+    public static string ComposeNotes(string release, string map) =>
+        release.Length > 0 && map.Length > 0 ? $"### Release notes\n{release}\n\n### Map release notes\n{map}"
+        : release.Length > 0 ? release : map;
+
+    private void AddRow(Ivsu ivsu)
+    {
+        var row = new PackageRow(ivsu);
+        row.SelectionChanged += UpdateSelectionSummary;
+        Packages.Add(row);
+        UpdateSelectionSummary();
+    }
+
+    private void UpdateSelectionSummary()
+    {
+        var chosen = Packages.Where(r => r.Selected).ToList();
+        SelectionSummary = Packages.Count == 0 ? "" : $"{chosen.Count} of {Packages.Count} selected  ·  {Format.Bytes(chosen.Sum(r => r.Ivsu.FileSize))}";
+    }
+
+    /// <summary>Title, one-line explanation, colour and icon for the install mode shown in the action bar.</summary>
+    private void UpdateModePresentation()
+    {
+        var (title, desc, colour, icon) = InstallMode switch
+        {
+            InstallModes.Reformat => ("Reformat", Ctx.T("App.Mode.reformat"), "#e8a23a", "M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"),
+            InstallModes.Downgrade => ("Downgrade", Ctx.T("App.Mode.downgrade"), "#e5645b", "M9,4H15V12H19.84L12,19.84L4.16,12H9V4Z"),
+            InstallModes.Autoinstall => ("AutoInstall", Ctx.T("App.Mode.autoinstall"), "#2fa1ab", "M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"),
+            _ => ("", "", "#93a3a9", ""),
+        };
+        var c = Avalonia.Media.Color.Parse(colour);
+        ModeTitle = title; ModeDescription = desc; ModeIcon = icon;
+        ModeBrush = new Avalonia.Media.SolidColorBrush(c);
+        ModeBackground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromArgb(0x2e, c.R, c.G, c.B));
     }
 
     private void ResolveInstallMode()
@@ -357,8 +438,8 @@ public partial class HomeViewModel : PageViewModel
 
     [RelayCommand] private void EditConfig() => MainWindowViewModel.Instance.ShowSettings();
     [RelayCommand] private Task OpenInstructionsAsync() => Dialogs.OpenUrl(string.IsNullOrEmpty(InstallDocsUrl) ? ApiEndpoints.DocsBase : InstallDocsUrl);
-    [RelayCommand] private void SelectAll() { foreach (var r in Packages) r.Selected = true; }
-    [RelayCommand] private void SelectNone() { foreach (var r in Packages) r.Selected = false; }
+    [RelayCommand] private void SelectAll() { foreach (var r in Packages) r.Selected = true; UpdateSelectionSummary(); }
+    [RelayCommand] private void SelectNone() { foreach (var r in Packages) r.Selected = false; UpdateSelectionSummary(); }
 
     [RelayCommand] private Task OpenFeedbackAsync() => FeedbackUrl is { Length: > 0 } u ? Dialogs.OpenUrl(u) : Task.CompletedTask;
 }

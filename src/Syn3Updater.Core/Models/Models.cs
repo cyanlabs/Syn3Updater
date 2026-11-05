@@ -153,8 +153,6 @@ public class MainSettings
     public string? Theme { get; set; }
     public string? LogPath { get; set; }
     public string Profile { get; set; } = "default";
-    /// <summary>Bearer token for the CyanLabs API. SYN3_API_TOKEN overrides this.</summary>
-    public string? ApiToken { get; set; }
     /// <summary>Sponsor/ad banner: image to show and the page it opens. When both are empty a placeholder is shown if ShowAdSlot is true.</summary>
     public string? AdImageUrl { get; set; }
     public string? AdLinkUrl { get; set; }

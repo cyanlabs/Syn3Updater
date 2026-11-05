@@ -120,7 +120,7 @@ public class EndToEndTests : IDisposable
     [SkippableLiveFact]
     public async Task LiveApi_ReturnsReleasesAndSpecialPackages()
     {
-        var api = new ApiClient(new HttpClient(), () => Environment.GetEnvironmentVariable("SYN3_API_TOKEN"), () => "");
+        var api = new ApiClient(new HttpClient(), ApiClient.ResolveToken, () => "");
         var rel = await api.GetReleases("NA");
         Assert.NotEmpty(rel.Releases!);
         var first = rel.Releases![0];
@@ -136,6 +136,6 @@ public sealed class SkippableLiveFactAttribute : FactAttribute
 {
     public SkippableLiveFactAttribute()
     {
-        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SYN3_API_TOKEN"))) Skip = "set SYN3_API_TOKEN to run live API tests";
+        if (!ApiClient.HasToken) Skip = "no API token compiled in (secrets/api-token.txt) or set in SYN3_API_TOKEN";
     }
 }

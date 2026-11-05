@@ -27,8 +27,8 @@ public static class ApiEndpoints
 public class ApiException(string message, Exception? inner = null) : Exception(message, inner);
 
 /// <summary>
-/// Talks to the CyanLabs GraphQL backend. The bearer token is not part of the source:
-/// set it in Settings or with the SYN3_API_TOKEN environment variable.
+/// Talks to the CyanLabs GraphQL backend. The bearer token is not part of the source: it is generated into
+/// the build from the git-ignored secrets/api-token.txt (or SYN3_API_TOKEN).
 /// </summary>
 public class ApiClient
 {
@@ -46,11 +46,14 @@ public class ApiClient
         _http = http; _token = tokenProvider; _licenseKey = licenseKeyProvider;
     }
 
-    public static string? ResolveToken(string? configured)
+    /// <summary>The compiled-in token (see secrets/README.md). SYN3_API_TOKEN at runtime overrides it for development.</summary>
+    public static string? ResolveToken()
     {
         var env = Environment.GetEnvironmentVariable("SYN3_API_TOKEN");
-        return !string.IsNullOrWhiteSpace(env) ? env : configured;
+        return !string.IsNullOrWhiteSpace(env) ? env : (ApiSecret.Token.Length > 0 ? ApiSecret.Token : null);
     }
+
+    public static bool HasToken => ResolveToken() != null;
 
     /// <summary>Escapes a value for use inside a GraphQL string literal.</summary>
     public static string Esc(string? s) => (s ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", " ").Replace("\r", " ");

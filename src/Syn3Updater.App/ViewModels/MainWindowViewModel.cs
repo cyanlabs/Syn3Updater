@@ -44,7 +44,7 @@ public partial class MainWindowViewModel : ObservableObject
             AdImage = new Avalonia.Media.Imaging.Bitmap(new MemoryStream(bytes));
             AdHasImage = true;
         }
-        catch (Exception e) when (e is HttpRequestException or TaskCanceledException or ArgumentException or InvalidOperationException)
+        catch (Exception e)   // an ad that fails to load (network, bad image data) must never affect the app
         {
             Ctx.Log.Debug("Ad image not loaded: " + e.Message);
         }

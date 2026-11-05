@@ -101,6 +101,33 @@
     <Style Selector="Button.nav TextBlock"><Setter Property="Foreground" Value="{DynamicResource Muted}" /><Setter Property="FontSize" Value="14" /></Style>
     <Style Selector="Button.nav.active TextBlock"><Setter Property="Foreground" Value="{DynamicResource Brand}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
 
+
+    <!-- package tiles, callouts and colour accents -->
+    <Style Selector="Button.tile"><Setter Property="Background" Value="Transparent" /><Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="12" /><Setter Property="Padding" Value="12" /><Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /></Style>
+    <Style Selector="Button.tile:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource ChipBg}" /><Setter Property="BorderBrush" Value="{DynamicResource Muted}" /></Style>
+    <Style Selector="Button.tile.selected /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource BrandSoft}" /><Setter Property="BorderBrush" Value="{DynamicResource Brand}" /></Style>
+    <Style Selector="Border.callout"><Setter Property="Background" Value="{DynamicResource BrandSoft}" /><Setter Property="BorderBrush" Value="{DynamicResource Brand}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="12" /><Setter Property="Padding" Value="18,14" /></Style>
+
+    <Style Selector="Border.ico"><Setter Property="HorizontalAlignment" Value="Left" /><Setter Property="Width" Value="38" /><Setter Property="Height" Value="38" /><Setter Property="CornerRadius" Value="11" /></Style>
+    <Style Selector="Border.ico > PathIcon"><Setter Property="Width" Value="20" /><Setter Property="Height" Value="20" /></Style>
+    <Style Selector="Border.ico.teal"><Setter Property="Background" Value="#332fa1ab" /></Style><Style Selector="Border.ico.teal > PathIcon"><Setter Property="Foreground" Value="#2fa1ab" /></Style>
+    <Style Selector="Border.ico.blue"><Setter Property="Background" Value="#334f8cff" /></Style><Style Selector="Border.ico.blue > PathIcon"><Setter Property="Foreground" Value="#4f8cff" /></Style>
+    <Style Selector="Border.ico.amber"><Setter Property="Background" Value="#33f0a43c" /></Style><Style Selector="Border.ico.amber > PathIcon"><Setter Property="Foreground" Value="#f0a43c" /></Style>
+    <Style Selector="Border.ico.purple"><Setter Property="Background" Value="#33a77bff" /></Style><Style Selector="Border.ico.purple > PathIcon"><Setter Property="Foreground" Value="#a77bff" /></Style>
+    <Style Selector="Border.ico.pink"><Setter Property="Background" Value="#33f06fa6" /></Style><Style Selector="Border.ico.pink > PathIcon"><Setter Property="Foreground" Value="#f06fa6" /></Style>
+    <Style Selector="Border.ico.green"><Setter Property="Background" Value="#334cc38a" /></Style><Style Selector="Border.ico.green > PathIcon"><Setter Property="Foreground" Value="#4cc38a" /></Style>
+    <Style Selector="Border.ico.red"><Setter Property="Background" Value="#33ef6b62" /></Style><Style Selector="Border.ico.red > PathIcon"><Setter Property="Foreground" Value="#ef6b62" /></Style>
+    <Style Selector="Border.ico.orange"><Setter Property="Background" Value="#33f08a3c" /></Style><Style Selector="Border.ico.orange > PathIcon"><Setter Property="Foreground" Value="#f08a3c" /></Style>
+
+    <Style Selector="Border.card.teal"><Setter Property="Background" Value="#142fa1ab" /><Setter Property="BorderBrush" Value="#552fa1ab" /></Style>
+    <Style Selector="Border.card.blue"><Setter Property="Background" Value="#144f8cff" /><Setter Property="BorderBrush" Value="#554f8cff" /></Style>
+    <Style Selector="Border.card.amber"><Setter Property="Background" Value="#14f0a43c" /><Setter Property="BorderBrush" Value="#55f0a43c" /></Style>
+    <Style Selector="Border.card.purple"><Setter Property="Background" Value="#14a77bff" /><Setter Property="BorderBrush" Value="#55a77bff" /></Style>
+    <Style Selector="Border.card.pink"><Setter Property="Background" Value="#14f06fa6" /><Setter Property="BorderBrush" Value="#55f06fa6" /></Style>
+    <Style Selector="Border.card.green"><Setter Property="Background" Value="#144cc38a" /><Setter Property="BorderBrush" Value="#554cc38a" /></Style>
+    <Style Selector="Border.card.red"><Setter Property="Background" Value="#14ef6b62" /><Setter Property="BorderBrush" Value="#55ef6b62" /></Style>
+    <Style Selector="Border.card.orange"><Setter Property="Background" Value="#14f08a3c" /><Setter Property="BorderBrush" Value="#55f08a3c" /></Style>
+
     <!-- queue status dot -->
     <Style Selector="Ellipse.dot"><Setter Property="Width" Value="12" /><Setter Property="Height" Value="12" /><Setter Property="Stroke" Value="{DynamicResource Muted}" /><Setter Property="StrokeThickness" Value="2" /></Style>
     <Style Selector="Ellipse.dot.active"><Setter Property="Stroke" Value="{DynamicResource Brand}" /><Setter Property="Fill" Value="{DynamicResource BrandSoft}" /></Style>

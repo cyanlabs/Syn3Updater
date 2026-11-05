@@ -13,10 +13,12 @@ scripts/install-linux.sh       # build + install a launcher entry (Linux)
 scripts/publish.sh             # self-contained builds for all platforms -> artifacts/<rid>/
 ```
 
-## API token
+## API token (build-time, never committed)
 
-The CyanLabs backend needs a bearer token. It is **not** in this repository. Set it in
-*Settings > CyanLabs API token* (stored in your per-user settings file), or export `SYN3_API_TOKEN`.
+The CyanLabs backend needs a bearer token. It is compiled into the app at build time from the git-ignored file
+`secrets/api-token.txt` (one line), or from the `SYN3_API_TOKEN` environment variable (wins, handy for CI).
+See `secrets/README.md`. It is not a user setting and never appears in the UI or in git.
+Without a token the app still builds, but API calls are rejected.
 
 ## Platform notes
 
@@ -47,6 +49,9 @@ headless backend (nothing is shown on screen). Useful for checking layouts at di
 
 ## Tests
 
-`dotnet test` - includes an end-to-end run against a local HTTP server. Set `SYN3_API_TOKEN` to also run the live-API test.
+`dotnet test` runs ~150 tests: core logic, view-models driven through the real workflow with a fake API/dialogs, an end-to-end
+download/copy run against a local HTTP server, and a live-API check (runs when a token is compiled in).
+`scripts/coverage.sh` prints per-class line coverage (about 95% excluding the third-party partition algorithm, XAML-generated
+code, the OS window dialogs and macOS `diskutil` calls).
 
 Licensed GPL-3.0 (see `LICENSE`).

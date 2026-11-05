@@ -26,18 +26,18 @@ public static class Ctx
         Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0] ?? "3.0.0";
     public static string Branch => "Stable";
 
-    public static void Init(string? dataDirOverride = null)
+    public static void Init(string? dataDirOverride = null, HttpMessageHandler? handler = null)
     {
         Paths = new AppPaths(dataDirOverride ?? Environment.GetEnvironmentVariable("SYN3_DATA_DIR"));
         Store = new SettingsStore(Paths);
         Store.Load();
         Store.Save();
 
-        Http = new HttpClient(new SocketsHttpHandler { AllowAutoRedirect = true, MaxConnectionsPerServer = 8 })
+        Http = new HttpClient(handler ?? new SocketsHttpHandler { AllowAutoRedirect = true, MaxConnectionsPerServer = 8 })
         { Timeout = TimeSpan.FromMinutes(5) };
         Http.DefaultRequestHeaders.UserAgent.TryParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/86.0");
 
-        Api = new ApiClient(Http, () => ApiClient.ResolveToken(Main.ApiToken), () => Main.LicenseKey ?? "");
+        Api = new ApiClient(Http, ApiClient.ResolveToken, () => Main.LicenseKey ?? "");
         Files = new FileService(Http);
         Drives = DriveServiceFactory.Create();
         Runner = new UpdateRunner(Drives, Files, Log);

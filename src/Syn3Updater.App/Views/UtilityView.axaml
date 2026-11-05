@@ -4,9 +4,12 @@
       <TextBlock Text="{svc:T Main.Utility}" Classes="title" />
 
       <!-- shared destination -->
-      <Border Classes="card">
-        <StackPanel Spacing="10">
-          <TextBlock Text="{svc:T Utility.SelectUSBDrive}" Classes="section" />
+      <Border Classes="card teal">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+            <Border Classes="ico teal"><PathIcon Data="M15,7V11H16V13H13V5H15L12,1L9,5H11V13H8V10.93C8.7,10.56 9.2,9.85 9.2,9C9.2,7.8 8.2,6.8 7,6.8C5.8,6.8 4.8,7.8 4.8,9C4.8,9.85 5.3,10.56 6,10.93V13A2,2 0 0,0 8,15H11V18.05C10.3,18.4 9.8,19.1 9.8,20C9.8,21.1 10.7,22 11.8,22C12.9,22 13.8,21.1 13.8,20C13.8,19.1 13.3,18.4 12.6,18.05V15H16A2,2 0 0,0 18,13V11H19V7H15Z" /></Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1"><TextBlock Text="{svc:T Utility.SelectUSBDrive}" Classes="section" /></StackPanel>
+          </Grid>
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
             <ComboBox ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive}" MinHeight="48" PlaceholderText="{svc:T Utility.SelectUSBDrive}">
               <ComboBox.ItemTemplate>
@@ -22,19 +25,21 @@
       </Border>
 
       <!-- interrogator -->
-      <Border Classes="card">
-        <StackPanel Spacing="12">
-          <TextBlock Text="{svc:T Utility.CreateLogTitle}" Classes="section" />
-          <TextBlock Text="{svc:T Utility.CreateLogDesc}" Classes="muted" TextWrapping="Wrap" />
+      <Border Classes="card blue">
+        <StackPanel Spacing="14">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+            <Border Classes="ico blue"><PathIcon Data="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,9V3.5L18.5,9H13Z" /></Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1"><TextBlock Text="{svc:T Utility.CreateLogTitle}" Classes="section" /><TextBlock Text="{svc:T Utility.CreateLogDesc}" Classes="muted" TextWrapping="Wrap" FontSize="13" /></StackPanel>
+          </Grid>
           <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-            <Border Classes="card" Padding="16">
+            <Border Classes="card blue" Padding="16">
               <StackPanel Spacing="8">
                 <TextBlock Text="{svc:T Utility.CreateLogStep1}" FontWeight="SemiBold" />
                 <TextBlock Text="{svc:T Utility.CreateLogStep2}" Classes="muted" TextWrapping="Wrap" />
                 <Button Content="{svc:T App.PrepareUsb}" Command="{Binding CreateLogUsbCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" Classes="accent" />
               </StackPanel>
             </Border>
-            <Border Grid.Column="1" Classes="card" Padding="16">
+            <Border Grid.Column="1" Classes="card blue" Padding="16">
               <StackPanel Spacing="8">
                 <TextBlock Text="{svc:T Utility.CreateLogStep3}" FontWeight="SemiBold" />
                 <TextBlock Text="Sync_XXXXXXXX_VIN.xml" Classes="muted mono" />
@@ -64,30 +69,58 @@
       </Border>
 
       <!-- MEM_ERR tools -->
-      <Border Classes="card">
-        <StackPanel Spacing="12">
+      <Border Classes="card amber">
+        <StackPanel Spacing="14">
           <Grid ColumnDefinitions="*,Auto">
-            <StackPanel>
-              <TextBlock Text="{svc:T App.MemErr}" Classes="section" />
-              <TextBlock Text="{svc:T Utility.TroubleshootDesc}" Classes="muted" TextWrapping="Wrap" />
-            </StackPanel>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+            <Border Classes="ico amber"><PathIcon Data="M22.7,19L13.6,9.9C14.5,7.6 14,4.9 12.1,3C10.1,1 7.1,0.6 4.7,1.7L9,6L6,9L1.6,4.7C0.4,7.1 0.9,10.1 2.9,12.1C4.8,14 7.5,14.5 9.8,13.6L18.9,22.7C19.3,23.1 19.9,23.1 20.3,22.7L22.6,20.4C23.1,20 23.1,19.3 22.7,19Z" /></Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1"><TextBlock Text="{svc:T App.MemErr}" Classes="section" /><TextBlock Text="{svc:T Utility.TroubleshootDesc}" Classes="muted" TextWrapping="Wrap" FontSize="13" /></StackPanel>
+          </Grid>
             <Button Grid.Column="1" Classes="link" Content="{svc:T Utility.TroubleshootMoreDetails}" Command="{Binding TroubleshootCommand}" VerticalAlignment="Top" />
           </Grid>
           <UniformGrid Columns="2">
-            <Border Classes="card" Padding="16" Margin="0,0,6,12"><StackPanel Spacing="8"><TextBlock Text="{svc:T Utility.RWDataCleanerTitle}" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock Text="{svc:T Utility.RWDataCleanerDesc}" Classes="muted" TextWrapping="Wrap" /><Button Content="{svc:T App.PrepareUsb}" Command="{Binding RwDataCleanerCommand}" IsEnabled="{Binding ButtonsEnabled}" /></StackPanel></Border>
-            <Border Classes="card" Padding="16" Margin="6,0,0,12"><StackPanel Spacing="8"><TextBlock Text="{svc:T Utility.GracenotesRemovalTitle}" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock Text="{svc:T Utility.GracenotesRemovalDesc}" Classes="muted" TextWrapping="Wrap" /><Button Content="{svc:T App.PrepareUsb}" Command="{Binding GracenotesCommand}" IsEnabled="{Binding ButtonsEnabled}" /></StackPanel></Border>
-            <Border Classes="card" Padding="16" Margin="0,0,6,0"><StackPanel Spacing="8"><TextBlock Text="{svc:T Utility.VoiceShrinkerTitle}" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock Text="{svc:T Utility.VoiceShrinkerDesc}" Classes="muted" TextWrapping="Wrap" /><Button Content="{svc:T App.PrepareUsb}" Command="{Binding SmallVoiceCommand}" IsEnabled="{Binding ButtonsEnabled}" /></StackPanel></Border>
-            <Border Classes="card" Padding="16" Margin="6,0,0,0"><StackPanel Spacing="8"><TextBlock Text="{svc:T Utility.DowngradeTitle}" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock Text="{svc:T Utility.DowngradeDesc}" Classes="muted" TextWrapping="Wrap" /><Button Content="{svc:T App.PrepareUsb}" Command="{Binding DowngradeCommand}" IsEnabled="{Binding ButtonsEnabled}" /></StackPanel></Border>
+            <Border Margin="0,0,6,12"><Border Classes="card orange" Padding="16"><StackPanel Spacing="10">
+              <Border Classes="ico orange"><PathIcon Data="M19.36,2.72L20.78,4.14L15.06,9.85C16.13,11.39 16.28,13.24 15.38,14.44L9.06,8.12C10.26,7.22 12.11,7.37 13.65,8.44L19.36,2.72M5.93,17.57C3.92,15.56 2.69,13.16 2.35,10.92L7.23,8.83L14.67,16.27L12.58,21.15C10.34,20.81 7.94,19.58 5.93,17.57Z" /></Border>
+              <TextBlock Text="{svc:T Utility.RWDataCleanerTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
+              <TextBlock Text="{svc:T Utility.RWDataCleanerDesc}" Classes="muted" TextWrapping="Wrap" FontSize="13" />
+              <Button Content="{svc:T App.PrepareUsb}" Command="{Binding RwDataCleanerCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
+            </StackPanel></Border></Border>
+            <Border Margin="6,0,0,12"><Border Classes="card pink" Padding="16"><StackPanel Spacing="10">
+              <Border Classes="ico pink"><PathIcon Data="M12,3V13.55C11.41,13.21 10.73,13 10,13A4,4 0 0,0 6,17A4,4 0 0,0 10,21A4,4 0 0,0 14,17V7H18V3H12Z" /></Border>
+              <TextBlock Text="{svc:T Utility.GracenotesRemovalTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
+              <TextBlock Text="{svc:T Utility.GracenotesRemovalDesc}" Classes="muted" TextWrapping="Wrap" FontSize="13" />
+              <Button Content="{svc:T App.PrepareUsb}" Command="{Binding GracenotesCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
+            </StackPanel></Border></Border>
+            <Border Margin="0,0,6,12"><Border Classes="card purple" Padding="16"><StackPanel Spacing="10">
+              <Border Classes="ico purple"><PathIcon Data="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" /></Border>
+              <TextBlock Text="{svc:T Utility.VoiceShrinkerTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
+              <TextBlock Text="{svc:T Utility.VoiceShrinkerDesc}" Classes="muted" TextWrapping="Wrap" FontSize="13" />
+              <Button Content="{svc:T App.PrepareUsb}" Command="{Binding SmallVoiceCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
+            </StackPanel></Border></Border>
+            <Border Margin="6,0,0,12"><Border Classes="card red" Padding="16"><StackPanel Spacing="10">
+              <Border Classes="ico red"><PathIcon Data="M9,4H15V12H19.84L12,19.84L4.16,12H9V4Z" /></Border>
+              <TextBlock Text="{svc:T Utility.DowngradeTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
+              <TextBlock Text="{svc:T Utility.DowngradeDesc}" Classes="muted" TextWrapping="Wrap" FontSize="13" />
+              <Button Content="{svc:T App.PrepareUsb}" Command="{Binding DowngradeCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
+            </StackPanel></Border></Border>
           </UniformGrid>
-          <Border Classes="card" Padding="16"><Grid ColumnDefinitions="*,Auto" ColumnSpacing="12"><StackPanel Spacing="4"><TextBlock Text="{svc:T App.Upgrade22Title}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.Upgrade22Desc}" Classes="muted" TextWrapping="Wrap" /></StackPanel><Button Grid.Column="1" Content="{svc:T App.PrepareUsb}" Command="{Binding Upgrade22Command}" IsEnabled="{Binding ButtonsEnabled}" VerticalAlignment="Center" /></Grid></Border>
+          <Border Classes="card green" Padding="16">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+              <Border Classes="ico green"><PathIcon Data="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></Border>
+              <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center"><TextBlock Text="{svc:T App.Upgrade22Title}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.Upgrade22Desc}" Classes="muted" TextWrapping="Wrap" FontSize="13" /></StackPanel>
+              <Button Grid.Column="2" Content="{svc:T App.PrepareUsb}" Command="{Binding Upgrade22Command}" IsEnabled="{Binding ButtonsEnabled}" VerticalAlignment="Center" />
+            </Grid>
+          </Border>
         </StackPanel>
       </Border>
 
       <!-- MY20 check -->
-      <Border Classes="card">
-        <StackPanel Spacing="10">
-          <TextBlock Text="MY20 APIM check" Classes="section" />
-          <TextBlock Text="Enter the 14G371 model number of your APIM to check it against the MY20 database. Not 100% accurate." Classes="muted" TextWrapping="Wrap" />
+      <Border Classes="card purple">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+            <Border Classes="ico purple"><PathIcon Data="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z" /></Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1"><TextBlock Text="MY20 APIM check" Classes="section" /><TextBlock Text="Enter the 14G371 model number of your APIM to check it against the MY20 database. Not 100% accurate." Classes="muted" TextWrapping="Wrap" FontSize="13" /></StackPanel>
+          </Grid>
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
             <TextBox Text="{Binding ApimModelInput}" Watermark="####-14G371-###" />
             <Button Grid.Column="1" Content="Check" Command="{Binding CheckMy20Command}" />

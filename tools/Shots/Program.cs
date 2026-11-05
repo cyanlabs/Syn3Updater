@@ -11,6 +11,7 @@ using Cyanlabs.Syn3Updater.App.ViewModels;
 using Cyanlabs.Syn3Updater.App.Views;
 using Cyanlabs.Syn3Updater.Core.Drives;
 using Cyanlabs.Syn3Updater.Core.Models;
+using Cyanlabs.Syn3Updater.App.Services;
 
 var outDir = args.Length > 0 ? args[0] : "shots";
 int w = args.Length > 1 ? int.Parse(args[1]) : 1100, h = args.Length > 2 ? int.Parse(args[2]) : 800;
@@ -39,12 +40,22 @@ var work = Dispatcher.UIThread.InvokeAsync(async () =>
             var drive = new DriveInfoModel { DeviceId = "/dev/sdb", MountPath = "/run/media/scott/CYANLABS", Name = "SanDisk Ultra", VolumeName = "CYANLABS", SizeBytes = 31_914_983_424, FreeBytes = 31_000_000_000, FileSystem = "exFAT", PartitionType = "MBR" };
             vm.Home.Drives.Add(drive); vm.Home.SelectedDrive = drive; vm.Home.NoDrives = false;
             vm.Home.Releases.Add(new ReleaseItem { Display = "Sync 3.4.26057" });
-            vm.Home.Packages.Add(new PackageRow(new Ivsu { Type = "APPS", Name = "PU5T-14G381-AB", Version = "3.4.26057", FileSize = 1_400_000_000 }));
-            vm.Home.Packages.Add(new PackageRow(new Ivsu { Type = "VOICE", Name = "PU5T-14G391-AC", FileSize = 310_000_000 }));
-            vm.Home.Packages.Add(new PackageRow(new Ivsu { Type = "GRACENOTES", Name = "PU5T-14G423-AB", FileSize = 90_000_000 }));
-            vm.Home.InstallMode = "autoinstall"; vm.Home.StartEnabled = true; vm.Home.DownloadOnlyEnabled = true;
-            vm.Home.Notes = "Release Notes:\nAdded: improvements."; 
-            vm.Downloads.Headline = "Sync 3.4.26057 - NA - Keep Existing Maps"; vm.Downloads.IsRunning = true;
+            vm.Home.Packages.Clear();
+        foreach (var (t, n, v, sz, sel) in new[] {
+            ("APPS", "PU5T-14G381-AB", "3.4.26057", 1_400_000_000L, true), ("VOICE", "PU5T-14G391-AC", "", 310_000_000L, true),
+            ("GRACENOTES", "PU5T-14G423-AB", "", 90_000_000L, false), ("ENH_DAB", "PU5T-14G658-AF", "", 48_000_000L, true),
+            ("MAP_LICENSE", "4U5T-14G424-AA", "", 12_000L, true), ("MAP", "4U5T-14G421-CAC", "", 2_300_000_000L, true) })
+        { var row = new PackageRow(new Ivsu { Type = t, Name = n, Version = v, FileSize = sz }) { Selected = sel }; vm.Home.Packages.Add(row); }
+        vm.Home.InstallMode = Environment.GetEnvironmentVariable("DEMO_MODE") ?? "downgrade"; vm.Home.StartEnabled = true; vm.Home.DownloadOnlyEnabled = true;
+        vm.Home.Notes = "**Sync 3.4.26057** brings:\n- Improved Bluetooth stability\n- New `AppLink` fixes\n\nFull details: https://community.cyanlabs.net/t/sync-3-4/123 and [the forum](https://community.cyanlabs.net).";
+        Directory.CreateDirectory(Ctx.Main.LogPath!);
+        File.WriteAllText(Path.Combine(Ctx.Main.LogPath!, "log-2026-11-05-18-20-11.txt"), "CYANLABS - SYN3 UPDATER - V3.0.0\n[2026-11-05 18:20:11] INFO: Downloading: PU5T-14G381-AB\n[2026-11-05 18:21:40] INFO: Downloaded: PU5T-14G381-AB\n[2026-11-05 18:21:41] WARN: slow server\n[2026-11-05 18:22:00] ERROR: Unable to validate x after 3 attempts\n[2026-11-05 18:23:00] INFO: ALL FILES DOWNLOADED AND COPIED SUCCESSFULLY!");
+        File.WriteAllText(Path.Combine(Ctx.Main.LogPath!, "Sync_12345678_VIN.xml"), "<xml/>");
+        Ctx.Log.Info("Starting process (Sync 3.4.26057)"); Ctx.Log.Error("demo error line");
+        vm.Logs.OnShown(); vm.Logs.Selected = vm.Logs.Files.FirstOrDefault(f => f.Kind == Cyanlabs.Syn3Updater.Core.Services.LogKind.UpdateRun);
+        vm.News.Changelogs.Clear();
+        vm.News.Changelogs.Add(new Changelog { Version = "2.14.0.0", Date = "29-08-2025", ReleaseNotes = "Added: displaying of Map Release notes\nNotice: **All old versions** will stop working shortly\n\n**Full Changelog**: https://github.com/cyanlabs/Syn3Updater/compare/2.13.3.0...2.14.0.0" });
+        vm.Downloads.Headline = "Sync 3.4.26057 - NA - Keep Existing Maps"; vm.Downloads.IsRunning = true;
             vm.Downloads.Status = "Downloading: PU5T-14G381-AB_1722.TAR.GZ"; vm.Downloads.CurrentFile = "PU5T-14G381-AB_1722.TAR.GZ";
             vm.Downloads.FileProgress = 63; vm.Downloads.TotalProgress = 31; vm.Downloads.FileCounter = "File 2 of 4";
             vm.Downloads.Queue.Add(new QueueItem("PU5T-14G386-BB.TAR.GZ", "3 KB") { IsDone = true });

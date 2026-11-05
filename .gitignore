@@ -6,3 +6,8 @@ publish/
 artifacts/
 # API credentials are never committed
 **/ApiSecret.local.*
+
+# build-time secrets: never committed (see secrets/README.md)
+secrets/*
+!secrets/README.md
+!secrets/api-token.txt.example
