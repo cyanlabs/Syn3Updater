@@ -1,15 +1,26 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" x:Class="Cyanlabs.Syn3Updater.App.Views.LogsView">
-  <Grid RowDefinitions="Auto,Auto,*" ColumnDefinitions="300,*" ColumnSpacing="14" RowSpacing="10">
-    <TextBlock Grid.ColumnSpan="2" Text="{svc:T Main.Logs}" Classes="h1" />
-    <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="8">
-      <TextBlock Text="{svc:T Logs.Path}" VerticalAlignment="Center" Classes="muted" />
-      <TextBlock Text="{Binding Path}" VerticalAlignment="Center" />
-      <Button Content="{svc:T Logs.OpenFolder}" Command="{Binding OpenFolderCommand}" />
-      <Button Content="{svc:T Home.Refresh}" Command="{Binding RefreshCommand}" />
-      <Button Content="{svc:T Utility.UploadLog}" Command="{Binding UploadCommand}" />
-      <Button Content="{svc:T Logs.Delete}" Command="{Binding DeleteCommand}" />
-    </StackPanel>
-    <ListBox Grid.Row="2" ItemsSource="{Binding Files}" SelectedItem="{Binding Selected}" />
-    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Content}" IsReadOnly="True" AcceptsReturn="True" FontFamily="monospace" TextWrapping="NoWrap" />
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:m="using:Cyanlabs.Syn3Updater.Core.Models" x:Class="Cyanlabs.Syn3Updater.App.Views.LogsView">
+  <Grid RowDefinitions="Auto,*" Margin="32,28,32,24" RowSpacing="16">
+    <Grid ColumnDefinitions="*,Auto">
+      <StackPanel Spacing="4">
+        <TextBlock Text="{svc:T Main.Logs}" Classes="title" />
+        <TextBlock Text="{Binding Path}" Classes="muted mono" FontSize="12" TextTrimming="CharacterEllipsis" />
+      </StackPanel>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+        <Button Content="{svc:T Home.Refresh}" Command="{Binding RefreshCommand}" />
+        <Button Content="{svc:T Utility.UploadLog}" Command="{Binding UploadCommand}" />
+        <Button Content="{svc:T Logs.OpenFolder}" Command="{Binding OpenFolderCommand}" />
+      </StackPanel>
+    </Grid>
+    <Grid Grid.Row="1" ColumnDefinitions="280,*" ColumnSpacing="16">
+      <Border Classes="card" Padding="8">
+        <DockPanel>
+          <Button DockPanel.Dock="Bottom" Content="{svc:T Logs.Delete}" Command="{Binding DeleteCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="8,8,8,4" />
+          <ListBox ItemsSource="{Binding Files}" SelectedItem="{Binding Selected}" Background="Transparent" />
+        </DockPanel>
+      </Border>
+      <Border Grid.Column="1" Classes="card" Padding="4">
+        <TextBox Text="{Binding Content}" IsReadOnly="True" AcceptsReturn="True" Classes="mono" FontSize="12" TextWrapping="NoWrap" BorderThickness="0" Background="Transparent" />
+      </Border>
+    </Grid>
   </Grid>
 </UserControl>

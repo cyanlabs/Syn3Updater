@@ -3,22 +3,38 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Avalonia.Threading;
 using Cyanlabs.Syn3Updater.App.Services;
+using Cyanlabs.Syn3Updater.Core.Drives;
 using Cyanlabs.Syn3Updater.Core.Models;
 using Cyanlabs.Syn3Updater.Core.Services;
 
 namespace Cyanlabs.Syn3Updater.App.ViewModels;
+
+public partial class QueueItem : ObservableObject
+{
+    public string Name { get; }
+    public string Size { get; }
+    [ObservableProperty] private bool _isActive;
+    [ObservableProperty] private bool _isDone;
+    public QueueItem(string name, string size) { Name = name; Size = size; }
+}
 
 public partial class DownloadViewModel : PageViewModel
 {
     public override string TitleKey => "Main.Downloads";
     public override string IconData => "M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z";
 
-    public ObservableCollection<string> Queue { get; } = new();
+    public ObservableCollection<QueueItem> Queue { get; } = new();
+    [ObservableProperty] private string _fileCounter = "";
+    [ObservableProperty] private string _currentFile = "";
+    private int _activeIndex = -1;
     [ObservableProperty] private string _log = "";
     [ObservableProperty] private string _status = "";
     [ObservableProperty] private int _fileProgress;
     [ObservableProperty] private int _totalProgress;
     [ObservableProperty] private bool _isRunning;
+    public bool IsIdle => !IsRunning && Queue.Count == 0;
+    public bool HasQueue => Queue.Count > 0;
+    partial void OnIsRunningChanged(bool value) => OnPropertyChanged(nameof(IsIdle));
     [ObservableProperty] private string _headline = "";
 
     private CancellationTokenSource? _cts;
@@ -26,6 +42,7 @@ public partial class DownloadViewModel : PageViewModel
 
     public DownloadViewModel()
     {
+        Queue.CollectionChanged += (_, _) => { OnPropertyChanged(nameof(IsIdle)); OnPropertyChanged(nameof(HasQueue)); };
         Ctx.Log.LineAdded += line =>
         {
             if (!IsRunning) return;
@@ -43,13 +60,25 @@ public partial class DownloadViewModel : PageViewModel
         _runLog.Clear(); Log = ""; FileProgress = 0; TotalProgress = 0;
         Headline = $"{spec.Release} - {spec.Region} - {spec.MapVersion}".Trim(' ', '-');
         Queue.Clear();
-        foreach (var i in req.Queue) Queue.Add(i.FileName);
+        _activeIndex = -1;
+        for (int q = 0; q < req.Queue.Count; q++) Queue.Add(new QueueItem(req.Queue[q].FileName, Format.Bytes(req.Queue[q].FileSize)));
         Ctx.Log.Info($"Install mode: {req.InstallMode}");
 
         var progress = new Progress<RunProgress>(p =>
         {
             if (!string.IsNullOrEmpty(p.Status)) Status = p.Status;
             FileProgress = p.FilePercent; TotalProgress = p.TotalPercent;
+            if (p.CurrentFile != null)
+            {
+                CurrentFile = p.CurrentFile;
+                int idx = Queue.ToList().FindIndex(x => x.Name == p.CurrentFile);
+                if (idx >= 0 && idx != _activeIndex)
+                {
+                    _activeIndex = idx;
+                    for (int q = 0; q < Queue.Count; q++) { Queue[q].IsActive = q == idx; Queue[q].IsDone = q < idx; }
+                    FileCounter = Ctx.T("App.FileOf", idx + 1, Queue.Count);
+                }
+            }
         });
 
         bool ok;
@@ -67,6 +96,7 @@ public partial class DownloadViewModel : PageViewModel
             return;
         }
 
+        foreach (var q in Queue) { q.IsActive = false; q.IsDone = true; }
         Status = Ctx.T("String.Completed");
         FileProgress = 100; TotalProgress = 100;
         await FinishAsync(req, spec);

@@ -1,86 +1,115 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:d="using:Cyanlabs.Syn3Updater.Core.Drives" x:Class="Cyanlabs.Syn3Updater.App.Views.HomeView">
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:d="using:Cyanlabs.Syn3Updater.Core.Drives" xmlns:m="using:Cyanlabs.Syn3Updater.Core.Models" x:Class="Cyanlabs.Syn3Updater.App.Views.HomeView">
   <Grid RowDefinitions="*,Auto">
-    <ScrollViewer Grid.Row="0">
-      <StackPanel Spacing="12" Margin="0,0,14,0">
-        <TextBlock Text="{svc:T Home.CurrentConfiguration}" Classes="h1" />
-        <WrapPanel HorizontalAlignment="Center" ItemSpacing="22" LineSpacing="2">
-          <TextBlock><Run Text="{svc:T Home.Version}" FontWeight="Bold" /><Run Text=": " FontWeight="Bold" /><Run Text="{Binding CurrentVersion}" /></TextBlock>
-          <TextBlock><Run Text="{svc:T Home.Region}" FontWeight="Bold" /><Run Text=": " FontWeight="Bold" /><Run Text="{Binding CurrentRegion}" /></TextBlock>
-          <TextBlock><Run Text="{svc:T Home.Nav}" FontWeight="Bold" /><Run Text=": " FontWeight="Bold" /><Run Text="{Binding CurrentNav}" /></TextBlock>
-          <TextBlock><Run Text="{svc:T Home.DownloadPath}" FontWeight="Bold" /><Run Text=": " FontWeight="Bold" /><Run Text="{Binding DownloadPath}" /></TextBlock>
-        </WrapPanel>
+    <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel MaxWidth="880" Spacing="16" Margin="32,28,32,24">
 
-        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24" Margin="0,8,0,0">
-          <StackPanel Grid.Column="0" Spacing="6">
-            <TextBlock Text="{svc:T Home.SelectUSBDrive}" Classes="h1" TextWrapping="Wrap" />
+        <!-- header: title + your current car configuration as chips -->
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="10">
+            <TextBlock Text="{svc:T Main.Home}" Classes="title" />
+            <ItemsControl ItemsSource="{Binding ConfigChips}">
+              <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate><DataTemplate x:DataType="x:String"><Border Classes="chip"><TextBlock Text="{Binding}" /></Border></DataTemplate></ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+          <Button Grid.Column="1" Content="{svc:T App.Edit}" Command="{Binding EditConfigCommand}" VerticalAlignment="Top" />
+        </Grid>
+
+        <Border Classes="banner" IsVisible="{Binding ConfigMissing}">
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <TextBlock Text="{svc:T App.ConfigMissing}" Foreground="{DynamicResource WarnFg}" VerticalAlignment="Center" TextWrapping="Wrap" />
+            <Button Grid.Column="1" Content="{svc:T App.OpenSettings}" Command="{Binding EditConfigCommand}" />
+          </Grid>
+        </Border>
+
+        <!-- 1. destination -->
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="10"><Border Classes="step"><TextBlock Text="1" /></Border><TextBlock Text="{svc:T Home.SelectUSBDrive}" Classes="section" VerticalAlignment="Center" /></StackPanel>
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-              <ComboBox Grid.Column="0" ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive}" MinHeight="46">
+              <ComboBox ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive}" MinHeight="48" PlaceholderText="{svc:T Home.SelectUSBDrive}">
                 <ComboBox.ItemTemplate>
                   <DataTemplate DataType="d:DriveInfoModel">
-                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,3">
-                      <PathIcon Data="M15,7V11H16V13H13V5H15L12,1L9,5H11V13H8V10.93C8.7,10.56 9.2,9.85 9.2,9C9.2,7.8 8.2,6.8 7,6.8C5.8,6.8 4.8,7.8 4.8,9C4.8,9.85 5.3,10.56 6,10.93V13A2,2 0 0,0 8,15H11V18.05C10.3,18.4 9.8,19.1 9.8,20C9.8,21.1 10.7,22 11.8,22C12.9,22 13.8,21.1 13.8,20C13.8,19.1 13.3,18.4 12.6,18.05V15H16A2,2 0 0,0 18,13V11H19V7H15Z" Width="20" Height="20" />
-                      <StackPanel>
-                        <TextBlock Text="{Binding Title}" />
-                        <TextBlock Text="{Binding Detail}" FontSize="12" Opacity="0.7" />
-                      </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,4">
+                      <PathIcon Data="M15,7V11H16V13H13V5H15L12,1L9,5H11V13H8V10.93C8.7,10.56 9.2,9.85 9.2,9C9.2,7.8 8.2,6.8 7,6.8C5.8,6.8 4.8,7.8 4.8,9C4.8,9.85 5.3,10.56 6,10.93V13A2,2 0 0,0 8,15H11V18.05C10.3,18.4 9.8,19.1 9.8,20C9.8,21.1 10.7,22 11.8,22C12.9,22 13.8,21.1 13.8,20C13.8,19.1 13.3,18.4 12.6,18.05V15H16A2,2 0 0,0 18,13V11H19V7H15Z" Width="18" Height="18" Foreground="{DynamicResource Brand}" />
+                      <StackPanel><TextBlock Text="{Binding Title}" /><TextBlock Text="{Binding Detail}" Classes="label" /></StackPanel>
                     </StackPanel>
                   </DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>
-              <Button Grid.Column="1" Command="{Binding RefreshDrivesCommand}" ToolTip.Tip="{svc:T Home.Refresh}" Height="46" Width="46"><PathIcon Data="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" /></Button>
-              <Button Grid.Column="2" Content="{svc:T Home.NoUSBDir}" Command="{Binding ChooseFolderCommand}" Height="46" />
+              <Button Grid.Column="1" Command="{Binding RefreshDrivesCommand}" ToolTip.Tip="{svc:T Home.Refresh}" MinHeight="48" MinWidth="48">
+                <PathIcon Data="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" Width="18" Height="18" />
+              </Button>
+              <Button Grid.Column="2" Content="{svc:T App.UseFolder}" Command="{Binding ChooseFolderCommand}" MinHeight="48" />
             </Grid>
+            <TextBlock Text="{svc:T App.NoDrives}" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding NoDrives}" />
+            <TextBlock Text="{Binding DriveInfo}" Classes="muted" />
+            <StackPanel Spacing="2" Margin="0,4,0,0">
+              <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveTitle}" Classes="label" FontWeight="SemiBold" />
+              <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveNonNav}" Classes="label" TextWrapping="Wrap" />
+              <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveNA}" Classes="label" TextWrapping="Wrap" />
+              <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveEU}" Classes="label" TextWrapping="Wrap" />
+            </StackPanel>
           </StackPanel>
-          <StackPanel Grid.Column="1" MaxWidth="320" Spacing="2" VerticalAlignment="Center">
-            <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveTitle}" FontWeight="Bold" />
-            <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveNonNav}" TextWrapping="Wrap" />
-            <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveNA}" TextWrapping="Wrap" />
-            <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveEU}" TextWrapping="Wrap" />
+        </Border>
+
+        <!-- 2. what to install -->
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="10"><Border Classes="step"><TextBlock Text="2" /></Border><TextBlock Text="{svc:T App.ChooseVersion}" Classes="section" VerticalAlignment="Center" /></StackPanel>
+            <Grid ColumnDefinitions="130,*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="12">
+              <TextBlock Grid.Row="0" Text="{svc:T Home.Region}" VerticalAlignment="Center" Classes="muted" />
+              <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}" PlaceholderText="{svc:T Home.Region}" />
+              <Button Grid.Row="0" Grid.Column="2" Content="?" Command="{Binding RegionInfoCommand}" Width="40" HorizontalContentAlignment="Center" FontWeight="Bold" />
+              <TextBlock Grid.Row="1" Text="{svc:T Home.NewVersion}" VerticalAlignment="Center" Classes="muted" />
+              <ComboBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" ItemsSource="{Binding Releases}" SelectedItem="{Binding SelectedRelease}" PlaceholderText="{svc:T Home.NewVersion}" />
+              <TextBlock Grid.Row="2" Text="{svc:T Home.MapVersion}" VerticalAlignment="Center" Classes="muted" />
+              <ComboBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" ItemsSource="{Binding MapVersions}" SelectedItem="{Binding SelectedMap}" PlaceholderText="{svc:T Home.MapVersion}" />
+            </Grid>
+            <ProgressBar IsIndeterminate="True" IsVisible="{Binding Loading}" Height="4" />
+            <Expander Header="{svc:T App.ReleaseNotes}" IsVisible="{Binding HasNotes}" Padding="8,6">
+              <StackPanel Spacing="8">
+                <SelectableTextBlock Text="{Binding Notes}" TextWrapping="Wrap" Classes="muted" />
+                <Button Content="{svc:T Home.FeedbackButton}" Command="{Binding OpenFeedbackCommand}" IsVisible="{Binding HasFeedback}" HorizontalAlignment="Left" />
+              </StackPanel>
+            </Expander>
           </StackPanel>
-        </Grid>
+        </Border>
 
-        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="12" Margin="0,6,0,0">
-          <PathIcon Grid.Row="0" Data="M12,2A10,10 0 1,0 12,22A10,10 0 1,0 12,2M4,12C4,11.4 4.1,10.8 4.2,10.2L9,15V16C9,17.1 9.9,18 11,18V19.9C7.1,19.4 4,16.1 4,12M17.9,17.4C17.6,16.6 16.9,16 16,16H15V13C15,12.4 14.6,12 14,12H8V10H10C10.6,10 11,9.6 11,9V7H13C14.1,7 15,6.1 15,5V4.6C17.9,5.8 20,8.7 20,12C20,14.1 19.2,15.9 17.9,17.4Z" Width="22" Height="22" ToolTip.Tip="{svc:T Home.Region}" />
-          <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}" PlaceholderText="{svc:T Home.Region}" />
-          <Button Grid.Row="0" Grid.Column="2" Content="?" Command="{Binding RegionInfoCommand}" Width="40" HorizontalContentAlignment="Center" FontWeight="Bold" />
-          <PathIcon Grid.Row="1" Data="M13,14C9.6,14 7.1,15.1 5.5,16.5V8.8C6.6,8.4 7.5,7.3 7.5,6A2.5,2.5 0 0,0 5,3.5A2.5,2.5 0 0,0 2.5,6C2.5,7.3 3.4,8.4 4.5,8.8V15.2C3.4,15.6 2.5,16.7 2.5,18A2.5,2.5 0 0,0 5,20.5A2.5,2.5 0 0,0 7.5,18C7.5,17.3 7.2,16.7 6.8,16.3C8,15.3 10,14.5 13,14.5C16,14.5 17.5,13 17.5,11V8.8C18.6,8.4 19.5,7.3 19.5,6A2.5,2.5 0 0,0 17,3.5A2.5,2.5 0 0,0 14.5,6C14.5,7.3 15.4,8.4 16.5,8.8V11C16.5,12.4 15.5,14 13,14Z" Width="22" Height="22" ToolTip.Tip="{svc:T Home.NewVersion}" />
-          <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Releases}" SelectedItem="{Binding SelectedRelease}" PlaceholderText="{svc:T Home.NewVersion}" />
-          <PathIcon Grid.Row="2" Data="M15,19L9,16.89V5L15,7.11M20.5,3C20.4,3 20.4,3 20.3,3L15,5.1L9,3L3.4,4.9C3.2,5 3,5.2 3,5.5V20.5A0.5,0.5 0 0,0 3.5,21C3.6,21 3.6,21 3.7,21L9,18.9L15,21L20.6,19.1C20.8,19 21,18.8 21,18.5V3.5A0.5,0.5 0 0,0 20.5,3Z" Width="22" Height="22" ToolTip.Tip="{svc:T Home.MapVersion}" />
-          <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding MapVersions}" SelectedItem="{Binding SelectedMap}" PlaceholderText="{svc:T Home.MapVersion}" />
-        </Grid>
-
-        <ProgressBar IsIndeterminate="True" IsVisible="{Binding Loading}" />
-
-        <StackPanel Spacing="6" IsVisible="{Binding Notes.Length}">
-          <TextBlock Text="{svc:T Home.Notes}" Classes="h2" />
-          <SelectableTextBlock Text="{Binding Notes}" TextWrapping="Wrap" />
-          <Button Content="{svc:T Home.FeedbackButton}" Command="{Binding OpenFeedbackCommand}" IsVisible="{Binding FeedbackUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-        </StackPanel>
-
-        <TextBlock Text="{svc:T Home.SelectPackages}" Classes="h1" Margin="0,8,0,0" />
-        <ItemsControl ItemsSource="{Binding Packages}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate DataType="vm:PackageRow">
-              <Grid ColumnDefinitions="*,Auto">
-                <CheckBox Grid.Column="0" IsChecked="{Binding Selected}" Content="{Binding Display}" />
-                <TextBlock Grid.Column="1" Text="{Binding SizeText}" Opacity="0.65" VerticalAlignment="Center" />
-              </Grid>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <!-- 3. packages -->
+        <Border Classes="card" IsVisible="{Binding HasPackages}">
+          <StackPanel Spacing="10">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+              <StackPanel Orientation="Horizontal" Spacing="10"><Border Classes="step"><TextBlock Text="3" /></Border><TextBlock Text="{svc:T Home.SelectPackages}" Classes="section" VerticalAlignment="Center" /></StackPanel>
+              <Button Grid.Column="1" Classes="link" Content="{svc:T App.SelectAll}" Command="{Binding SelectAllCommand}" />
+              <Button Grid.Column="2" Classes="link" Content="{svc:T App.SelectNone}" Command="{Binding SelectNoneCommand}" />
+            </Grid>
+            <ItemsControl ItemsSource="{Binding Packages}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:PackageRow">
+                  <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                    <CheckBox IsChecked="{Binding Selected}" Content="{Binding Display}" />
+                    <TextBlock Grid.Column="1" Text="{Binding SizeText}" Classes="label" VerticalAlignment="Center" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
       </StackPanel>
     </ScrollViewer>
 
-    <!-- bottom status bar like the original: mode / forced / MY20 on the left, Start on the right -->
-    <Border Grid.Row="1" Padding="0,10,0,4" BorderBrush="#30808080" BorderThickness="0,1,0,0">
+    <!-- sticky action bar: what will happen + Start -->
+    <Border Grid.Row="1" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,1,0,0" Padding="32,12">
       <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
-        <WrapPanel Grid.Column="0" VerticalAlignment="Center" ItemSpacing="22">
-          <TextBlock><Run Text="{svc:T Home.InstallMode}" FontWeight="Bold" /><Run Text=": " FontWeight="Bold" /><Run Text="{Binding InstallMode}" /></TextBlock>
-          <TextBlock><Run Text="{svc:T Home.InstallModeForced}" FontWeight="Bold" /><Run Text=": " FontWeight="Bold" /><Run Text="{Binding ModeForcedText}" /></TextBlock>
-          <TextBlock><Run Text="{svc:T Home.MY20Protection}" FontWeight="Bold" /><Run Text=": " FontWeight="Bold" /><Run Text="{Binding My20Text}" /></TextBlock>
-        </WrapPanel>
-        <Button Grid.Column="1" Content="{svc:T Home.StartDownloadOnly}" Command="{Binding DownloadOnlyCommand}" IsEnabled="{Binding DownloadOnlyEnabled}" MinHeight="38" />
-        <Button Grid.Column="2" Content="{svc:T Home.StartButton}" Classes="accent" Command="{Binding StartCommand}" IsEnabled="{Binding StartEnabled}" MinWidth="110" MinHeight="38" HorizontalContentAlignment="Center" />
+        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+          <TextBlock Text="{svc:T Home.InstallMode}" Classes="label" VerticalAlignment="Center" />
+          <Border Classes="badge" IsVisible="{Binding HasMode}"><TextBlock Text="{Binding InstallMode}" /></Border>
+          <Border Classes="chip" Margin="0" IsVisible="{Binding ModeIsForced}"><TextBlock Text="{svc:T Home.InstallModeForced}" /></Border>
+          <Button Classes="link" Content="{svc:T App.LearnMore}" Command="{Binding OpenInstructionsCommand}" IsVisible="{Binding HasMode}" />
+        </StackPanel>
+        <Button Grid.Column="1" Content="{svc:T Home.StartDownloadOnly}" Command="{Binding DownloadOnlyCommand}" IsEnabled="{Binding DownloadOnlyEnabled}" MinHeight="40" />
+        <Button Grid.Column="2" Content="{svc:T Home.StartButton}" Classes="accent" Command="{Binding StartCommand}" IsEnabled="{Binding StartEnabled}" MinWidth="120" MinHeight="40" HorizontalContentAlignment="Center" FontWeight="SemiBold" />
       </Grid>
     </Border>
   </Grid>

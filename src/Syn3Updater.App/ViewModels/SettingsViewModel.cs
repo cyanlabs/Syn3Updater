@@ -64,6 +64,13 @@ public partial class SettingsViewModel : PageViewModel
 
     public SettingsViewModel() { Load(); }
     public override void OnShown() => Load();
+    public override void OnLeaving() { if (_dirty) _ = ApplyAsync(quiet: true); }
+    private bool _dirty;
+    protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        base.OnPropertyChanged(e);
+        if (!_loading && e.PropertyName is not (nameof(Message) or nameof(Advanced))) _dirty = true;
+    }
 
     private void Load()
     {
@@ -81,7 +88,7 @@ public partial class SettingsViewModel : PageViewModel
         DownloadPath = m.DownloadPath ?? ""; LogPath = m.LogPath ?? "";
         LicenseKey = m.LicenseKey ?? ""; ApiToken = m.ApiToken ?? "";
         Advanced = false; Message = "";
-        _loading = false;
+        _loading = false; _dirty = false;
     }
 
     partial void OnAdvancedChanged(bool value)
@@ -124,7 +131,9 @@ public partial class SettingsViewModel : PageViewModel
     }
 
     [RelayCommand]
-    private async Task ApplyAsync()
+    private Task ApplyClickAsync() => ApplyAsync(false);
+
+    private async Task ApplyAsync(bool quiet)
     {
         // version: "3.4.20282" or "3420282" -> 7 digits
         var digits = new string(Version.Where(char.IsDigit).ToArray());
@@ -162,6 +171,7 @@ public partial class SettingsViewModel : PageViewModel
         m.ShowAdSlot = ShowAdSlot;
         _ = MainWindowViewModel.Instance.LoadAdAsync();
         m.ApiToken = string.IsNullOrWhiteSpace(ApiToken) ? null : ApiToken.Trim();
+        var before = (p.CurrentRegion, p.CurrentVersion, p.CurrentNav, p.My20v2, p.InstallMode);
         p.CurrentRegion = Region?.Code;
         p.CurrentVersion = digits.Length == 7 ? int.Parse(digits) : 0;
         p.CurrentNav = Nav;
@@ -170,9 +180,12 @@ public partial class SettingsViewModel : PageViewModel
         p.DownloadConnections = Connections;
         Ctx.Save();
         Ctx.Log.Info($"Settings applied - Region: {p.CurrentRegion} - Version: {p.VersionString} - Navigation: {p.CurrentNav}");
-        Message = Ctx.T("String.Completed");
+        _dirty = false;
+        Message = quiet ? "" : Ctx.T("String.Completed");
         MainWindowViewModel.Instance.Home.ReloadSummary();
-        MainWindowViewModel.Instance.Home.ClearSelections();
+        // only throw away the Home selection when the car configuration actually changed
+        if (before != (p.CurrentRegion, p.CurrentVersion, p.CurrentNav, p.My20v2, p.InstallMode))
+            MainWindowViewModel.Instance.Home.ClearSelections();
     }
 
     [RelayCommand]

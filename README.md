@@ -32,12 +32,18 @@ drive code is covered by parser unit tests but untested against real devices.
 
 ## Differences from the original
 
+- Redesigned UI: labelled sidebar that collapses on narrow windows, a guided 1-2-3 Home flow with a sticky action bar, live download queue, light/dark themes, settings that save when you leave the tab.
 - Cross-platform UI (Avalonia) instead of WPF; no Windows launcher/updater or `syn3updater://` registry handler.
 - Settings live in `~/.local/share/CyanLabs/Syn3Updater` (Linux), `%LOCALAPPDATA%` (Windows); macOS uses .NET LocalApplicationData (`~/.local/share`).
 - GraphQL via plain HTTP + System.Text.Json (no GraphQL client dependency); downloads write to `*.part` and rename on success.
 - `autoinstall.lst`/`reformat.lst` are always written with CRLF line endings.
 - The interrogator tool choice covers the version gaps the original left unmatched (it would have used a null package).
-- The unfinished "Upgrade to 2.2" utility (a stub upstream) is not included.
+- "Create 2.2 Upgrade USB" (an empty stub in the source) is implemented against the `upgrade22` package.
+
+## UI previews (no window)
+
+`dotnet run --project tools/Shots -- out 1100 800 Home Settings --demo [--light]` renders pages to PNG with Avalonia's
+headless backend (nothing is shown on screen). Useful for checking layouts at different widths and themes.
 
 ## Tests
 

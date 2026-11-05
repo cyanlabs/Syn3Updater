@@ -1,35 +1,24 @@
+using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.VisualTree;
 using Cyanlabs.Syn3Updater.App.ViewModels;
 
 namespace Cyanlabs.Syn3Updater.App.Views;
 
 public partial class MainWindow : Window
 {
-    public MainWindow()
+    public MainWindow() { InitializeComponent(); }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
-        InitializeComponent();
-        DataContextChanged += (_, _) =>
-        {
-            if (DataContext is MainWindowViewModel vm) vm.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(MainWindowViewModel.Current)) UpdateActive(); };
-            UpdateActive();
-        };
-        Loaded += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(UpdateActive, Avalonia.Threading.DispatcherPriority.Loaded);
+        base.OnPropertyChanged(change);
+        if (change.Property == BoundsProperty || change.Property == DataContextProperty) UpdateSidebar();
+        if (change.Property == BoundsProperty && Environment.GetEnvironmentVariable("SYN3_DEBUG") == "1")
+            Console.WriteLine($"[layout] bounds={Bounds.Width}x{Bounds.Height} scale={RenderScaling} client={ClientSize.Width}x{ClientSize.Height}");
     }
 
-    private void OnNavClick(object? sender, RoutedEventArgs e)
+    /// <summary>Wide windows show icon + label in the sidebar; narrow ones collapse it to icons.</summary>
+    private void UpdateSidebar()
     {
-        if (DataContext is not MainWindowViewModel vm || sender is not Button b) return;
-        vm.Current = b == SettingsButton ? vm.Settings : (b.DataContext as PageViewModel) ?? vm.Current;
-    }
-
-    /// <summary>Highlight the sidebar button of the current page.</summary>
-    private void UpdateActive()
-    {
-        if (DataContext is not MainWindowViewModel vm) return;
-        SettingsButton.Classes.Set("active", vm.Current == vm.Settings);
-        foreach (var b in this.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("nav") && b != SettingsButton))
-            b.Classes.Set("active", b.DataContext == vm.Current);
+        if (DataContext is MainWindowViewModel vm && Bounds.Width > 0) vm.SidebarExpanded = Bounds.Width >= 940;
     }
 }

@@ -13,4 +13,9 @@ public abstract class PageViewModel : ObservableObject
     /// <summary>SVG path data (24x24) for the sidebar icon.</summary>
     public abstract string IconData { get; }
     public virtual void OnShown() { }
+    /// <summary>Called before the user navigates away from this page.</summary>
+    public virtual void OnLeaving() { }
+
+    private bool _isActive;
+    public bool IsActive { get => _isActive; set => SetProperty(ref _isActive, value); }
 }

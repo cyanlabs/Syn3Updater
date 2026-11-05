@@ -9,6 +9,8 @@ namespace Cyanlabs.Syn3Updater.Core.Services;
 
 public record ValidationResult(bool Ok, string Message = "");
 
+public class RangeNotSupportedException : IOException { public RangeNotSupportedException() : base("Server does not support ranged downloads") { } }
+
 /// <summary>Download, checksum and copy operations. Progress is reported as 0-100.</summary>
 public class FileService
 {
@@ -26,7 +28,14 @@ public class FileService
             if (File.Exists(temp)) File.Delete(temp);
 
             if (length > 0 && connections > 1)
-                await DownloadParallelAsync(url, temp, length, Math.Clamp(connections, 1, 8), progress, ct);
+            {
+                try { await DownloadParallelAsync(url, temp, length, Math.Clamp(connections, 1, 8), progress, ct); }
+                catch (RangeNotSupportedException)
+                {
+                    TryDelete(temp);   // server ignores Range: fall back to one connection instead of failing
+                    await DownloadSingleAsync(url, temp, length, progress, ct);
+                }
+            }
             else
                 await DownloadSingleAsync(url, temp, length, progress, ct);
 
@@ -70,27 +79,35 @@ public class FileService
         await using (var fs = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.None)) fs.SetLength(length);
         long downloaded = 0; int last = -1;
         long chunk = length / connections;
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var token = cts.Token;
         var tasks = Enumerable.Range(0, connections).Select(async i =>
         {
             long start = i * chunk, end = i == connections - 1 ? length - 1 : start + chunk - 1;
             using var req = new HttpRequestMessage(HttpMethod.Get, url) { Headers = { Range = new RangeHeaderValue(start, end) } };
-            using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
+            using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, token);
             resp.EnsureSuccessStatusCode();
             if (resp.StatusCode != System.Net.HttpStatusCode.PartialContent)
-                throw new IOException("Server does not support ranged downloads; set connections to 1.");
-            await using var input = await resp.Content.ReadAsStreamAsync(ct);
+                throw new RangeNotSupportedException();
+            await using var input = await resp.Content.ReadAsStreamAsync(token);
             await using var output = new FileStream(file, FileMode.Open, FileAccess.Write, FileShare.Write, 81920, true);
             output.Seek(start, SeekOrigin.Begin);
             var buf = new byte[81920]; int n;
-            while ((n = await input.ReadAsync(buf, ct)) > 0)
+            while ((n = await input.ReadAsync(buf, token)) > 0)
             {
-                await output.WriteAsync(buf.AsMemory(0, n), ct);
+                await output.WriteAsync(buf.AsMemory(0, n), token);
                 long d = Interlocked.Add(ref downloaded, n);
                 int p = (int)(d * 100 / length);
                 if (p != Volatile.Read(ref last)) { Volatile.Write(ref last, p); progress.Report(p); }
             }
         }).ToList();
-        await Task.WhenAll(tasks);
+        try { await Task.WhenAll(tasks); }
+        catch
+        {
+            cts.Cancel();   // stop the other parts and let them release the file before the caller retries or cleans up
+            try { await Task.WhenAll(tasks); } catch { /* already failing */ }
+            throw;
+        }
         progress.Report(100);
     }
 

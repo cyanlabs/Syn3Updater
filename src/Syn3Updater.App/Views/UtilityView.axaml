@@ -1,72 +1,97 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" x:Class="Cyanlabs.Syn3Updater.App.Views.UtilityView">
-  <ScrollViewer>
-    <StackPanel Spacing="14" MaxWidth="900" HorizontalAlignment="Stretch">
-      <TextBlock Text="{svc:T Main.Utility}" Classes="h1" />
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:d="using:Cyanlabs.Syn3Updater.Core.Drives" xmlns:m="using:Cyanlabs.Syn3Updater.Core.Models" x:Class="Cyanlabs.Syn3Updater.App.Views.UtilityView">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+    <StackPanel MaxWidth="880" Spacing="16" Margin="32,28,32,24">
+      <TextBlock Text="{svc:T Main.Utility}" Classes="title" />
 
+      <!-- shared destination -->
       <Border Classes="card">
-        <StackPanel Spacing="8">
-          <TextBlock Text="{svc:T Utility.SelectUSBDrive}" Classes="h2" Margin="0" />
+        <StackPanel Spacing="10">
+          <TextBlock Text="{svc:T Utility.SelectUSBDrive}" Classes="section" />
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-            <ComboBox ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive}" PlaceholderText="{svc:T Utility.SelectUSBDrive}" />
-            <Button Grid.Column="1" Content="{svc:T Home.Refresh}" Command="{Binding RefreshCommand}" />
+            <ComboBox ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive}" MinHeight="48" PlaceholderText="{svc:T Utility.SelectUSBDrive}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate DataType="d:DriveInfoModel">
+                  <StackPanel Margin="0,4"><TextBlock Text="{Binding Title}" /><TextBlock Text="{Binding Detail}" Classes="label" /></StackPanel>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Grid.Column="1" Content="{svc:T Home.Refresh}" Command="{Binding RefreshCommand}" MinHeight="48" />
           </Grid>
           <TextBlock Text="{Binding DriveInfo}" Classes="muted" />
         </StackPanel>
       </Border>
 
+      <!-- interrogator -->
       <Border Classes="card">
-        <StackPanel Spacing="8">
-          <TextBlock Text="{svc:T Utility.CreateLogTitle}" Classes="h2" Margin="0" />
-          <TextBlock Text="{svc:T Utility.CreateLogDesc}" TextWrapping="Wrap" Classes="muted" />
-          <TextBlock Text="{svc:T Utility.CreateLogStep1}" />
-          <Button Content="{svc:T Utility.GracenotesButton}" Command="{Binding CreateLogUsbCommand}" IsEnabled="{Binding ButtonsEnabled}" />
-          <TextBlock Text="{svc:T Utility.CreateLogStep2}" />
-          <TextBlock Text="{svc:T Utility.CreateLogStep3}" />
-          <Button Content="{svc:T Utility.CreateLogTitle}" Command="{Binding ParseLogCommand}" />
-          <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10" IsVisible="{Binding HasLog}">
-            <TextBox Grid.Column="0" Text="{Binding LogDetails}" IsReadOnly="True" AcceptsReturn="True" MinHeight="170" FontFamily="monospace" />
-            <TextBox Grid.Column="1" Text="{Binding LogPartitions}" IsReadOnly="True" AcceptsReturn="True" MinHeight="170" FontFamily="monospace" />
-            <TextBox Grid.Column="2" Text="{Binding LogAsBuilt}" IsReadOnly="True" AcceptsReturn="True" MinHeight="170" FontFamily="monospace" />
+        <StackPanel Spacing="12">
+          <TextBlock Text="{svc:T Utility.CreateLogTitle}" Classes="section" />
+          <TextBlock Text="{svc:T Utility.CreateLogDesc}" Classes="muted" TextWrapping="Wrap" />
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+            <Border Classes="card" Padding="16">
+              <StackPanel Spacing="8">
+                <TextBlock Text="{svc:T Utility.CreateLogStep1}" FontWeight="SemiBold" />
+                <TextBlock Text="{svc:T Utility.CreateLogStep2}" Classes="muted" TextWrapping="Wrap" />
+                <Button Content="{svc:T App.PrepareUsb}" Command="{Binding CreateLogUsbCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" Classes="accent" />
+              </StackPanel>
+            </Border>
+            <Border Grid.Column="1" Classes="card" Padding="16">
+              <StackPanel Spacing="8">
+                <TextBlock Text="{svc:T Utility.CreateLogStep3}" FontWeight="SemiBold" />
+                <TextBlock Text="Sync_XXXXXXXX_VIN.xml" Classes="muted mono" />
+                <Button Content="{svc:T App.OpenLog}" Command="{Binding ParseLogCommand}" HorizontalAlignment="Left" />
+              </StackPanel>
+            </Border>
           </Grid>
-          <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasLog}">
-            <Button Content="{svc:T Utility.CopyAsBuilt}" Command="{Binding CopyAsBuiltCommand}" />
-            <Button Content="{svc:T Utility.ViewAsBuilt}" Command="{Binding ViewAsBuiltCommand}" />
+
+          <StackPanel Spacing="12" IsVisible="{Binding HasLog}">
+            <Grid ColumnDefinitions="140,*,140,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="10">
+              <TextBlock Grid.Row="0" Text="VIN" Classes="label" /><TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ResVin}" Classes="mono" />
+              <TextBlock Grid.Row="0" Grid.Column="2" Text="{svc:T App.Model}" Classes="label" /><TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding ResModel}" Classes="mono" />
+              <TextBlock Grid.Row="1" Text="{svc:T Utility.APIMType}" Classes="label" /><TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ResType}" />
+              <TextBlock Grid.Row="1" Grid.Column="2" Text="{svc:T Utility.APIMSize}" Classes="label" /><TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding ResSize}" />
+              <TextBlock Grid.Row="2" Text="{svc:T Utility.APIMFree}" Classes="label" /><TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ResFree}" />
+              <TextBlock Grid.Row="2" Grid.Column="2" Text="{svc:T App.Version}" Classes="label" /><TextBlock Grid.Row="2" Grid.Column="3" Text="{Binding ResVersion}" TextWrapping="Wrap" />
+            </Grid>
+            <Expander Header="{svc:T App.Partitions}"><TextBox Text="{Binding LogPartitions}" IsReadOnly="True" AcceptsReturn="True" Classes="mono" Height="200" FontSize="12" /></Expander>
+            <Expander Header="{svc:T App.AsBuilt}"><TextBox Text="{Binding LogAsBuilt}" IsReadOnly="True" AcceptsReturn="True" Classes="mono" Height="200" FontSize="12" /></Expander>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="{svc:T Utility.CopyAsBuilt}" Command="{Binding CopyAsBuiltCommand}" />
+              <Button Content="{svc:T Utility.ViewAsBuilt}" Command="{Binding ViewAsBuiltCommand}" />
+            </StackPanel>
           </StackPanel>
-          <Button Content="{svc:T Utility.UploadLog}" Command="{Binding UploadLogCommand}" HorizontalAlignment="Left" />
+          <Button Classes="link" Content="{svc:T Utility.UploadLog}" Command="{Binding UploadLogCommand}" HorizontalAlignment="Left" />
         </StackPanel>
       </Border>
 
+      <!-- MEM_ERR tools -->
       <Border Classes="card">
-        <StackPanel Spacing="8">
-          <TextBlock Text="MY20 APIM check" Classes="h2" Margin="0" />
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel>
+              <TextBlock Text="{svc:T App.MemErr}" Classes="section" />
+              <TextBlock Text="{svc:T Utility.TroubleshootDesc}" Classes="muted" TextWrapping="Wrap" />
+            </StackPanel>
+            <Button Grid.Column="1" Classes="link" Content="{svc:T Utility.TroubleshootMoreDetails}" Command="{Binding TroubleshootCommand}" VerticalAlignment="Top" />
+          </Grid>
+          <UniformGrid Columns="2">
+            <Border Classes="card" Padding="16" Margin="0,0,6,12"><StackPanel Spacing="8"><TextBlock Text="{svc:T Utility.RWDataCleanerTitle}" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock Text="{svc:T Utility.RWDataCleanerDesc}" Classes="muted" TextWrapping="Wrap" /><Button Content="{svc:T App.PrepareUsb}" Command="{Binding RwDataCleanerCommand}" IsEnabled="{Binding ButtonsEnabled}" /></StackPanel></Border>
+            <Border Classes="card" Padding="16" Margin="6,0,0,12"><StackPanel Spacing="8"><TextBlock Text="{svc:T Utility.GracenotesRemovalTitle}" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock Text="{svc:T Utility.GracenotesRemovalDesc}" Classes="muted" TextWrapping="Wrap" /><Button Content="{svc:T App.PrepareUsb}" Command="{Binding GracenotesCommand}" IsEnabled="{Binding ButtonsEnabled}" /></StackPanel></Border>
+            <Border Classes="card" Padding="16" Margin="0,0,6,0"><StackPanel Spacing="8"><TextBlock Text="{svc:T Utility.VoiceShrinkerTitle}" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock Text="{svc:T Utility.VoiceShrinkerDesc}" Classes="muted" TextWrapping="Wrap" /><Button Content="{svc:T App.PrepareUsb}" Command="{Binding SmallVoiceCommand}" IsEnabled="{Binding ButtonsEnabled}" /></StackPanel></Border>
+            <Border Classes="card" Padding="16" Margin="6,0,0,0"><StackPanel Spacing="8"><TextBlock Text="{svc:T Utility.DowngradeTitle}" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock Text="{svc:T Utility.DowngradeDesc}" Classes="muted" TextWrapping="Wrap" /><Button Content="{svc:T App.PrepareUsb}" Command="{Binding DowngradeCommand}" IsEnabled="{Binding ButtonsEnabled}" /></StackPanel></Border>
+          </UniformGrid>
+          <Border Classes="card" Padding="16"><Grid ColumnDefinitions="*,Auto" ColumnSpacing="12"><StackPanel Spacing="4"><TextBlock Text="{svc:T App.Upgrade22Title}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.Upgrade22Desc}" Classes="muted" TextWrapping="Wrap" /></StackPanel><Button Grid.Column="1" Content="{svc:T App.PrepareUsb}" Command="{Binding Upgrade22Command}" IsEnabled="{Binding ButtonsEnabled}" VerticalAlignment="Center" /></Grid></Border>
+        </StackPanel>
+      </Border>
+
+      <!-- MY20 check -->
+      <Border Classes="card">
+        <StackPanel Spacing="10">
+          <TextBlock Text="MY20 APIM check" Classes="section" />
+          <TextBlock Text="Enter the 14G371 model number of your APIM to check it against the MY20 database. Not 100% accurate." Classes="muted" TextWrapping="Wrap" />
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
             <TextBox Text="{Binding ApimModelInput}" Watermark="####-14G371-###" />
             <Button Grid.Column="1" Content="Check" Command="{Binding CheckMy20Command}" />
           </Grid>
-        </StackPanel>
-      </Border>
-
-      <Border Classes="card">
-        <StackPanel Spacing="8">
-          <TextBlock Text="{svc:T Utility.TroubleshootTitle}" Classes="h2" Margin="0" />
-          <TextBlock Text="{svc:T Utility.TroubleshootDesc}" TextWrapping="Wrap" Classes="muted" />
-          <Button Content="{svc:T Utility.TroubleshootMoreDetails}" Command="{Binding TroubleshootCommand}" HorizontalAlignment="Left" />
-
-          <TextBlock Text="{svc:T Utility.GracenotesRemovalTitle}" Classes="h2" />
-          <TextBlock Text="{svc:T Utility.GracenotesRemovalDesc}" TextWrapping="Wrap" Classes="muted" />
-          <Button Content="{svc:T Utility.GracenotesButton}" Command="{Binding GracenotesCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
-
-          <TextBlock Text="{svc:T Utility.VoiceShrinkerTitle}" Classes="h2" />
-          <TextBlock Text="{svc:T Utility.VoiceShrinkerDesc}" TextWrapping="Wrap" Classes="muted" />
-          <Button Content="{svc:T Utility.GracenotesButton}" Command="{Binding SmallVoiceCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
-
-          <TextBlock Text="{svc:T Utility.DowngradeTitle}" Classes="h2" />
-          <TextBlock Text="{svc:T Utility.DowngradeDesc}" TextWrapping="Wrap" Classes="muted" />
-          <Button Content="{svc:T Utility.GracenotesButton}" Command="{Binding DowngradeCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
-
-          <TextBlock Text="{svc:T Utility.RWDataCleanerTitle}" Classes="h2" />
-          <TextBlock Text="{svc:T Utility.RWDataCleanerDesc}" TextWrapping="Wrap" Classes="muted" />
-          <Button Content="{svc:T Utility.RWDataCleanerButton}" Command="{Binding RwDataCleanerCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
         </StackPanel>
       </Border>
     </StackPanel>

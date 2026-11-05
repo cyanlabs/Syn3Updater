@@ -168,7 +168,7 @@ public class ProfileSettings
     public bool CurrentNav { get; set; }
     public bool? My20v2 { get; set; }
     public string InstallMode { get; set; } = "autodetect";
-    public int DownloadConnections { get; set; } = 1;
+    public int DownloadConnections { get; set; } = 8;
 
     /// <summary>Formats 3200000-style version as 3.2.00000 (7 digits) else 0.0.00000.</summary>
     public string VersionString => FormatVersion(CurrentVersion);

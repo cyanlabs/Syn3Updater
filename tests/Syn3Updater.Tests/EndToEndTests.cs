@@ -12,7 +12,7 @@ public class EndToEndTests : IDisposable
     private readonly string _root = Directory.CreateTempSubdirectory("syn3e2e").FullName;
     public void Dispose() => Directory.Delete(_root, true);
 
-    private static (HttpListener, string, Dictionary<string, byte[]>) Serve()
+    private static (HttpListener, string, Dictionary<string, byte[]>) Serve(bool ignoreRange = false)
     {
         var files = new Dictionary<string, byte[]>
         {
@@ -30,10 +30,14 @@ public class EndToEndTests : IDisposable
                 if (!files.TryGetValue(c.Request.Url!.AbsolutePath, out var data)) { c.Response.StatusCode = 404; c.Response.Close(); continue; }
                 var range = c.Request.Headers["Range"];
                 int start = 0, end = data.Length - 1;
-                if (range != null) { var p = range.Replace("bytes=", "").Split('-'); start = int.Parse(p[0]); end = int.Parse(p[1]); c.Response.StatusCode = 206; }
-                c.Response.ContentLength64 = end - start + 1;
-                if (c.Request.HttpMethod != "HEAD") await c.Response.OutputStream.WriteAsync(data.AsMemory(start, end - start + 1));
-                c.Response.Close();
+                if (range != null && !ignoreRange) { var p = range.Replace("bytes=", "").Split('-'); start = int.Parse(p[0]); end = int.Parse(p[1]); c.Response.StatusCode = 206; }
+                try
+                {
+                    c.Response.ContentLength64 = end - start + 1;
+                    if (c.Request.HttpMethod != "HEAD") await c.Response.OutputStream.WriteAsync(data.AsMemory(start, end - start + 1));
+                    c.Response.Close();
+                }
+                catch (Exception) { /* client dropped the connection (e.g. cancelled part): keep serving */ }
             }
         });
         return (l, $"http://127.0.0.1:{port}", files);
@@ -74,6 +78,22 @@ public class EndToEndTests : IDisposable
             // second run reuses validated downloads (no server needed)
             l.Stop();
             Assert.True(await runner.RunAsync(req, new Progress<RunProgress>(), default), runner.LastError);
+        }
+        finally { l.Close(); }
+    }
+
+    [Fact]
+    public async Task ParallelDownload_FallsBackToSingleStream_WhenServerIgnoresRange()
+    {
+        var (l, url, files) = Serve(ignoreRange: true);
+        try
+        {
+            var item = Item(url, "app.tar.gz", "APPS", files["/app.tar.gz"]);
+            var dest = Path.Combine(_root, "dl", "app.tar.gz");
+            var ok = await new FileService(new HttpClient()).DownloadAsync(item.Url, dest, 4, new Progress<int>(), default);
+            Assert.True(ok);
+            Assert.Equal(files["/app.tar.gz"], await File.ReadAllBytesAsync(dest));
+            Assert.Empty(Directory.GetFiles(Path.GetDirectoryName(dest)!, "*.part"));
         }
         finally { l.Close(); }
     }

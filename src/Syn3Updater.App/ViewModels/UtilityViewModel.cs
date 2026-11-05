@@ -23,6 +23,7 @@ public partial class UtilityViewModel : PageViewModel
     [ObservableProperty] private string _logPartitions = "";
     [ObservableProperty] private string _logAsBuilt = "";
     [ObservableProperty] private bool _hasLog;
+    [ObservableProperty] private string _resVin = "", _resModel = "", _resType = "", _resSize = "", _resFree = "", _resVersion = "";
     [ObservableProperty] private string _apimModelInput = "";
 
     private InterrogatorResult? _parsed;
@@ -52,6 +53,7 @@ public partial class UtilityViewModel : PageViewModel
     [RelayCommand] private Task GracenotesAsync() => RunSpecialAsync(SpecialPackages.GraceNotesRemoval, UpdateAction.GracenotesRemoval, "Gracenotes Removal");
     [RelayCommand] private Task SmallVoiceAsync() => RunSpecialAsync(SpecialPackages.SmallVoice, UpdateAction.VoiceShrinker, "Voice Package Shrinker");
     [RelayCommand] private Task DowngradeAsync() => RunSpecialAsync(SpecialPackages.DowngradeApp, UpdateAction.Downgrade, "Enforced Downgrade");
+    [RelayCommand] private Task Upgrade22Async() => RunSpecialAsync(SpecialPackages.Upgrade22App, UpdateAction.Upgrade22, "Upgrade to Sync 2.2");
     [RelayCommand] private Task RwDataCleanerAsync() => RunSpecialAsync(null, UpdateAction.RwDataCleaner, "RW Data Cleaner", rwOnly: true);
     [RelayCommand] private Task CreateLogUsbAsync() => PrepareLogUsbAsync(SelectedDrive, UpdateAction.LogUtility);
 
@@ -127,6 +129,8 @@ public partial class UtilityViewModel : PageViewModel
 
             if (r.ApimSizeGb == 0) { await Dialogs.Error(Ctx.T("MessageBox.LogUtilityIncompatibleVersion", friendly ?? "")); return; }
             (LogDetails, LogPartitions, LogAsBuilt) = Interrogator.Describe(r, friendly);
+            ResVin = r.Vin; ResModel = r.ApimModel; ResType = r.Nav ? "Navigation" : "Non-Navigation";
+            ResSize = $"{r.ApimSizeGb} GB"; ResFree = r.ApimFree; ResVersion = friendly is null ? "" : $"{friendly} ({r.SoftwareName})";
             HasLog = true;
             await Dialogs.Info(Ctx.T(Ctx.Profile.My20v2 == true ? "MessageBox.My20Found" : "MessageBox.My20NotFound"));
         }

@@ -64,12 +64,29 @@ public partial class HomeViewModel : PageViewModel
     [ObservableProperty] private string _profileName = "";
     [ObservableProperty] private string _downloadPath = "";
     [ObservableProperty] private string _driveInfo = "";
+    [ObservableProperty] private bool _configMissing;
+    [ObservableProperty] private bool _noDrives;
+    [ObservableProperty] private string _installDocsUrl = "";
+    public ObservableCollection<string> ConfigChips { get; } = new();
 
     private bool _suppress;
     private string _releaseNotes = "", _mapNotes = "";
     private bool _invalidSelection;
 
-    public HomeViewModel() { Ctx.Loc.LanguageChanged += () => ReloadSummary(); }
+    public bool HasPackages => Packages.Count > 0;
+    public bool HasNotes => Notes.Length > 0;
+    public bool HasMode => InstallMode.Length > 0;
+    public bool HasFeedback => !string.IsNullOrEmpty(FeedbackUrl);
+    public bool ModeIsForced => Ctx.ModeForced;
+    partial void OnNotesChanged(string value) => OnPropertyChanged(nameof(HasNotes));
+    partial void OnInstallModeChanged(string value) { OnPropertyChanged(nameof(HasMode)); OnPropertyChanged(nameof(ModeIsForced)); }
+    partial void OnFeedbackUrlChanged(string? value) => OnPropertyChanged(nameof(HasFeedback));
+
+    public HomeViewModel()
+    {
+        Ctx.Loc.LanguageChanged += () => ReloadSummary();
+        Packages.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasPackages));
+    }
 
     public override void OnShown() { ReloadSummary(); _ = RefreshDrivesAsync(); }
 
@@ -83,6 +100,16 @@ public partial class HomeViewModel : PageViewModel
         ModeForcedText = Ctx.T(Ctx.ModeForced ? "String.Yes" : "String.No");
         ProfileName = Ctx.Main.Profile;
         DownloadPath = Ctx.Main.DownloadPath ?? "";
+        ConfigMissing = (p.CurrentVersion ?? 0) == 0 || string.IsNullOrEmpty(p.CurrentRegion);
+        ConfigChips.Clear();
+        if (!ConfigMissing)
+        {
+            ConfigChips.Add(p.VersionString);
+            ConfigChips.Add(p.CurrentRegion!);
+            ConfigChips.Add(Ctx.T(p.CurrentNav ? "Home.Nav" : "String.NonNavAPIM"));
+        }
+        ConfigChips.Add($"{Ctx.T("Home.MY20Protection")}: {My20Text}");
+        ConfigChips.Add($"{Ctx.T("Home.Profile")}: {Ctx.Main.Profile}");
         if (SelectedRegion == null && Regions.FirstOrDefault(r => r.Code == p.CurrentRegion) is { } r0)
             SelectedRegion = r0;
     }
@@ -108,6 +135,7 @@ public partial class HomeViewModel : PageViewModel
             Drives.Clear();
             foreach (var d in found) Drives.Add(d);
             if (previous?.IsFolder == true) Drives.Add(previous);
+            NoDrives = found.Count == 0 && previous?.IsFolder != true;
             SelectedDrive = Drives.FirstOrDefault(d => d.DeviceId == previous?.DeviceId && d.IsFolder == previous?.IsFolder) ;
         }
         catch (Exception e)
@@ -136,7 +164,7 @@ public partial class HomeViewModel : PageViewModel
             SelectedDrive = null; return;
         }
         DriveInfo = value == null ? "" : value.IsFolder ? value.MountPath
-            : $"{value.PartitionType} {value.FileSystem} · {Format.Bytes(value.SizeBytes)} · {Ctx.T("Home.DriveFreeSpace")} {Format.Bytes(value.FreeBytes)}";
+            : value.MountPath.Length > 0 ? $"Mounted at {value.MountPath}" : "Not mounted yet - it will be mounted automatically";
         if (value != null) Ctx.Log.Info($"USB Drive selected - Name: {value.Name} - FileSystem: {value.FileSystem} - PartitionType: {value.PartitionType} - Path: {value.MountPath}");
         UpdateButtons();
     }
@@ -262,6 +290,7 @@ public partial class HomeViewModel : PageViewModel
         _invalidSelection = res.Invalid;
         if (res.Mode != null) InstallMode = res.Mode;
         if (Ctx.ModeForced) InstallMode = p.InstallMode;
+        InstallDocsUrl = ApiEndpoints.InstallDocsUrl(InstallMode);
         if (res.Invalid) _ = Dialogs.Error(Ctx.T("MessageBox.MY20InvalidConfiguration"));
         Ctx.Log.Debug($"Install mode option {res.Option}: {InstallMode}");
         UpdateButtons();
@@ -325,6 +354,11 @@ public partial class HomeViewModel : PageViewModel
     [RelayCommand]
     private Task RegionInfoAsync() =>
         Dialogs.Info(string.Join("\n", Region.All.Select(r => $"{r.Code}: {r.Name}")), Ctx.T("Home.Region"));
+
+    [RelayCommand] private void EditConfig() => MainWindowViewModel.Instance.ShowSettings();
+    [RelayCommand] private Task OpenInstructionsAsync() => Dialogs.OpenUrl(string.IsNullOrEmpty(InstallDocsUrl) ? ApiEndpoints.DocsBase : InstallDocsUrl);
+    [RelayCommand] private void SelectAll() { foreach (var r in Packages) r.Selected = true; }
+    [RelayCommand] private void SelectNone() { foreach (var r in Packages) r.Selected = false; }
 
     [RelayCommand] private Task OpenFeedbackAsync() => FeedbackUrl is { Length: > 0 } u ? Dialogs.OpenUrl(u) : Task.CompletedTask;
 }

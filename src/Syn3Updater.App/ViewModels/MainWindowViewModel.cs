@@ -22,6 +22,7 @@ public partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<PageViewModel> Pages { get; }
     /// <summary>Sidebar pages above the divider; Settings sits at the bottom like the original.</summary>
     public ObservableCollection<PageViewModel> TopPages { get; }
+    public ObservableCollection<PageViewModel> BottomPages { get; }
 
     public string WindowTitle => $"Syn3 Updater {Ctx.Version} ({Ctx.Branch}) - Current Profile {Ctx.Main.Profile}";
     public void RefreshTitle() => OnPropertyChanged(nameof(WindowTitle));
@@ -58,11 +59,24 @@ public partial class MainWindowViewModel : ObservableObject
     {
         Instance = this;
         Pages = new() { About, Home, Utility, Downloads, Profiles, Logs, News, Settings };
-        TopPages = new() { About, Home, Utility, Downloads, Profiles, Logs, News };
+        TopPages = new() { Home, Utility, Downloads, Profiles, Logs, News, About };
+        BottomPages = new() { Settings };
         _current = Home;
+        Home.IsActive = true;
     }
 
-    partial void OnCurrentChanged(PageViewModel value) => value?.OnShown();
+    partial void OnCurrentChanging(PageViewModel value) { if (_current != null && _current != value) _current.OnLeaving(); }
+
+    partial void OnCurrentChanged(PageViewModel value)
+    {
+        foreach (var page in Pages) page.IsActive = page == value;
+        value?.OnShown();
+    }
+
+    /// <summary>Wide windows show icon + label; narrow ones collapse the sidebar to icons.</summary>
+    [ObservableProperty] private bool _sidebarExpanded = true;
+    public double SidebarWidth => SidebarExpanded ? 208 : 64;
+    partial void OnSidebarExpandedChanged(bool value) => OnPropertyChanged(nameof(SidebarWidth));
 
     public void ShowHome() => Current = Home;
     public void ShowDownloads() => Current = Downloads;

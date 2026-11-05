@@ -14,22 +14,96 @@
     <DataTemplate DataType="vm:SettingsViewModel"><views:SettingsView /></DataTemplate>
     <DataTemplate DataType="vm:AboutViewModel"><views:AboutView /></DataTemplate>
   </Application.DataTemplates>
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="AppBg">#13171a</SolidColorBrush>
+          <SolidColorBrush x:Key="SidebarBg">#0e1113</SolidColorBrush>
+          <SolidColorBrush x:Key="CardBg">#1b2124</SolidColorBrush>
+          <SolidColorBrush x:Key="CardBorder">#2a3337</SolidColorBrush>
+          <SolidColorBrush x:Key="ChipBg">#243035</SolidColorBrush>
+          <SolidColorBrush x:Key="Muted">#93a3a9</SolidColorBrush>
+          <SolidColorBrush x:Key="Brand">#2fa1ab</SolidColorBrush>
+          <SolidColorBrush x:Key="BrandSoft">#262fa1ab</SolidColorBrush>
+          <SolidColorBrush x:Key="WarnBg">#33f0a43c</SolidColorBrush>
+          <SolidColorBrush x:Key="WarnFg">#f0b45a</SolidColorBrush>
+          <SolidColorBrush x:Key="ExpanderHeaderBackground">Transparent</SolidColorBrush>
+          <SolidColorBrush x:Key="ExpanderHeaderBackgroundPointerOver">#14808080</SolidColorBrush>
+          <SolidColorBrush x:Key="ExpanderHeaderBackgroundPressed">#1e808080</SolidColorBrush>
+          <SolidColorBrush x:Key="ExpanderHeaderBorderBrush">Transparent</SolidColorBrush>
+          <SolidColorBrush x:Key="ExpanderContentBackground">Transparent</SolidColorBrush>
+          <SolidColorBrush x:Key="ExpanderContentBorderBrush">Transparent</SolidColorBrush>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="AppBg">#f3f6f7</SolidColorBrush>
+          <SolidColorBrush x:Key="SidebarBg">#ffffff</SolidColorBrush>
+          <SolidColorBrush x:Key="CardBg">#ffffff</SolidColorBrush>
+          <SolidColorBrush x:Key="CardBorder">#dde4e7</SolidColorBrush>
+          <SolidColorBrush x:Key="ChipBg">#e6f0f2</SolidColorBrush>
+          <SolidColorBrush x:Key="Muted">#5d6d73</SolidColorBrush>
+          <SolidColorBrush x:Key="Brand">#1f8a94</SolidColorBrush>
+          <SolidColorBrush x:Key="BrandSoft">#1f1f8a94</SolidColorBrush>
+          <SolidColorBrush x:Key="WarnBg">#26e8920a</SolidColorBrush>
+          <SolidColorBrush x:Key="WarnFg">#9a5a00</SolidColorBrush>
+          <SolidColorBrush x:Key="ExpanderHeaderBackground">Transparent</SolidColorBrush>
+          <SolidColorBrush x:Key="ExpanderHeaderBackgroundPointerOver">#14808080</SolidColorBrush>
+          <SolidColorBrush x:Key="ExpanderHeaderBackgroundPressed">#1e808080</SolidColorBrush>
+          <SolidColorBrush x:Key="ExpanderHeaderBorderBrush">Transparent</SolidColorBrush>
+          <SolidColorBrush x:Key="ExpanderContentBackground">Transparent</SolidColorBrush>
+          <SolidColorBrush x:Key="ExpanderContentBorderBrush">Transparent</SolidColorBrush>
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
   <Application.Styles>
     <FluentTheme>
       <FluentTheme.Palettes>
-        <ColorPaletteResources x:Key="Dark" Accent="#2fa1ab" AltHigh="#1c1f21" AltLow="#1c1f21" AltMedium="#1c1f21" AltMediumHigh="#1c1f21" AltMediumLow="#1c1f21" RegionColor="#1f2326" />
+        <ColorPaletteResources x:Key="Dark" Accent="#2fa1ab" RegionColor="#13171a" />
         <ColorPaletteResources x:Key="Light" Accent="#1f8a94" RegionColor="#f3f6f7" />
       </FluentTheme.Palettes>
     </FluentTheme>
-    <Style Selector="TextBlock.h1"><Setter Property="FontSize" Value="28" /><Setter Property="FontWeight" Value="Light" /><Setter Property="Margin" Value="0,0,0,6" /></Style>
-    <Style Selector="TextBlock.h2"><Setter Property="FontSize" Value="20" /><Setter Property="FontWeight" Value="Light" /><Setter Property="Margin" Value="0,10,0,2" /></Style>
-    <Style Selector="TextBlock.muted"><Setter Property="Opacity" Value="0.65" /></Style>
-    <Style Selector="Border.card"><Setter Property="Padding" Value="16" /><Setter Property="CornerRadius" Value="8" /><Setter Property="BorderThickness" Value="1" /><Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseLowBrush}" /><Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" /></Style>
-    <Style Selector="Button"><Setter Property="CornerRadius" Value="2" /></Style>
-    <Style Selector="Button.nav"><Setter Property="Width" Value="56" /><Setter Property="Height" Value="52" /><Setter Property="Padding" Value="0" /><Setter Property="Background" Value="Transparent" /><Setter Property="CornerRadius" Value="0" /><Setter Property="HorizontalContentAlignment" Value="Center" /></Style>
-    <Style Selector="Button.nav:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="#33ffffff" /></Style>
-    <Style Selector="Button.nav.active /template/ ContentPresenter"><Setter Property="Background" Value="#22000000" /></Style>
-    <Style Selector="Button.nav PathIcon"><Setter Property="Width" Value="26" /><Setter Property="Height" Value="26" /><Setter Property="Foreground" Value="#f2fbfc" /></Style>
-    <Style Selector="ComboBox"><Setter Property="HorizontalAlignment" Value="Stretch" /></Style>
+
+    <!-- typography -->
+    <Style Selector="TextBlock.title"><Setter Property="FontSize" Value="26" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+    <Style Selector="TextBlock.section"><Setter Property="FontSize" Value="16" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+    <Style Selector="TextBlock.muted"><Setter Property="Foreground" Value="{DynamicResource Muted}" /></Style>
+    <Style Selector="TextBlock.label"><Setter Property="FontSize" Value="12" /><Setter Property="Foreground" Value="{DynamicResource Muted}" /></Style>
+    <Style Selector="TextBlock.mono"><Setter Property="FontFamily" Value="Cascadia Mono,Consolas,Menlo,DejaVu Sans Mono,monospace" /></Style>
+
+    <!-- surfaces -->
+    <Style Selector="Window"><Setter Property="Background" Value="{DynamicResource AppBg}" /></Style>
+    <Style Selector="Border.card"><Setter Property="Background" Value="{DynamicResource CardBg}" /><Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="12" /><Setter Property="Padding" Value="20" /></Style>
+    <Style Selector="Border.chip"><Setter Property="Background" Value="{DynamicResource ChipBg}" /><Setter Property="CornerRadius" Value="14" /><Setter Property="Padding" Value="11,4" /><Setter Property="Margin" Value="0,0,8,8" /></Style>
+    <Style Selector="Border.chip > TextBlock"><Setter Property="FontSize" Value="12.5" /></Style>
+    <Style Selector="Border.badge"><Setter Property="Background" Value="{DynamicResource Brand}" /><Setter Property="CornerRadius" Value="6" /><Setter Property="Padding" Value="10,3" /></Style>
+    <Style Selector="Border.badge > TextBlock"><Setter Property="Foreground" Value="White" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+    <Style Selector="Border.step"><Setter Property="Width" Value="26" /><Setter Property="Height" Value="26" /><Setter Property="CornerRadius" Value="13" /><Setter Property="Background" Value="{DynamicResource BrandSoft}" /></Style>
+    <Style Selector="Border.step > TextBlock"><Setter Property="Foreground" Value="{DynamicResource Brand}" /><Setter Property="FontWeight" Value="Bold" /><Setter Property="HorizontalAlignment" Value="Center" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
+    <Style Selector="Border.banner"><Setter Property="Background" Value="{DynamicResource WarnBg}" /><Setter Property="CornerRadius" Value="10" /><Setter Property="Padding" Value="16,12" /></Style>
+
+    <!-- controls -->
+    <Style Selector="Button"><Setter Property="CornerRadius" Value="8" /><Setter Property="Padding" Value="14,8" /><Setter Property="VerticalContentAlignment" Value="Center" /></Style>
+    <Style Selector="Expander"><Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /></Style>
+    <Style Selector="ComboBox"><Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="CornerRadius" Value="8" /></Style>
+    <Style Selector="TextBox"><Setter Property="CornerRadius" Value="8" /></Style>
+    <Style Selector="Button.link"><Setter Property="Background" Value="Transparent" /><Setter Property="Foreground" Value="{DynamicResource Brand}" /><Setter Property="Padding" Value="6,4" /></Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource BrandSoft}" /><Setter Property="Foreground" Value="{DynamicResource Brand}" /></Style>
+
+    <!-- sidebar navigation -->
+    <Style Selector="Button.nav"><Setter Property="Background" Value="Transparent" /><Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="HorizontalContentAlignment" Value="Left" /><Setter Property="Height" Value="44" /><Setter Property="Padding" Value="0" /><Setter Property="Margin" Value="8,2" /><Setter Property="CornerRadius" Value="10" /></Style>
+    <Style Selector="Button.nav:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource ChipBg}" /></Style>
+    <Style Selector="Button.nav.active /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource BrandSoft}" /></Style>
+    <Style Selector="Button.nav PathIcon"><Setter Property="Width" Value="21" /><Setter Property="Height" Value="21" /><Setter Property="Foreground" Value="{DynamicResource Muted}" /></Style>
+    <Style Selector="Button.nav.active PathIcon"><Setter Property="Foreground" Value="{DynamicResource Brand}" /></Style>
+    <Style Selector="Button.nav TextBlock"><Setter Property="Foreground" Value="{DynamicResource Muted}" /><Setter Property="FontSize" Value="14" /></Style>
+    <Style Selector="Button.nav.active TextBlock"><Setter Property="Foreground" Value="{DynamicResource Brand}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+
+    <!-- queue status dot -->
+    <Style Selector="Ellipse.dot"><Setter Property="Width" Value="12" /><Setter Property="Height" Value="12" /><Setter Property="Stroke" Value="{DynamicResource Muted}" /><Setter Property="StrokeThickness" Value="2" /></Style>
+    <Style Selector="Ellipse.dot.active"><Setter Property="Stroke" Value="{DynamicResource Brand}" /><Setter Property="Fill" Value="{DynamicResource BrandSoft}" /></Style>
+    <Style Selector="Ellipse.dot.done"><Setter Property="Stroke" Value="{DynamicResource Brand}" /><Setter Property="Fill" Value="{DynamicResource Brand}" /></Style>
   </Application.Styles>
 </Application>

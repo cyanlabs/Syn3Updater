@@ -1,29 +1,59 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" x:Class="Cyanlabs.Syn3Updater.App.Views.DownloadView">
-  <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="12">
-    <StackPanel Grid.Row="0">
-      <TextBlock Text="{svc:T Main.Downloads}" Classes="h1" />
-      <TextBlock Text="{Binding Headline}" Classes="muted" />
-    </StackPanel>
-    <Border Grid.Row="1" Classes="card">
-      <StackPanel Spacing="8">
-        <TextBlock Text="{Binding Status}" FontWeight="SemiBold" TextWrapping="Wrap" />
-        <ProgressBar Value="{Binding FileProgress}" Maximum="100" />
-        <TextBlock Text="{svc:T Download.TotalDownload}" Classes="muted" />
-        <ProgressBar Value="{Binding TotalProgress}" Maximum="100" />
-        <Button Content="{svc:T Download.CancelButton}" Command="{Binding CancelCommand}" IsEnabled="{Binding IsRunning}" HorizontalAlignment="Right" />
-      </StackPanel>
-    </Border>
-    <Border Grid.Row="2" Classes="card" IsVisible="{Binding Queue.Count}">
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:d="using:Cyanlabs.Syn3Updater.Core.Drives" xmlns:m="using:Cyanlabs.Syn3Updater.Core.Models" x:Class="Cyanlabs.Syn3Updater.App.Views.DownloadView">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+    <StackPanel MaxWidth="880" Spacing="16" Margin="32,28,32,24">
       <StackPanel Spacing="4">
-        <TextBlock Text="{svc:T Download.Queue}" Classes="h2" Margin="0" />
-        <ItemsControl ItemsSource="{Binding Queue}" />
+        <TextBlock Text="{svc:T Main.Downloads}" Classes="title" />
+        <TextBlock Text="{Binding Headline}" Classes="muted" />
       </StackPanel>
-    </Border>
-    <Border Grid.Row="3" Classes="card">
-      <DockPanel>
-        <TextBlock DockPanel.Dock="Top" Text="{svc:T Download.Log}" Classes="h2" Margin="0,0,0,6" />
-        <TextBox Text="{Binding Log}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="monospace" />
-      </DockPanel>
-    </Border>
-  </Grid>
+
+      <Border Classes="card" IsVisible="{Binding IsIdle}">
+        <TextBlock Text="{svc:T App.Idle}" Classes="muted" HorizontalAlignment="Center" Margin="0,16" />
+      </Border>
+
+      <Border Classes="card" IsVisible="{Binding !IsIdle}">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel>
+              <TextBlock Text="{Binding Status}" Classes="section" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding CurrentFile}" Classes="muted mono" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <TextBlock Grid.Column="1" Text="{Binding FileCounter}" Classes="label" VerticalAlignment="Top" />
+          </Grid>
+          <Grid ColumnDefinitions="*,52" ColumnSpacing="10">
+            <ProgressBar Value="{Binding FileProgress}" Maximum="100" Height="8" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Text="{Binding FileProgress, StringFormat={}{0}%}" HorizontalAlignment="Right" />
+          </Grid>
+          <TextBlock Text="{svc:T Download.TotalDownload}" Classes="label" />
+          <Grid ColumnDefinitions="*,52" ColumnSpacing="10">
+            <ProgressBar Value="{Binding TotalProgress}" Maximum="100" Height="8" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Text="{Binding TotalProgress, StringFormat={}{0}%}" HorizontalAlignment="Right" />
+          </Grid>
+          <Button Content="{svc:T Download.CancelButton}" Command="{Binding CancelCommand}" IsEnabled="{Binding IsRunning}" HorizontalAlignment="Right" />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card" IsVisible="{Binding HasQueue}">
+        <StackPanel Spacing="8">
+          <TextBlock Text="{svc:T Download.Queue}" Classes="section" />
+          <ItemsControl ItemsSource="{Binding Queue}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:QueueItem">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Margin="0,5">
+                  <Ellipse Classes="dot" Classes.active="{Binding IsActive}" Classes.done="{Binding IsDone}" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Text="{Binding Name}" Classes="mono" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Grid.Column="2" Text="{Binding Size}" Classes="label" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card" Padding="8,4" IsVisible="{Binding !IsIdle}">
+      <Expander Header="{svc:T Download.Log}" IsExpanded="True">
+        <TextBox Text="{Binding Log}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" Classes="mono" Height="240" FontSize="12" />
+      </Expander>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
 </UserControl>
