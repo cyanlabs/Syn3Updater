@@ -35,11 +35,17 @@ public class UpdateRunner
 
     public string? LastError { get; private set; }
 
+    /// <summary>
+    /// Where files were really written. Formatting relabels a drive (e.g. DVD_ROM -> CYANLABS), so the OS may
+    /// remount it at a different path than the one that was selected; anything done after the run must use this.
+    /// </summary>
+    public string? TargetRoot { get; private set; }
+
     private void Info(string m) { _log.Info(m); }
 
     public async Task<bool> RunAsync(UpdateRequest req, IProgress<RunProgress> progress, CancellationToken ct)
     {
-        LastError = null;
+        LastError = null; TargetRoot = null;
         string? target = null;
         try
         {
@@ -47,6 +53,7 @@ public class UpdateRunner
             {
                 target = await PrepareTargetAsync(req, progress, ct);
                 if (target == null) return false;
+                TargetRoot = target;
             }
 
             var queue = new List<Ivsu>(req.Queue);

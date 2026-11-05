@@ -110,7 +110,7 @@ public partial class DownloadViewModel : PageViewModel
             Return(spec); return;
         }
 
-        var root = req.Drive!.MountPath;
+        var root = Ctx.Runner.TargetRoot ?? req.Drive!.MountPath;   // the drive may have been remounted under a new name by the format
         var isUtilityLog = spec.Action is UpdateAction.LogUtility or UpdateAction.LogUtilityMy20;
         if (!isUtilityLog)
         {
@@ -152,11 +152,17 @@ public partial class DownloadViewModel : PageViewModel
             req.Drive, root, string.Join(Environment.NewLine, _runLog));
         try
         {
-            File.WriteAllText(Path.Combine(root, "log.txt"), text);
             Directory.CreateDirectory(Ctx.Main.LogPath!);
             File.WriteAllText(Path.Combine(Ctx.Main.LogPath!, $"log-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.txt"), text);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { await Dialogs.Error(e.Message); }
+        try
+        {
+            // the copy on the stick is a convenience: if it cannot be written, say so but keep the local log and the upload
+            if (Directory.Exists(root)) File.WriteAllText(Path.Combine(root, "log.txt"), text);
+            else Ctx.Log.Error($"log.txt not written: {root} is not available");
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Ctx.Log.Error("log.txt not written: " + e.Message); }
         if (upload) await UploadAsync(text);
     }
 

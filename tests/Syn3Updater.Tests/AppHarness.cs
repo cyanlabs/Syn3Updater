@@ -6,6 +6,7 @@ using Avalonia;
 using Avalonia.Headless;
 using Cyanlabs.Syn3Updater.App.Services;
 using Cyanlabs.Syn3Updater.App.ViewModels;
+using Cyanlabs.Syn3Updater.Core.Drives;
 using Xunit;
 
 [assembly: Avalonia.Headless.AvaloniaTestApplication(typeof(Cyanlabs.Syn3Updater.Tests.TestAppBuilder))]
@@ -129,11 +130,11 @@ public sealed class AppEnv : IDisposable
     public string DownloadDir => Path.Combine(Dir, "downloads");
     public string UsbDir => Path.Combine(Dir, "usb");
 
-    public AppEnv(string region = "NA", int version = 3420282, bool nav = false, bool disclaimer = true)
+    public AppEnv(string region = "NA", int version = 3420282, bool nav = false, bool disclaimer = true, IDriveService? drives = null)
     {
         Api = new FakeCyanLabs(Files.Url);
         Cyanlabs.Syn3Updater.App.Services.Dialogs.Backend = Dialogs;
-        Ctx.Init(Path.Combine(Dir, "data"), Api);
+        Ctx.Init(Path.Combine(Dir, "data"), Api, drives);
         Ctx.Main.DownloadPath = DownloadDir; Ctx.Main.LogPath = Path.Combine(Dir, "logs"); Directory.CreateDirectory(Ctx.Main.LogPath);
         Ctx.Main.DisclaimerAccepted = disclaimer;
         Ctx.Profile.CurrentRegion = region; Ctx.Profile.CurrentVersion = version; Ctx.Profile.CurrentNav = nav; Ctx.Profile.DownloadConnections = 2;
