@@ -110,16 +110,6 @@ public partial class SettingsViewModel : PageViewModel
         _loading = false; _dirty = false;
     }
 
-    partial void OnAdvancedChanged(bool value)
-    {
-        if (_loading || !value) return;
-        _ = Task.Run(async () =>
-        {
-            if (!await Dialogs.Confirm(Ctx.T("MessageBox.AdvancedSettings"), Ctx.T("String.Warning") + "!", warning: true))
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => Advanced = false);
-        });
-    }
-
     partial void OnLanguageChanged(LanguageOption? value)
     {
         if (_loading || value == null) return;

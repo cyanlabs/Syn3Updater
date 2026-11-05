@@ -32,19 +32,26 @@
             <Border Classes="ico blue"><PathIcon Data="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,9V3.5L18.5,9H13Z" /></Border>
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1"><TextBlock Text="{svc:T Utility.CreateLogTitle}" Classes="section" /><TextBlock Text="{svc:T Utility.CreateLogDesc}" Classes="muted" TextWrapping="Wrap" FontSize="13" /></StackPanel>
           </Grid>
-          <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-            <Border Classes="card blue" Padding="16">
-              <StackPanel Spacing="8">
-                <TextBlock Text="{svc:T Utility.CreateLogStep1}" FontWeight="SemiBold" />
-                <TextBlock Text="{svc:T Utility.CreateLogStep2}" Classes="muted" TextWrapping="Wrap" />
-                <Button Content="{svc:T App.PrepareUsb}" Command="{Binding CreateLogUsbCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" Classes="accent" />
+          <!-- three steps, three boxes: 1 prepare the drive, 2 use it in the car (nothing to press), 3 open the log it produced and upload it -->
+          <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+            <Border x:Name="Step1" Classes="card blue" Padding="16">
+              <StackPanel Spacing="10">
+                <TextBlock Text="{svc:T Utility.CreateLogStep1}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <Button Classes="prep teal" Content="{Binding PrepareLabel}" ToolTip.Tip="{Binding PrepareTip}" ToolTip.ShowOnDisabled="True" HorizontalAlignment="Left" Command="{Binding CreateLogUsbCommand}" IsEnabled="{Binding CanPrepare}" />
               </StackPanel>
             </Border>
-            <Border Grid.Column="1" Classes="card blue" Padding="16">
-              <StackPanel Spacing="8">
-                <TextBlock Text="{svc:T Utility.CreateLogStep3}" FontWeight="SemiBold" />
-                <TextBlock Text="Sync_XXXXXXXX_VIN.xml" Classes="muted mono" />
+            <Border x:Name="Step2" Grid.Column="1" Classes="card blue" Padding="16">
+              <StackPanel Spacing="10">
+                <TextBlock Text="{svc:T Utility.CreateLogStep2}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <PathIcon Data="M18.92,6.01C18.72,5.42 18.16,5 17.5,5H6.5C5.84,5 5.29,5.42 5.08,6.01L3,12V20A1,1 0 0,0 4,21H5A1,1 0 0,0 6,20V19H18V20A1,1 0 0,0 19,21H20A1,1 0 0,0 21,20V12L18.92,6.01M6.5,16A1.5,1.5 0 0,1 5,14.5A1.5,1.5 0 0,1 6.5,13A1.5,1.5 0 0,1 8,14.5A1.5,1.5 0 0,1 6.5,16M17.5,16A1.5,1.5 0 0,1 16,14.5A1.5,1.5 0 0,1 17.5,13A1.5,1.5 0 0,1 19,14.5A1.5,1.5 0 0,1 17.5,16M5,11L6.5,6.5H17.5L19,11H5Z" Width="26" Height="26" HorizontalAlignment="Left" Foreground="{DynamicResource Muted}" />
+              </StackPanel>
+            </Border>
+            <Border x:Name="Step3" Grid.Column="2" Classes="card blue" Padding="16">
+              <StackPanel Spacing="10">
+                <TextBlock Text="{svc:T Utility.CreateLogStep3}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <TextBlock Text="Sync_XXXXXXXX_VIN.xml" Classes="muted mono" FontSize="12" />
                 <Button Content="{svc:T App.OpenLog}" Command="{Binding ParseLogCommand}" HorizontalAlignment="Left" />
+                <Button Classes="prep teal" ToolTip.Tip="{Binding UploadTip}" ToolTip.ShowOnDisabled="True" Content="{svc:T Utility.UploadLog}" Command="{Binding UploadLogCommand}" IsEnabled="{Binding HasLog}" HorizontalAlignment="Left" />
               </StackPanel>
             </Border>
           </Grid>
@@ -65,7 +72,6 @@
               <Button Content="{svc:T Utility.ViewAsBuilt}" Command="{Binding ViewAsBuiltCommand}" />
             </StackPanel>
           </StackPanel>
-          <Button Classes="accent" Content="{svc:T Utility.UploadLog}" Command="{Binding UploadLogCommand}" HorizontalAlignment="Left" />
         </StackPanel>
       </Border>
 
@@ -84,25 +90,25 @@
               <Border Classes="ico lime"><PathIcon Data="M19.36,2.72L20.78,4.14L15.06,9.85C16.13,11.39 16.28,13.24 15.38,14.44L9.06,8.12C10.26,7.22 12.11,7.37 13.65,8.44L19.36,2.72M5.93,17.57C3.92,15.56 2.69,13.16 2.35,10.92L7.23,8.83L14.67,16.27L12.58,21.15C10.34,20.81 7.94,19.58 5.93,17.57Z" /></Border>
               <TextBlock Text="{svc:T Utility.RWDataCleanerTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
               <TextBlock Text="{svc:T Utility.RWDataCleanerDesc}" Classes="muted" TextWrapping="Wrap" FontSize="13" />
-              <Button Content="{svc:T App.PrepareUsb}" Command="{Binding RwDataCleanerCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
+              <Button Classes="prep lime" Content="{Binding PrepareLabel}" ToolTip.Tip="{Binding PrepareTip}" ToolTip.ShowOnDisabled="True" HorizontalAlignment="Left"  Command="{Binding RwDataCleanerCommand}" IsEnabled="{Binding CanPrepare}" />
             </StackPanel></Border></Border>
             <Border Margin="6,0,0,12"><Border Classes="card pink" Padding="16"><StackPanel Spacing="10">
               <Border Classes="ico pink"><PathIcon Data="M12,3V13.55C11.41,13.21 10.73,13 10,13A4,4 0 0,0 6,17A4,4 0 0,0 10,21A4,4 0 0,0 14,17V7H18V3H12Z" /></Border>
               <TextBlock Text="{svc:T Utility.GracenotesRemovalTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
               <TextBlock Text="{svc:T Utility.GracenotesRemovalDesc}" Classes="muted" TextWrapping="Wrap" FontSize="13" />
-              <Button Content="{svc:T App.PrepareUsb}" Command="{Binding GracenotesCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
+              <Button Classes="prep pink" Content="{Binding PrepareLabel}" ToolTip.Tip="{Binding PrepareTip}" ToolTip.ShowOnDisabled="True" HorizontalAlignment="Left"  Command="{Binding GracenotesCommand}" IsEnabled="{Binding CanPrepare}" />
             </StackPanel></Border></Border>
             <Border Margin="0,0,6,12"><Border Classes="card purple" Padding="16"><StackPanel Spacing="10">
               <Border Classes="ico purple"><PathIcon Data="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" /></Border>
               <TextBlock Text="{svc:T Utility.VoiceShrinkerTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
               <TextBlock Text="{svc:T Utility.VoiceShrinkerDesc}" Classes="muted" TextWrapping="Wrap" FontSize="13" />
-              <Button Content="{svc:T App.PrepareUsb}" Command="{Binding SmallVoiceCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
+              <Button Classes="prep purple" Content="{Binding PrepareLabel}" ToolTip.Tip="{Binding PrepareTip}" ToolTip.ShowOnDisabled="True" HorizontalAlignment="Left"  Command="{Binding SmallVoiceCommand}" IsEnabled="{Binding CanPrepare}" />
             </StackPanel></Border></Border>
             <Border Margin="6,0,0,12"><Border Classes="card red" Padding="16"><StackPanel Spacing="10">
               <Border Classes="ico red"><PathIcon Data="M9,4H15V12H19.84L12,19.84L4.16,12H9V4Z" /></Border>
               <TextBlock Text="{svc:T Utility.DowngradeTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
               <TextBlock Text="{svc:T Utility.DowngradeDesc}" Classes="muted" TextWrapping="Wrap" FontSize="13" />
-              <Button Content="{svc:T App.PrepareUsb}" Command="{Binding DowngradeCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
+              <Button Classes="prep red" Content="{Binding PrepareLabel}" ToolTip.Tip="{Binding PrepareTip}" ToolTip.ShowOnDisabled="True" HorizontalAlignment="Left"  Command="{Binding DowngradeCommand}" IsEnabled="{Binding CanPrepare}" />
             </StackPanel></Border></Border>
           </UniformGrid>
         </StackPanel>
@@ -113,7 +119,7 @@
         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
           <Border Classes="ico green" VerticalAlignment="Top"><PathIcon Data="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></Border>
           <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center"><TextBlock Text="{svc:T App.Upgrade22Title}" Classes="section" /><TextBlock Text="{svc:T App.Upgrade22Desc}" Classes="muted" TextWrapping="Wrap" FontSize="13" /></StackPanel>
-          <Button Grid.Column="2" Content="{svc:T App.PrepareUsb}" Command="{Binding Upgrade22Command}" IsEnabled="{Binding ButtonsEnabled}" VerticalAlignment="Center" />
+          <Button Classes="prep green" Grid.Column="2" Content="{Binding PrepareLabel}" ToolTip.Tip="{Binding PrepareTip}" ToolTip.ShowOnDisabled="True" VerticalAlignment="Center"  Command="{Binding Upgrade22Command}" IsEnabled="{Binding CanPrepare}" />
         </Grid>
       </Border>
 

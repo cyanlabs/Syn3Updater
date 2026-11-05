@@ -128,6 +128,20 @@
     <Style Selector="Button.help PathIcon"><Setter Property="Width" Value="18" /><Setter Property="Height" Value="18" /><Setter Property="Foreground" Value="{DynamicResource Muted}" /></Style>
     <Style Selector="Button.help:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource BrandSoft}" /></Style>
     <Style Selector="Button.help:pointerover PathIcon"><Setter Property="Foreground" Value="{DynamicResource Brand}" /></Style>
+
+    <!-- "Prepare USB": coloured like its tile once a drive is selected; disabled = the normal grey -->
+    <Style Selector="Button.prep.teal:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#2fa1ab" /><Setter Property="Foreground" Value="#0e1417" /><Setter Property="BorderBrush" Value="#2fa1ab" /></Style>
+    <Style Selector="Button.prep.teal:pointerover:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#47b4be" /></Style>
+    <Style Selector="Button.prep.lime:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#9ccc3d" /><Setter Property="Foreground" Value="#0e1417" /><Setter Property="BorderBrush" Value="#9ccc3d" /></Style>
+    <Style Selector="Button.prep.lime:pointerover:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#addb55" /></Style>
+    <Style Selector="Button.prep.pink:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#f06fa6" /><Setter Property="Foreground" Value="#0e1417" /><Setter Property="BorderBrush" Value="#f06fa6" /></Style>
+    <Style Selector="Button.prep.pink:pointerover:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#f585b6" /></Style>
+    <Style Selector="Button.prep.purple:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#a77bff" /><Setter Property="Foreground" Value="#0e1417" /><Setter Property="BorderBrush" Value="#a77bff" /></Style>
+    <Style Selector="Button.prep.purple:pointerover:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#b895ff" /></Style>
+    <Style Selector="Button.prep.red:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#ef6b62" /><Setter Property="Foreground" Value="#0e1417" /><Setter Property="BorderBrush" Value="#ef6b62" /></Style>
+    <Style Selector="Button.prep.red:pointerover:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#f48078" /></Style>
+    <Style Selector="Button.prep.green:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#4cc38a" /><Setter Property="Foreground" Value="#0e1417" /><Setter Property="BorderBrush" Value="#4cc38a" /></Style>
+    <Style Selector="Button.prep.green:pointerover:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#62d49b" /></Style>
     <Style Selector="Button.mini"><Setter Property="Width" Value="34" /><Setter Property="Height" Value="34" /><Setter Property="Padding" Value="0" /><Setter Property="HorizontalContentAlignment" Value="Center" /><Setter Property="CornerRadius" Value="8" /></Style>
     <Style Selector="Border.card.teal"><Setter Property="Background" Value="#142fa1ab" /><Setter Property="BorderBrush" Value="#552fa1ab" /></Style>
     <Style Selector="Border.card.blue"><Setter Property="Background" Value="#144f8cff" /><Setter Property="BorderBrush" Value="#554f8cff" /></Style>

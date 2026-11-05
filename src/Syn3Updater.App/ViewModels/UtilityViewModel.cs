@@ -28,7 +28,25 @@ public partial class UtilityViewModel : PageViewModel
 
     private InterrogatorResult? _parsed;
 
+    public UtilityViewModel() { Ctx.Loc.LanguageChanged += () => { OnPropertyChanged(nameof(PrepareLabel)); OnPropertyChanged(nameof(PrepareTip)); OnPropertyChanged(nameof(UploadTip)); }; }
+
     public override void OnShown() => _ = RefreshAsync();
+
+    /// <summary>The Prepare USB buttons are grey until a drive is selected (and while another job is being started).</summary>
+    public bool CanPrepare => ButtonsEnabled && SelectedDrive != null;
+    partial void OnButtonsEnabledChanged(bool value) => RaisePrepare();
+
+    /// <summary>A grey button explains itself: it says what is missing instead of "Prepare USB".</summary>
+    public string PrepareLabel => Ctx.T(SelectedDrive != null ? "App.PrepareUsb" : "App.SelectUsbFirst");
+    /// <summary>Tooltip for a disabled Prepare button (null, i.e. none, once it is usable).</summary>
+    public string? PrepareTip => SelectedDrive == null ? Ctx.T("App.SelectUsbTip") : null;
+    public string? UploadTip => HasLog ? null : Ctx.T("App.OpenLogFirstTip");
+    partial void OnHasLogChanged(bool value) => OnPropertyChanged(nameof(UploadTip));
+
+    private void RaisePrepare()
+    {
+        OnPropertyChanged(nameof(CanPrepare)); OnPropertyChanged(nameof(PrepareLabel)); OnPropertyChanged(nameof(PrepareTip));
+    }
 
     public bool CanEjectSelected => SelectedDrive is { IsFolder: false, IsChooser: false };
 
@@ -41,7 +59,7 @@ public partial class UtilityViewModel : PageViewModel
 
     partial void OnSelectedDriveChanged(DriveInfoModel? value)
     {
-        OnPropertyChanged(nameof(CanEjectSelected));
+        OnPropertyChanged(nameof(CanEjectSelected)); RaisePrepare();
         if (value?.Encrypted == true) { _ = Dialogs.Error(Ctx.T("MessageBox.EncryptedDrive")); SelectedDrive = null; return; }
         DriveInfo = value == null ? "" : $"{value.PartitionType} {value.FileSystem} · {Format.Bytes(value.SizeBytes)}";
     }

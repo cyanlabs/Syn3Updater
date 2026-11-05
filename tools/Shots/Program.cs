@@ -44,7 +44,8 @@ var work = Dispatcher.UIThread.InvokeAsync(async () =>
         {
             // sample state so the "active" layouts can be reviewed without touching real drives or the network
             var drive = new DriveInfoModel { DeviceId = "/dev/sdb", MountPath = "/run/media/scott/CYANLABS", Name = "SanDisk Ultra", VolumeName = "CYANLABS", SizeBytes = 31_914_983_424, FreeBytes = 31_000_000_000, FileSystem = "exFAT", PartitionType = "MBR" };
-            vm.Home.Drives.Add(drive); vm.Home.SelectedDrive = drive; vm.Home.NoDrives = false;
+            vm.Settings.Advanced = true;
+        vm.Home.Drives.Add(drive); vm.Home.SelectedDrive = drive; vm.Home.NoDrives = false;
             vm.Home.Releases.Add(new ReleaseItem { Display = "Sync 3.4.26057" });
             vm.Home.Packages.Clear();
         foreach (var (t, n, v, sz, sel) in new[] {

@@ -274,5 +274,9 @@
   "App.UsbFormatNote": "Drives are formatted as exFAT (MBR) before use, which erases everything on them. You are asked to confirm first.",
   "App.SelectRegion": "Select Region",
   "App.SelectVersion": "Select Version",
-  "App.SelectMaps": "Select Maps"
+  "App.SelectMaps": "Select Maps",
+  "App.SelectUsbFirst": "Select a USB drive",
+  "App.SelectUsbTip": "Select a USB drive above to enable this button.",
+  "App.OpenLogFirstTip": "Open an interrogator log (XML) first to enable this button.",
+  "App.AdvancedWarning": "These settings can make the USB created by Syn3 Updater incompatible with your car. Despite what many YouTube videos say, don't change them unless you know what you are doing."
 }
