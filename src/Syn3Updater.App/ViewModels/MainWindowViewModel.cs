@@ -20,8 +20,15 @@ public partial class MainWindowViewModel : ObservableObject
     public void ReloadProfiles()
     {
         _syncingProfile = true;
-        Profiles.Clear();
-        foreach (var p in Ctx.Store.ListProfiles()) Profiles.Add(p);
+        // update the list in place: clearing it while the dropdown is mid-selection wiped the displayed value
+        var wanted = Ctx.Store.ListProfiles().ToList();
+        for (var i = Profiles.Count - 1; i >= 0; i--) if (!wanted.Contains(Profiles[i])) Profiles.RemoveAt(i);
+        for (var i = 0; i < wanted.Count; i++)
+        {
+            if (i < Profiles.Count && Profiles[i] == wanted[i]) continue;
+            var at = Profiles.IndexOf(wanted[i]);
+            if (at >= 0) Profiles.Move(at, i); else Profiles.Insert(i, wanted[i]);
+        }
         SelectedProfile = Profiles.FirstOrDefault(p => p == Ctx.Main.Profile);
         _syncingProfile = false;
         OnPropertyChanged(nameof(CanDeleteProfile)); OnPropertyChanged(nameof(WindowTitle));
@@ -38,6 +45,7 @@ public partial class MainWindowViewModel : ObservableObject
     {
         ReloadProfiles();
         Home.ReloadSummary(); Home.ClearSelections(includeRegion: true); Settings.OnShown();
+        if (!ProfileReady && Current == Home) ShowSettings();      // switched to a profile that is not set up yet
     }
 
     [RelayCommand]
@@ -47,6 +55,7 @@ public partial class MainWindowViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(name)) return;
         Ctx.Store.SwitchProfile(AppPaths.FileSafe(name.Trim()));
         ProfileChanged();
+        ShowSettings();                         // a new profile starts empty: take them straight to its car configuration
     }
 
     [RelayCommand]
@@ -86,7 +95,7 @@ public partial class MainWindowViewModel : ObservableObject
     public async Task LoadAdAsync()
     {
         var m = Ctx.Main;
-        AdVisible = m.ShowAdSlot || !string.IsNullOrWhiteSpace(m.AdImageUrl);
+        AdVisible = !string.IsNullOrWhiteSpace(m.AdImageUrl);          // no placeholder: the area only exists once an ad image is configured
         AdImage = null; AdHasImage = false;
         if (string.IsNullOrWhiteSpace(m.AdImageUrl)) return;
         try
@@ -110,11 +119,11 @@ public partial class MainWindowViewModel : ObservableObject
     {
         Instance = this;
         Pages = new() { About, Home, Utility, Downloads, Logs, News, Settings };
-        TopPages = new() { Home, Utility, Downloads, Logs, News, About };
-        BottomPages = new() { Settings };
-        _current = Home;
-        Home.IsActive = true;
+        TopPages = new() { Home, Utility, Logs, News, About };
+        BottomPages = new() { Downloads, Settings };          // Downloads sits just above Settings: appearing/disappearing never shifts the tabs above it
         ReloadProfiles();
+        _current = ProfileReady ? Home : Settings;       // a fresh profile starts on Settings, because Home cannot work without a version and region
+        _current.IsActive = true;
     }
 
     partial void OnCurrentChanging(PageViewModel value) { if (_current != null && _current != value) _current.OnLeaving(); }
@@ -130,7 +139,7 @@ public partial class MainWindowViewModel : ObservableObject
     public double SidebarWidth => SidebarExpanded ? 200 : 64;
     partial void OnSidebarExpandedChanged(bool value) => OnPropertyChanged(nameof(SidebarWidth));
 
-    public void ShowHome() => Current = Home;
+    public void ShowHome() { if (ProfileReady) Current = Home; else { Current = Settings; _ = Settings.RequireSetupAsync(); } }
     public void ShowDownloads() => Current = Downloads;
     public void ShowUtility() => Current = Utility;
     public void ShowSettings() => Current = Settings;
@@ -140,8 +149,17 @@ public partial class MainWindowViewModel : ObservableObject
     {
         if (page == null || page == Current) return true;
         if (Current is SettingsViewModel s && !await s.ConfirmLeaveAsync()) return false;
+        if (page == Home && !ProfileReady)               // Home needs a region and version: send them to Settings instead
+        {
+            if (Current != Settings) Current = Settings;
+            await Settings.RequireSetupAsync();
+            return false;
+        }
         Current = page; return true;
     }
+
+    /// <summary>True once the active profile has a SYNC version and region; Home is not reachable before that.</summary>
+    public bool ProfileReady => (Ctx.Profile.CurrentVersion ?? 0) > 0 && !string.IsNullOrEmpty(Ctx.Profile.CurrentRegion);
 
     [RelayCommand] private Task Navigate(PageViewModel page) => GoToAsync(page);
 }

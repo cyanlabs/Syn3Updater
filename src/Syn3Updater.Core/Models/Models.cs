@@ -153,10 +153,9 @@ public class MainSettings
     public string? Theme { get; set; }
     public string? LogPath { get; set; }
     public string Profile { get; set; } = "default";
-    /// <summary>Sponsor/ad banner: image to show and the page it opens. When both are empty a placeholder is shown if ShowAdSlot is true.</summary>
+    /// <summary>Sponsor/ad banner: image to show and the page it opens. The banner area is hidden unless an image URL is set.</summary>
     public string? AdImageUrl { get; set; }
     public string? AdLinkUrl { get; set; }
-    public bool ShowAdSlot { get; set; } = true;
     /// <summary>Parallel connections per download (1-8). Application-wide.</summary>
     public int DownloadConnections { get; set; } = 8;
 }
