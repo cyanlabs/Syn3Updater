@@ -245,5 +245,11 @@
   "App.Runtime": "Runtime",
   "App.DataFolder": "Data folder",
   "App.Source": "Source code",
-  "App.License": "Licensed under GPL-3.0"
+  "App.License": "Licensed under GPL-3.0",
+  "App.AboutDocs": "Documentation",
+  "App.AboutForum": "CyanLabs Forum",
+  "App.AboutFHub": "F Hub",
+  "App.AboutDonate": "Support Us",
+  "App.AboutLicense": "License (GPL-3.0)",
+  "App.AboutDisclaimer": "Disclaimer"
 }

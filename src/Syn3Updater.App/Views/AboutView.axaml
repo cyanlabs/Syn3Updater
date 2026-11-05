@@ -23,7 +23,7 @@
         <StackPanel Spacing="12">
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
             <Border Classes="ico amber"><PathIcon Data="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M11,7H13V13H11V7M11,15H13V17H11V15Z" /></Border>
-            <StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="{svc:T About.DisclaimerTitle}" Classes="section" /></StackPanel>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="{svc:T App.AboutDisclaimer}" Classes="section" /></StackPanel>
           </Grid>
           <Border Classes="banner" IsVisible="{Binding NotAccepted}"><TextBlock Text="{svc:T App.AcceptRequired}" Foreground="{DynamicResource WarnFg}" TextWrapping="Wrap" /></Border>
           <TextBlock Text="{svc:T About.Disclaimer}" TextWrapping="Wrap" FontSize="13.5" />
@@ -38,25 +38,25 @@
         <Button Classes="tile" Command="{Binding OpenDocsCommand}" Margin="0,0,8,8" Padding="16">
               <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
                 <Border Classes="ico teal" VerticalAlignment="Top"><PathIcon Data="M18,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V4A2,2 0 0,0 18,2M6,4H11V12L8.5,10.5L6,12V4Z" /></Border>
-                <StackPanel Grid.Column="1" Spacing="2"><TextBlock Text="{svc:T About.DocumentationTitle}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.DocsDesc}" Classes="muted" FontSize="12.5" TextWrapping="Wrap" /></StackPanel>
+                <StackPanel Grid.Column="1" Spacing="2"><TextBlock Text="{svc:T App.AboutDocs}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.DocsDesc}" Classes="muted" FontSize="12.5" TextWrapping="Wrap" /></StackPanel>
               </Grid>
             </Button>
         <Button Classes="tile" Command="{Binding OpenForumCommand}" Margin="0,0,8,8" Padding="16">
               <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
                 <Border Classes="ico blue" VerticalAlignment="Top"><PathIcon Data="M20,2H4A2,2 0 0,0 2,4V22L6,18H20A2,2 0 0,0 22,16V4A2,2 0 0,0 20,2M6,9H18V11H6V9M14,14H6V12H14V14M18,8H6V6H18V8Z" /></Border>
-                <StackPanel Grid.Column="1" Spacing="2"><TextBlock Text="{svc:T About.ForumButton}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.ForumDesc}" Classes="muted" FontSize="12.5" TextWrapping="Wrap" /></StackPanel>
+                <StackPanel Grid.Column="1" Spacing="2"><TextBlock Text="{svc:T App.AboutForum}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.ForumDesc}" Classes="muted" FontSize="12.5" TextWrapping="Wrap" /></StackPanel>
               </Grid>
             </Button>
         <Button Classes="tile" Command="{Binding OpenFHubCommand}" Margin="0,0,8,8" Padding="16">
               <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
                 <Border Classes="ico orange" VerticalAlignment="Top"><PathIcon Data="M22.7,19L13.6,9.9C14.5,7.6 14,4.9 12.1,3C10.1,1 7.1,0.6 4.7,1.7L9,6L6,9L1.6,4.7C0.4,7.1 0.9,10.1 2.9,12.1C4.8,14 7.5,14.5 9.8,13.6L18.9,22.7C19.3,23.1 19.9,23.1 20.3,22.7L22.6,20.4C23.1,20 23.1,19.3 22.7,19Z" /></Border>
-                <StackPanel Grid.Column="1" Spacing="2"><TextBlock Text="{svc:T About.FHubButton}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.FHubDesc}" Classes="muted" FontSize="12.5" TextWrapping="Wrap" /></StackPanel>
+                <StackPanel Grid.Column="1" Spacing="2"><TextBlock Text="{svc:T App.AboutFHub}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.FHubDesc}" Classes="muted" FontSize="12.5" TextWrapping="Wrap" /></StackPanel>
               </Grid>
             </Button>
         <Button Classes="tile" Command="{Binding OpenDonateCommand}" Margin="0,0,8,8" Padding="16">
               <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
                 <Border Classes="ico pink" VerticalAlignment="Top"><PathIcon Data="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" /></Border>
-                <StackPanel Grid.Column="1" Spacing="2"><TextBlock Text="{svc:T About.DonateButton}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.DonateDesc}" Classes="muted" FontSize="12.5" TextWrapping="Wrap" /></StackPanel>
+                <StackPanel Grid.Column="1" Spacing="2"><TextBlock Text="{svc:T App.AboutDonate}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.DonateDesc}" Classes="muted" FontSize="12.5" TextWrapping="Wrap" /></StackPanel>
               </Grid>
             </Button>
       </UniformGrid>
@@ -75,7 +75,7 @@
             <Button Command="{Binding CopyDiagnosticsCommand}" Content="{svc:T App.CopyDiagnostics}" />
             <Button Command="{Binding OpenDataFolderCommand}" Content="{svc:T App.OpenDataFolder}" />
             <Button Command="{Binding OpenGithubCommand}" Content="{svc:T App.Source}" />
-            <Button Command="{Binding OpenLicenseCommand}" Content="GPL-3.0" />
+            <Button Command="{Binding OpenLicenseCommand}" Content="{svc:T App.AboutLicense}" />
           </WrapPanel>
         </StackPanel>
       </Border>
