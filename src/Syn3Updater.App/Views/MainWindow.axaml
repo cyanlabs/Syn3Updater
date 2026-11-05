@@ -6,7 +6,7 @@
         WindowStartupLocation="CenterScreen">
   <Window.Resources>
     <DataTemplate x:Key="NavItem" DataType="vm:PageViewModel">
-      <Button Classes="nav" Classes.active="{Binding IsActive}" ToolTip.Tip="{Binding Title}"
+      <Button Classes="nav" Classes.active="{Binding IsActive}" ToolTip.Tip="{Binding Title}" IsVisible="{Binding IsNavVisible}"
               Command="{Binding $parent[Window].DataContext.NavigateCommand}" CommandParameter="{Binding}">
         <Grid ColumnDefinitions="48,*">
           <PathIcon Data="{Binding IconData}" HorizontalAlignment="Center" VerticalAlignment="Center" />

@@ -12,6 +12,10 @@ public abstract class PageViewModel : ObservableObject
     public string Title => Ctx.T(TitleKey);
     /// <summary>SVG path data (24x24) for the sidebar icon.</summary>
     public abstract string IconData { get; }
+    /// <summary>Whether the sidebar shows this page. Most pages are always listed.</summary>
+    public virtual bool IsNavVisible => true;
+    protected void RaiseNavVisible() => OnPropertyChanged(nameof(IsNavVisible));
+
     public virtual void OnShown() { }
     /// <summary>Called before the user navigates away from this page.</summary>
     public virtual void OnLeaving() { }

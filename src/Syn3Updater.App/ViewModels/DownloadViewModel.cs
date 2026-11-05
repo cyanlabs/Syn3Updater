@@ -98,9 +98,12 @@ public partial class DownloadViewModel : PageViewModel
     [ObservableProperty] private int _totalProgress;
     [ObservableProperty] private bool _isRunning;
     public bool IsIdle => !IsRunning && Queue.Count == 0 && Completed.Count == 0;
+
+    /// <summary>The Downloads tab only appears while a download is running or after one has run (until the app is restarted).</summary>
+    public override bool IsNavVisible => !IsIdle;
     public bool HasQueue => Queue.Count > 0;
     public bool HasCompleted => Completed.Count > 0;
-    partial void OnIsRunningChanged(bool value) => OnPropertyChanged(nameof(IsIdle));
+    partial void OnIsRunningChanged(bool value) { OnPropertyChanged(nameof(IsIdle)); RaiseNavVisible(); }
     [ObservableProperty] private string _headline = "";
 
     private CancellationTokenSource? _cts;
@@ -108,8 +111,8 @@ public partial class DownloadViewModel : PageViewModel
 
     public DownloadViewModel()
     {
-        Queue.CollectionChanged += (_, _) => { OnPropertyChanged(nameof(IsIdle)); OnPropertyChanged(nameof(HasQueue)); };
-        Completed.CollectionChanged += (_, _) => { OnPropertyChanged(nameof(IsIdle)); OnPropertyChanged(nameof(HasCompleted)); };
+        Queue.CollectionChanged += (_, _) => { OnPropertyChanged(nameof(IsIdle)); OnPropertyChanged(nameof(HasQueue)); RaiseNavVisible(); };
+        Completed.CollectionChanged += (_, _) => { OnPropertyChanged(nameof(IsIdle)); OnPropertyChanged(nameof(HasCompleted)); RaiseNavVisible(); };
         Ctx.Log.LineAdded += line =>
         {
             if (!IsRunning) return;

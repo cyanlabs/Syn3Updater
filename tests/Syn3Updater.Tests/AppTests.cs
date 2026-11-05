@@ -481,6 +481,21 @@ public class PageViewModelTests
     }
 
     [AvaloniaFact]
+    public async Task DownloadsTab_IsHiddenUntilADownloadHasRun()
+    {
+        using var env = new AppEnv(); var m = env.Main;
+        Assert.False(m.Downloads.IsNavVisible);
+        Assert.All(m.Pages.Where(p => p != m.Downloads), p => Assert.True(p.IsNavVisible));            // every other tab is always listed
+        var raised = new List<string?>(); m.Downloads.PropertyChanged += (_, e) => raised.Add(e.PropertyName);
+
+        var usb = new DriveInfoModel { IsFolder = true, MountPath = env.UsbDir, Name = "f" };
+        Assert.True(await Workflow.StartAsync(new JobSpec { Release = "r", Region = "NA", Drive = usb, SpecialPackage = SpecialPackages.GraceNotesRemoval, Action = UpdateAction.GracenotesRemoval, NeedRwCleaner = false, Mode = InstallModes.Autoinstall }));
+        Assert.True(m.Downloads.IsNavVisible); Assert.Contains(nameof(PageViewModel.IsNavVisible), raised);       // appears as soon as it starts (the app is on that page then)
+        await AppEnv.Until(() => !m.Downloads.IsRunning && m.Downloads.Status == Ctx.T("String.Completed"));
+        Assert.True(m.Downloads.IsNavVisible);                                                                  // and stays after the download has finished
+    }
+
+    [AvaloniaFact]
     public async Task MainWindow_Ad_Placeholder_And_Click()
     {
         using var env = new AppEnv();
