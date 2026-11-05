@@ -83,10 +83,20 @@ public partial class SettingsViewModel : PageViewModel
         finally { _loadingVersions = false; }
     }
 
-    public override void OnShown() { Load(); OnPropertyChanged(nameof(WarningText)); OnPropertyChanged(nameof(ProfileName)); _ = LoadVersionsAsync(); }
+    public override void OnShown() { Load(); OnPropertyChanged(nameof(WarningText)); OnPropertyChanged(nameof(ProfileName)); OnPropertyChanged(nameof(ConfigRequired)); OnPropertyChanged(nameof(SetupText)); _ = LoadVersionsAsync(); }
     public override void OnLeaving() { if (_dirty) _ = ApplyAsync(quiet: true); }
     private bool _dirty;
     public bool IsDirty => _dirty;
+
+    /// <summary>True while the profile has no SYNC version and region yet: shows the banner and keeps Home closed.</summary>
+    public bool ConfigRequired => !MainWindowViewModel.Instance.ProfileReady;
+    public string SetupText => Ctx.T("App.ConfigRequired");
+    /// <summary>Called when someone tries to reach Home before the profile is set up: explains what is missing in a message box.</summary>
+    public async Task RequireSetupAsync()
+    {
+        OnPropertyChanged(nameof(ConfigRequired));
+        await Dialogs.Show(Ctx.T("App.ConfigRequiredBox"), Ctx.T("App.ConfigRequiredTitle"), new[] { Ctx.T("String.OK") }, defaultIndex: 0);
+    }
 
     /// <summary>Asked before leaving the page with unsaved changes. True = go ahead and leave; false = stay (cancelled, or the changes were not valid).</summary>
     public async Task<bool> ConfirmLeaveAsync()
@@ -108,7 +118,7 @@ public partial class SettingsViewModel : PageViewModel
     protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
-        if (!_loading && e.PropertyName is not (nameof(Message) or nameof(Advanced) or nameof(WarningText) or nameof(ProfileName))) _dirty = true;
+        if (!_loading && e.PropertyName is not (nameof(Message) or nameof(Advanced) or nameof(WarningText) or nameof(ProfileName) or nameof(ConfigRequired) or nameof(SetupText) or nameof(IsActive))) _dirty = true;
     }
 
     private void Load()
@@ -163,7 +173,10 @@ public partial class SettingsViewModel : PageViewModel
     private async Task ApplyClickAsync()
     {
         // a successful Apply takes you to Home, ready to pick a drive and version; errors keep you here so you can read and fix them
-        if (await ApplyAsync(false)) MainWindowViewModel.Instance.ShowHome();
+        if (!await ApplyAsync(false)) return;
+        OnPropertyChanged(nameof(ConfigRequired));
+        if (MainWindowViewModel.Instance.ProfileReady) MainWindowViewModel.Instance.ShowHome();
+        else await RequireSetupAsync();                       // applied, but still no region/version: stay here and say why
     }
 
     /// <returns>True when the settings were applied; false when validation or a folder error stopped it (the reason is in <see cref="Message"/>).</returns>
@@ -211,6 +224,7 @@ public partial class SettingsViewModel : PageViewModel
         Ctx.Log.Info($"Settings applied - Region: {p.CurrentRegion} - Version: {p.VersionString} - Navigation: {p.CurrentNav}");
         _dirty = false;
         Message = quiet ? "" : Ctx.T("String.Completed");
+        OnPropertyChanged(nameof(ConfigRequired));
         MainWindowViewModel.Instance.Home.ReloadSummary();
         // pressing Apply always starts the Home choices afresh (region, version, maps - not the USB drive); leaving the tab only does so
         // when the car configuration actually changed, because then the old choices no longer make sense

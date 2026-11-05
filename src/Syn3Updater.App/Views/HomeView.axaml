@@ -22,13 +22,6 @@
           <Button Grid.Column="1" Content="{svc:T App.Edit}" Command="{Binding EditConfigCommand}" VerticalAlignment="Top" />
         </Grid>
 
-        <Border Classes="banner" IsVisible="{Binding ConfigMissing}">
-          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-            <TextBlock Text="{svc:T App.ConfigMissing}" Foreground="{DynamicResource WarnFg}" VerticalAlignment="Center" TextWrapping="Wrap" />
-            <Button Grid.Column="1" Content="{svc:T App.OpenSettings}" Command="{Binding EditConfigCommand}" />
-          </Grid>
-        </Border>
-
         <!-- 1. destination -->
         <Border Classes="card">
           <StackPanel Spacing="12">

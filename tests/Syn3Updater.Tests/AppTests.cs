@@ -499,7 +499,7 @@ public class PageViewModelTests
     public void MainWindow_Navigation_Sidebar_Title()
     {
         using var env = new AppEnv(); var m = env.Main;
-        Assert.Equal(6, m.TopPages.Count); Assert.Single(m.BottomPages); Assert.True(m.Home.IsActive);
+        Assert.Equal(5, m.TopPages.Count); Assert.Equal(new PageViewModel[] { m.Downloads, m.Settings }, m.BottomPages); Assert.True(m.Home.IsActive);
         m.NavigateCommand.Execute(m.Logs); Assert.Same(m.Logs, m.Current); Assert.True(m.Logs.IsActive); Assert.False(m.Home.IsActive);
         m.ShowDownloads(); m.ShowUtility(); m.ShowSettings(); m.ShowHome(); Assert.Same(m.Home, m.Current);
         m.SidebarExpanded = false; Assert.Equal(64, m.SidebarWidth); m.SidebarExpanded = true; Assert.Equal(200, m.SidebarWidth);
@@ -526,11 +526,10 @@ public class PageViewModelTests
     public async Task MainWindow_Ad_Placeholder_And_Click()
     {
         using var env = new AppEnv();
-        await env.Main.LoadAdAsync(); Assert.True(env.Main.AdVisible); Assert.False(env.Main.AdHasImage);
-        Ctx.Main.ShowAdSlot = false; await env.Main.LoadAdAsync(); Assert.False(env.Main.AdVisible);
+        await env.Main.LoadAdAsync(); Assert.False(env.Main.AdVisible); Assert.False(env.Main.AdHasImage);          // no ad configured: no ad area at all
         Ctx.Main.AdLinkUrl = "https://sponsor.example"; await env.Main.OpenAdCommand.ExecuteAsync(null); Assert.Contains("https://sponsor.example", env.Dialogs.Opened);
-        Ctx.Main.AdImageUrl = env.Files.Url + "/banner"; Ctx.Main.ShowAdSlot = true; await env.Main.LoadAdAsync(); Assert.True(env.Main.AdVisible);   // loading never throws, whatever the bytes are
-        Ctx.Main.AdImageUrl = "http://127.0.0.1:1/unreachable"; await env.Main.LoadAdAsync(); Assert.False(env.Main.AdHasImage);   // unreachable: placeholder stays
+        Ctx.Main.AdImageUrl = env.Files.Url + "/banner"; await env.Main.LoadAdAsync(); Assert.True(env.Main.AdVisible);   // loading never throws, whatever the bytes are
+        Ctx.Main.AdImageUrl = "http://127.0.0.1:1/unreachable"; await env.Main.LoadAdAsync(); Assert.False(env.Main.AdHasImage);   // unreachable: nothing to show
     }
 }
 

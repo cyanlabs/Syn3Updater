@@ -129,6 +129,8 @@
     <Style Selector="Button.help PathIcon"><Setter Property="Width" Value="18" /><Setter Property="Height" Value="18" /><Setter Property="Foreground" Value="{DynamicResource Muted}" /></Style>
     <Style Selector="Button.help:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource BrandSoft}" /></Style>
     <Style Selector="Button.help:pointerover PathIcon"><Setter Property="Foreground" Value="{DynamicResource Brand}" /></Style>
+    <Style Selector="Button.help.danger:pointerover:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#22ef6b62" /></Style>
+    <Style Selector="Button.help.danger:pointerover:not(:disabled) PathIcon"><Setter Property="Foreground" Value="#ef6b62" /></Style>
 
     <!-- "Prepare USB": coloured like its tile once a drive is selected; disabled = the normal grey -->
     <Style Selector="Button.prep.teal:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#2fa1ab" /><Setter Property="Foreground" Value="#0e1417" /><Setter Property="BorderBrush" Value="#2fa1ab" /></Style>
