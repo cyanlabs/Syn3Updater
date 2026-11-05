@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services"
         x:Class="Cyanlabs.Syn3Updater.App.Views.MainWindow"
-        Title="{Binding WindowTitle}" Width="1000" Height="780" MinWidth="640" MinHeight="560"
+        Title="{Binding WindowTitle}" Icon="avares://Syn3Updater/Assets/logo.png" Width="1000" Height="780" MinWidth="640" MinHeight="560"
         WindowStartupLocation="CenterScreen">
   <Window.Resources>
     <DataTemplate x:Key="NavItem" DataType="vm:PageViewModel">
@@ -22,9 +22,7 @@
             Width="{Binding SidebarWidth}">
       <DockPanel Margin="0,14,0,12">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="16,0,8,18">
-          <Border Width="32" Height="32" CornerRadius="9" Background="{DynamicResource Brand}">
-            <TextBlock Text="S3" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          </Border>
+          <Image Source="avares://Syn3Updater/Assets/logo.png" Width="34" Height="34" RenderOptions.BitmapInterpolationMode="HighQuality" />
           <StackPanel IsVisible="{Binding SidebarExpanded}" VerticalAlignment="Center">
             <TextBlock Text="Syn3 Updater" FontWeight="SemiBold" />
             <TextBlock Text="CyanLabs" Classes="label" />

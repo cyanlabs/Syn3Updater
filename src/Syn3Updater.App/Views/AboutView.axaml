@@ -5,7 +5,7 @@
       <!-- hero -->
       <Border Classes="card teal" Padding="24">
         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="20">
-          <Border Width="72" Height="72" CornerRadius="20" Background="{DynamicResource Brand}"><TextBlock Text="S3" Foreground="White" FontSize="28" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+          <Image Source="avares://Syn3Updater/Assets/logo.png" Width="80" Height="80" RenderOptions.BitmapInterpolationMode="HighQuality" VerticalAlignment="Center" />
           <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
             <TextBlock Text="Syn3 Updater" Classes="title" />
             <TextBlock Text="{svc:T App.AboutTagline}" Classes="muted" TextWrapping="Wrap" />
