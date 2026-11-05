@@ -52,8 +52,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
       - run: dotnet test tests/Syn3Updater.Tests -c Release
@@ -70,15 +70,15 @@ jobs:
       matrix:
         rid: [linux-x64, linux-arm64]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
       - name: Package
         run: scripts/package-linux.sh "${{ matrix.rid }}" "${{ needs.prepare.outputs.version }}" artifacts
         env:
           SYN3_API_TOKEN: ${{ secrets.SYN3_API_TOKEN }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: pkg-${{ matrix.rid }}
           path: artifacts/*
@@ -96,15 +96,15 @@ jobs:
       matrix:
         rid: [win-x64, win-arm64]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
       - name: Package
         run: scripts/package-windows.sh "${{ matrix.rid }}" "${{ needs.prepare.outputs.version }}" artifacts
         env:
           SYN3_API_TOKEN: ${{ secrets.SYN3_API_TOKEN }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: pkg-${{ matrix.rid }}
           path: artifacts/*
@@ -123,8 +123,8 @@ jobs:
       MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
       MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
 
@@ -152,7 +152,7 @@ jobs:
           NOTARY_TEAM_ID: ${{ secrets.NOTARY_TEAM_ID }}
           NOTARY_PASSWORD: ${{ secrets.NOTARY_PASSWORD }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: pkg-${{ matrix.rid }}
           path: artifacts/*
@@ -163,8 +163,8 @@ jobs:
     if: needs.prepare.outputs.publish == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v7
         with:
           pattern: pkg-*
           path: dist

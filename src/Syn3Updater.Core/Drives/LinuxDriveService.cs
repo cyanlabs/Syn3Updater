@@ -153,9 +153,9 @@ public class LinuxDriveService : IDriveService
     public async Task<string> EnsureMountedAsync(DriveInfoModel drive, CancellationToken ct = default)
     {
         if (!string.IsNullOrEmpty(drive.MountPath)) return drive.MountPath;
-        var r = await Run("lsblk", new[] { "-nrpo", "PATH,TYPE", drive.DeviceId }, ct: ct);
+        var r = await Run("lsblk", new[] { "-nrpo", "PATH,TYPE", drive.DeviceId ?? "" }, ct: ct);
         var part = r.StdOut.Split('\n', StringSplitOptions.RemoveEmptyEntries)
-            .Select(l => l.Split(' ')).FirstOrDefault(p => p.Length > 1 && p[1] == "part")?[0] ?? drive.DeviceId;
+            .Select(l => l.Split(' ')).FirstOrDefault(p => p.Length > 1 && p[1] == "part")?[0] ?? drive.DeviceId ?? "";
         return await MountPartitionAsync(part, ct);
     }
 
@@ -190,7 +190,7 @@ public class LinuxDriveService : IDriveService
             return new(false, $"{drive.DeviceId} is not a removable drive; refusing to eject it.");
 
         await Run("sync", Array.Empty<string>(), ct: ct);
-        var parts = await Run("lsblk", new[] { "-nrpo", "PATH,TYPE,MOUNTPOINT", drive.DeviceId }, ct: ct);
+        var parts = await Run("lsblk", new[] { "-nrpo", "PATH,TYPE,MOUNTPOINT", drive.DeviceId ?? "" }, ct: ct);
         var mounted = parts.StdOut.Split('\n', StringSplitOptions.RemoveEmptyEntries)
             .Select(l => l.Split(' ', 3)).Where(p => p.Length == 3 && p[2].Length > 0)
             .Select(p => (Path: p[0], Mount: p[2].Replace("\\x20", " "))).ToList();
@@ -203,7 +203,7 @@ public class LinuxDriveService : IDriveService
                 if (!u.Ok && !u.StdErr.Contains("not mounted", StringComparison.OrdinalIgnoreCase))
                     return new(false, $"Could not unmount {path}: {u.StdErr.Trim()}\nClose anything that is using the drive (file manager windows, terminals) and try again.");
             }
-            var off = await Run("udisksctl", new[] { "power-off", "-b", drive.DeviceId }, ct: ct);
+            var off = await Run("udisksctl", new[] { "power-off", "-b", drive.DeviceId ?? "" }, ct: ct);
             return off.Ok
                 ? new(true, "The drive was ejected. You can remove it now.")
                 : new(true, "The drive was unmounted. You can remove it now.");        // some sticks cannot be powered off; they are still safe to pull once unmounted

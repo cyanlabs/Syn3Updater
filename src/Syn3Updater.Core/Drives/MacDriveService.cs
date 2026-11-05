@@ -80,7 +80,7 @@ public class MacDriveService : IDriveService
     {
         if (!System.Text.RegularExpressions.Regex.IsMatch(drive.DeviceId ?? "", @"^/dev/disk\d+$")) return new(false, "Not a valid device.");
         if (!(await ListAsync(ct)).Any(d => d.DeviceId == drive.DeviceId)) return new(false, $"{drive.DeviceId} is not an external drive; refusing to eject it.");
-        var r = await Run("diskutil", new[] { "eject", drive.DeviceId }, ct: ct);
+        var r = await Run("diskutil", new[] { "eject", drive.DeviceId ?? "" }, ct: ct);
         return r.Ok ? new(true, "The drive was ejected. You can remove it now.")
                     : new(false, "Could not eject the drive: " + (r.StdErr + r.StdOut).Trim() + "\nClose any Finder windows or apps using it and try again.");
     }

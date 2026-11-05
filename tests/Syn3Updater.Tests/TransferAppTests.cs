@@ -37,7 +37,7 @@ public class FreeSpaceWorkflowTests
         var usb = new DriveInfoModel { IsFolder = true, MountPath = env.UsbDir, Name = "f" };
         var ok = await Workflow.StartAsync(new JobSpec { Release = "r", Region = "NA", Drive = usb, DownloadOnly = true, Packages = { Pkg(env, "HUGE", 900L << 40) } });     // 900 TB
         Assert.False(ok);
-        var msg = Assert.Single(env.Dialogs.Messages.Where(m => m.Contains("download folder")));
+        var msg = Assert.Single(env.Dialogs.Messages, m => m.Contains("download folder"));
         Assert.Contains("Needed:", msg); Assert.Contains("Free:", msg); Assert.Contains(env.DownloadDir, msg); Assert.Contains("Settings", msg);
         Assert.DoesNotContain(env.Dialogs.Messages, m => m.Contains("too small"));              // download-only: the drive is not part of the check
     }
@@ -48,7 +48,7 @@ public class FreeSpaceWorkflowTests
         using var env = new AppEnv();
         var usb = new DriveInfoModel { IsFolder = true, MountPath = env.UsbDir, Name = "f" };
         Assert.False(await Workflow.StartAsync(new JobSpec { Release = "r", Region = "NA", Drive = usb, Packages = { Pkg(env, "HUGE", 900L << 40) } }));
-        var msg = Assert.Single(env.Dialogs.Messages.Where(m => m.Contains("download folder") && m.Contains("too small")));
+        var msg = Assert.Single(env.Dialogs.Messages, m => m.Contains("download folder") && m.Contains("too small"));
         Assert.Contains("Not enough free space", string.Join("\n", Ctx.Log.Lines));
     }
 

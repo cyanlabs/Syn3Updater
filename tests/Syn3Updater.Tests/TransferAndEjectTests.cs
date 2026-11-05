@@ -229,7 +229,7 @@ public class EjectTests
     private const string LsblkJson = """{"blockdevices":[{"name":"nvme0n1","path":"/dev/nvme0n1","type":"disk","size":1000204886016,"tran":"nvme","hotplug":false,"rm":false,"model":"SSD","pttype":"gpt","children":[{"name":"p2","path":"/dev/nvme0n1p2","type":"part","size":1,"fstype":"btrfs","mountpoint":"/"}]},{"name":"sda","path":"/dev/sda","type":"disk","size":31914983424,"tran":"usb","hotplug":true,"rm":true,"model":"Ultra","pttype":"dos","children":[{"name":"sda1","path":"/dev/sda1","type":"part","size":31913934848,"fstype":"exfat","label":"CYANLABS","mountpoint":"/run/media/scott/CYAN LABS"}]}]}""";
     private static readonly DriveInfoModel Stick = new() { DeviceId = "/dev/sda", Name = "Ultra", MountPath = "/run/media/scott/CYANLABS" };
 
-    private static (LinuxDriveService, ScriptedCommands) Linux(Func<string, string[], ProcessResult>? extra = null, bool udisks = true)
+    private static (LinuxDriveService, ScriptedCommands) Linux(Func<string, string[], ProcessResult?>? extra = null, bool udisks = true)
     {
         var cmd = new ScriptedCommands
         {

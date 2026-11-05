@@ -163,7 +163,7 @@ public class HomeFlowTests
         using var env = new AppEnv(); var home = env.Main.Home;
         Assert.True(home.Drives[^1].IsChooser); Assert.Equal("Select A Directory", home.Drives[^1].Title); Assert.Equal("", home.Drives[^1].Detail);   // there before any refresh
         await home.RefreshDrivesCommand.ExecuteAsync(null);
-        Assert.True(home.Drives[^1].IsChooser); Assert.Single(home.Drives.Where(d => d.IsChooser));
+        Assert.True(home.Drives[^1].IsChooser); Assert.Single(home.Drives, d => d.IsChooser);
 
         env.Dialogs.FolderToPick = env.UsbDir; home.SelectedDrive = home.Drives[^1];
         await AppEnv.Until(() => home.SelectedDrive?.IsFolder == true);
@@ -176,7 +176,7 @@ public class HomeFlowTests
         var other = Path.Combine(env.Dir, "other"); Directory.CreateDirectory(other);
         env.Dialogs.FolderToPick = other; home.SelectedDrive = home.Drives[^1];
         await AppEnv.Until(() => home.SelectedDrive?.MountPath == other);
-        Assert.Single(home.Drives.Where(d => d.IsFolder)); Assert.True(home.Drives[^1].IsChooser);                    // the new folder replaced the old one
+        Assert.Single(home.Drives, d => d.IsFolder); Assert.True(home.Drives[^1].IsChooser);                    // the new folder replaced the old one
         await home.RefreshDrivesCommand.ExecuteAsync(null); Assert.Equal(other, home.SelectedDrive!.MountPath);       // and survives a refresh
     }
 

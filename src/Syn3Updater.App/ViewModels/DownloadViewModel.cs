@@ -208,7 +208,7 @@ public partial class DownloadViewModel : PageViewModel
                 var docsUrl = InstallDocsUrl(req.InstallMode);
                 Ctx.Log.Info("Opening instructions: " + docsUrl);
                 await Dialogs.OpenUrl(docsUrl);
-                if (req.Drive.IsFolder)
+                if (req.Drive is { IsFolder: true })
                 {
                     await Dialogs.OpenUrl(root);
                     await Dialogs.Info(Ctx.T("MessageBox.CompletedFolder"));

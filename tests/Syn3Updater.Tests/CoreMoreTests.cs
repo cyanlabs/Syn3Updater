@@ -347,7 +347,7 @@ public class DriveModelAndServiceTests
     }
 
     [Fact]
-    public void FormatScript_IsValidShell_AndHasTheSafeguards()
+    public async Task FormatScript_IsValidShell_AndHasTheSafeguards()
     {
         Assert.Contains("--wipe-partitions always", LinuxDriveService.FormatScript);      // stale ntfs signature
         Assert.Contains("umount", LinuxDriveService.FormatScript);                         // automounted partition
@@ -358,7 +358,7 @@ public class DriveModelAndServiceTests
         try
         {
             File.WriteAllText(f, LinuxDriveService.FormatScript);
-            var r = ProcessRunner.RunAsync("sh", new[] { "-n", f }).GetAwaiter().GetResult();
+            var r = await ProcessRunner.RunAsync("sh", new[] { "-n", f });
             Assert.True(r.Ok, r.StdErr);
         }
         finally { File.Delete(f); }
