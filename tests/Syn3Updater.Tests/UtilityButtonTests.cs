@@ -74,13 +74,14 @@ public class UtilityButtonTests
         Assert.All(new[] { step1, step2, step3 }, b => Assert.NotNull(b));
 
         Assert.Contains("1. Prepare drive", TextsIn(step1));
-        Assert.DoesNotContain(TextsIn(step1), t => t.Contains("Insert drive in car"));                    // the car step is no longer squeezed into box 1
+        Assert.DoesNotContain(TextsIn(step1), t => t.Contains("Insert Drive in car"));                    // the car step is no longer squeezed into box 1
         Assert.Equal(u.CreateLogUsbCommand, step1.GetVisualDescendants().OfType<Button>().Single().Command);   // box 1: just the Prepare USB button
 
-        Assert.Contains(TextsIn(step2), t => t.StartsWith("2. Insert drive in car"));
+        var step2Texts = TextsIn(step2).ToList();
+        Assert.Equal(new[] { "2. In the car", "Insert Drive in car", "Await \"Install Complete\" on screen", "Reinsert Drive into computer" }, step2Texts);   // three separate lines, in order
         Assert.Empty(step2.GetVisualDescendants().OfType<Button>());                                      // box 2: nothing to press
 
-        Assert.Contains("3. Open Interrogator Log", TextsIn(step3));
+        Assert.Contains("3. Open the Interrogator Log", TextsIn(step3));
         var step3Commands = step3.GetVisualDescendants().OfType<Button>().Select(b => b.Command).ToList();
         Assert.Equal(new[] { u.ParseLogCommand, u.UploadLogCommand }, step3Commands);                     // box 3: open the log, then upload it
         Assert.Equal(1, view.GetVisualDescendants().OfType<Button>().Count(b => b.Command == u.UploadLogCommand));   // and no second Upload Log button elsewhere

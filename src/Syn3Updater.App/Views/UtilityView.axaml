@@ -42,13 +42,26 @@
             </Border>
             <Border x:Name="Step2" Grid.Column="1" Classes="card blue" Padding="16">
               <StackPanel Spacing="10">
-                <TextBlock Text="{svc:T Utility.CreateLogStep2}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                <PathIcon Data="M18.92,6.01C18.72,5.42 18.16,5 17.5,5H6.5C5.84,5 5.29,5.42 5.08,6.01L3,12V20A1,1 0 0,0 4,21H5A1,1 0 0,0 6,20V19H18V20A1,1 0 0,0 19,21H20A1,1 0 0,0 21,20V12L18.92,6.01M6.5,16A1.5,1.5 0 0,1 5,14.5A1.5,1.5 0 0,1 6.5,13A1.5,1.5 0 0,1 8,14.5A1.5,1.5 0 0,1 6.5,16M17.5,16A1.5,1.5 0 0,1 16,14.5A1.5,1.5 0 0,1 17.5,13A1.5,1.5 0 0,1 19,14.5A1.5,1.5 0 0,1 17.5,16M5,11L6.5,6.5H17.5L19,11H5Z" Width="26" Height="26" HorizontalAlignment="Left" Foreground="{DynamicResource Muted}" />
+                <TextBlock Text="{svc:T App.Step2Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <StackPanel Spacing="12" Margin="0,2,0,0">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                  <Ellipse Width="8" Height="8" Fill="{DynamicResource Brand}" VerticalAlignment="Top" Margin="0,6,0,0" />
+                  <TextBlock Grid.Column="1" Text="{svc:T App.Step2a}" TextWrapping="Wrap" />
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                  <Ellipse Width="8" Height="8" Fill="{DynamicResource Brand}" VerticalAlignment="Top" Margin="0,6,0,0" />
+                  <TextBlock Grid.Column="1" Text="{svc:T App.Step2b}" TextWrapping="Wrap" />
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                  <Ellipse Width="8" Height="8" Fill="{DynamicResource Brand}" VerticalAlignment="Top" Margin="0,6,0,0" />
+                  <TextBlock Grid.Column="1" Text="{svc:T App.Step2c}" TextWrapping="Wrap" />
+                </Grid>
+                </StackPanel>
               </StackPanel>
             </Border>
             <Border x:Name="Step3" Grid.Column="2" Classes="card blue" Padding="16">
               <StackPanel Spacing="10">
-                <TextBlock Text="{svc:T Utility.CreateLogStep3}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <TextBlock Text="{svc:T App.Step3Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
                 <TextBlock Text="Sync_XXXXXXXX_VIN.xml" Classes="muted mono" FontSize="12" />
                 <Button Content="{svc:T App.OpenLog}" Command="{Binding ParseLogCommand}" HorizontalAlignment="Left" />
                 <Button Classes="prep teal" ToolTip.Tip="{Binding UploadTip}" ToolTip.ShowOnDisabled="True" Content="{svc:T Utility.UploadLog}" Command="{Binding UploadLogCommand}" IsEnabled="{Binding HasLog}" HorizontalAlignment="Left" />
