@@ -135,5 +135,13 @@ public partial class MainWindowViewModel : ObservableObject
     public void ShowUtility() => Current = Utility;
     public void ShowSettings() => Current = Settings;
 
-    [RelayCommand] private void Navigate(PageViewModel page) { if (page != null) Current = page; }
+    /// <summary>Switches page, first asking about unsaved Settings changes. Returns false when the user chose to stay.</summary>
+    public async Task<bool> GoToAsync(PageViewModel page)
+    {
+        if (page == null || page == Current) return true;
+        if (Current is SettingsViewModel s && !await s.ConfirmLeaveAsync()) return false;
+        Current = page; return true;
+    }
+
+    [RelayCommand] private Task Navigate(PageViewModel page) => GoToAsync(page);
 }

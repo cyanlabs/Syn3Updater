@@ -86,10 +86,29 @@ public partial class SettingsViewModel : PageViewModel
     public override void OnShown() { Load(); OnPropertyChanged(nameof(WarningText)); OnPropertyChanged(nameof(ProfileName)); _ = LoadVersionsAsync(); }
     public override void OnLeaving() { if (_dirty) _ = ApplyAsync(quiet: true); }
     private bool _dirty;
+    public bool IsDirty => _dirty;
+
+    /// <summary>Asked before leaving the page with unsaved changes. True = go ahead and leave; false = stay (cancelled, or the changes were not valid).</summary>
+    public async Task<bool> ConfirmLeaveAsync()
+    {
+        if (!_dirty) return true;
+        var pick = await Dialogs.Show("You have unsaved changes on this page. What would you like to do?", "Unsaved changes",
+            new[] { "Keep editing", "Discard changes", "Save changes" }, defaultIndex: 2);
+        switch (pick)
+        {
+            case 2: return await ApplyAsync(quiet: true);          // invalid input stays on the page with the reason shown
+            case 1:
+                Load();                                              // back to what is saved, including the language/theme previews
+                Ctx.Loc.SetLanguage(Ctx.Main.Lang); Loc.Instance.Refresh(); ApplyTheme(Ctx.Main.Theme);
+                OnPropertyChanged(nameof(WarningText));
+                return true;
+            default: return false;
+        }
+    }
     protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
-        if (!_loading && e.PropertyName is not (nameof(Message) or nameof(Advanced))) _dirty = true;
+        if (!_loading && e.PropertyName is not (nameof(Message) or nameof(Advanced) or nameof(WarningText) or nameof(ProfileName))) _dirty = true;
     }
 
     private void Load()

@@ -29,6 +29,8 @@ public class FakeDialogs : IDialogBackend
     public List<string> Clipboard { get; } = new();
     public List<(Func<string, bool> Match, bool Yes)> Rules { get; } = new();
     public bool DefaultYes { get; set; }
+    /// <summary>Button indexes to answer with, in order (for dialogs with more than two buttons).</summary>
+    public Queue<int> Choices { get; } = new();
     public string? FolderToPick { get; set; }
     public string? FileToPick { get; set; }
     public string? PromptAnswer { get; set; }
@@ -40,6 +42,7 @@ public class FakeDialogs : IDialogBackend
     {
         Messages.Add(message); Shown.Add((title, options, buttons));
         if (buttons.Length == 1) return Task.FromResult(0);
+        if (Choices.Count > 0) return Task.FromResult(Choices.Dequeue());
         var yes = Rules.FirstOrDefault(r => r.Match(message)) is { Match: not null } rule ? rule.Yes : DefaultYes;
         return Task.FromResult(yes ? 1 : 0);
     }
