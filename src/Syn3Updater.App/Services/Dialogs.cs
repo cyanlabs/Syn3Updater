@@ -10,9 +10,12 @@ namespace Cyanlabs.Syn3Updater.App.Services;
 
 /// <summary>Modal message boxes plus file/folder pickers and URL launching, all marshalled onto the UI thread.</summary>
 /// <summary>Everything the app asks of the UI layer. Tests replace the backend with a scripted fake.</summary>
+/// <summary>Optional presentation: show the app logo, and render the message as Markdown (bold, bullets, links).</summary>
+public record DialogOptions(bool Logo = false, bool Markdown = false);
+
 public interface IDialogBackend
 {
-    Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex);
+    Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex, DialogOptions? options = null);
     Task<string?> PickFolder(string title);
     Task<string?> PickFile(string title, string filterName, string[] patterns);
     /// <summary>Asks for one line of text. Returns null when cancelled.</summary>
@@ -33,7 +36,7 @@ public static class Dialogs
     public static async Task<bool> Confirm(string message, string? title = null, string? yes = null, string? no = null, bool warning = false) =>
         await Backend.Show(message, title ?? Ctx.T("String.Notice"), new[] { no ?? Ctx.T("String.No"), yes ?? Ctx.T("String.Yes") }, warning, false, 0) == 1;
 
-    public static Task<int> Show(string message, string title, string[] buttons, int defaultIndex = 0) => Backend.Show(message, title, buttons, false, false, defaultIndex);
+    public static Task<int> Show(string message, string title, string[] buttons, int defaultIndex = 0, DialogOptions? options = null) => Backend.Show(message, title, buttons, false, false, defaultIndex, options);
     public static Task<string?> PickFolder(string title) => Backend.PickFolder(title);
     public static Task<string?> Prompt(string title, string message, string initial = "") => Backend.Prompt(title, message, initial);
     public static Task<string?> PickFile(string title, string filterName, params string[] patterns) => Backend.PickFile(title, filterName, patterns);
@@ -43,7 +46,7 @@ public static class Dialogs
 
 internal sealed class AvaloniaDialogBackend : IDialogBackend
 {
-    public async Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex)
+    public async Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex, DialogOptions? options = null)
     {
         var host = DialogHostViewModel.Instance;
         if (!host.IsAttached)    // no main window yet (or already closed): a stand-alone window is the only option
@@ -51,6 +54,7 @@ internal sealed class AvaloniaDialogBackend : IDialogBackend
         return await host.ShowAsync(new DialogRequest
         {
             Title = title, Message = message.Trim(), DefaultIndex = Math.Clamp(defaultIndex, 0, buttons.Length - 1),
+            ShowLogo = options?.Logo == true, UseMarkdown = options?.Markdown == true,
             Tone = error ? DialogTone.Error : warning ? DialogTone.Warning : DialogTone.Normal,
             Buttons = buttons.Select((label, i) => new DialogButton(label, i, buttons.Length > 1 && i == buttons.Length - 1)).ToList(),
         });

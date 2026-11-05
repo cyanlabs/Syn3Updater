@@ -1,14 +1,17 @@
 namespace Cyanlabs.Syn3Updater.App.Services;
 
-/// <summary>Shows the disclaimer as a popup at start-up until it has been accepted.</summary>
+/// <summary>First start: a welcome popup, then the disclaimer popup, until the disclaimer has been accepted.</summary>
 public static class DisclaimerGate
 {
     /// <summary>Returns true when the disclaimer is (now) accepted. Choosing Exit calls <paramref name="exit"/> and returns false.</summary>
     public static async Task<bool> EnsureAcceptedAsync(Func<Task> exit)
     {
         if (Ctx.Main.DisclaimerAccepted) return true;
-        var message = $"{Ctx.T("MessageBox.DisclaimerNotAccepted")}\n\n{Ctx.T("About.Disclaimer")}\n\n{Ctx.T("About.Endorsed")}";
-        var choice = await Dialogs.Show(message, Ctx.T("About.DisclaimerTitle"), new[] { Ctx.T("App.Exit"), Ctx.T("App.Accept") }, defaultIndex: 0);
+
+        await Dialogs.Show(Ctx.T("App.WelcomeBody"), Ctx.T("App.WelcomeTitle"), new[] { Ctx.T("App.Continue") }, options: new DialogOptions(Logo: true, Markdown: true));
+
+        var choice = await Dialogs.Show(Ctx.T("App.DisclaimerBody"), Ctx.T("App.DisclaimerPopupTitle"),
+            new[] { Ctx.T("App.Exit"), Ctx.T("App.Accept") }, defaultIndex: 0, options: new DialogOptions(Markdown: true));
         if (choice == 1)
         {
             Ctx.Main.DisclaimerAccepted = true; Ctx.Save();

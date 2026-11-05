@@ -38,6 +38,7 @@ var work = Dispatcher.UIThread.InvokeAsync(async () =>
     {
         Cyanlabs.Syn3Updater.App.Services.Ctx.Main.DisclaimerAccepted = false;
         _ = Cyanlabs.Syn3Updater.App.Services.DisclaimerGate.EnsureAcceptedAsync(() => Task.CompletedTask);
+        if (args.Contains("--second")) { await Task.Delay(500); Cyanlabs.Syn3Updater.App.Services.DialogHostViewModel.Instance.Cancel(); }   // dismiss the welcome to show the disclaimer
     }
         void ApplyDemo()
         {

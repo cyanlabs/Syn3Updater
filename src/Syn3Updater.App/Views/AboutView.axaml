@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" x:Class="Cyanlabs.Syn3Updater.App.Views.AboutView">
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:ctl="using:Cyanlabs.Syn3Updater.App.Controls" x:Class="Cyanlabs.Syn3Updater.App.Views.AboutView">
   <ScrollViewer HorizontalScrollBarVisibility="Disabled">
     <StackPanel MaxWidth="820" Spacing="16" Margin="28,28,28,24">
 
@@ -26,9 +26,8 @@
             <StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="{svc:T App.AboutDisclaimer}" Classes="section" /></StackPanel>
           </Grid>
           <Border Classes="banner" IsVisible="{Binding NotAccepted}"><TextBlock Text="{svc:T App.AcceptRequired}" Foreground="{DynamicResource WarnFg}" TextWrapping="Wrap" /></Border>
-          <TextBlock Text="{svc:T About.Disclaimer}" TextWrapping="Wrap" FontSize="13.5" />
-          <TextBlock Text="{svc:T About.Endorsed}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
-          <CheckBox IsChecked="{Binding Accepted}" Content="{svc:T About.DisclaimerAgreement}" FontWeight="SemiBold" />
+          <ctl:MarkdownText Text="{svc:T App.DisclaimerBody}" FontSize="13.5" />
+          <CheckBox IsChecked="{Binding Accepted}" Content="{svc:T App.DisclaimerAgreementShort}" FontWeight="SemiBold" />
         </StackPanel>
       </Border>
 

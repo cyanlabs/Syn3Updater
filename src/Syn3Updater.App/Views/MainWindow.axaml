@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services"
+        xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:ctl="using:Cyanlabs.Syn3Updater.App.Controls"
         x:Class="Cyanlabs.Syn3Updater.App.Views.MainWindow"
         Title="{Binding WindowTitle}" Icon="avares://Syn3Updater/Assets/logo.png" Width="1000" Height="780" MinWidth="640" MinHeight="560"
         WindowStartupLocation="CenterScreen">
@@ -77,11 +77,15 @@
 
     <!-- in-window dialogs: no separate OS windows, so the desktop never moves focus or the pointer -->
     <Border IsVisible="{Binding Dialog.HasDialog}" Background="#b0000000" ZIndex="100">
-      <Border Classes="card" MinWidth="360" MaxWidth="560" Margin="24" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <Border Classes="card" MinWidth="360" MaxWidth="600" Margin="24" Padding="28" HorizontalAlignment="Center" VerticalAlignment="Center">
         <StackPanel Spacing="16" DataContext="{Binding Dialog.Current}">
-          <TextBlock Text="{Binding Title}" Classes="section" Classes.dlgerr="{Binding IsError}" Classes.dlgwarn="{Binding IsWarning}" TextWrapping="Wrap" />
+          <Image Source="avares://Syn3Updater/Assets/logo.png" Width="72" Height="72" HorizontalAlignment="Left" IsVisible="{Binding ShowLogo}" RenderOptions.BitmapInterpolationMode="HighQuality" />
+          <TextBlock Text="{Binding Title}" Classes="section" FontSize="20" Classes.dlgerr="{Binding IsError}" Classes.dlgwarn="{Binding IsWarning}" TextWrapping="Wrap" />
           <ScrollViewer MaxHeight="430" HorizontalScrollBarVisibility="Disabled">
-            <SelectableTextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+            <Panel>
+              <SelectableTextBlock Text="{Binding Message}" TextWrapping="Wrap" IsVisible="{Binding UsePlainText}" />
+              <ctl:MarkdownText Text="{Binding Message}" FontSize="14" IsVisible="{Binding UseMarkdown}" />
+            </Panel>
           </ScrollViewer>
           <TextBox x:Name="PromptBox" Text="{Binding Text}" IsVisible="{Binding IsPrompt}" />
           <ItemsControl ItemsSource="{Binding Buttons}" HorizontalAlignment="Right">

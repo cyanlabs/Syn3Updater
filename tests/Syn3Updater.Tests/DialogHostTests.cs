@@ -101,17 +101,25 @@ public class DisclaimerGateTests
     }
 
     [AvaloniaFact]
-    public async Task FirstStart_ShowsThePopup_AndAcceptingIsRemembered()
+    public async Task FirstStart_ShowsWelcomeThenDisclaimer_AndAcceptingIsRemembered()
     {
-        using var env = new AppEnv(disclaimer: false); env.Dialogs.Say(m => m.Contains(Ctx.T("MessageBox.DisclaimerNotAccepted")), true);
+        using var env = new AppEnv(disclaimer: false); env.Dialogs.Say(m => m == Ctx.T("App.DisclaimerBody"), true);
         Assert.True(await DisclaimerGate.EnsureAcceptedAsync(() => throw new InvalidOperationException("must not exit")));
-        var shown = Assert.Single(env.Dialogs.Messages);
-        Assert.Contains("Please read and accept the disclaimer before continuing", shown);            // the explanation is part of the popup
-        Assert.Contains(Ctx.T("About.Disclaimer"), shown); Assert.Contains(Ctx.T("About.Endorsed"), shown);
+
+        Assert.Equal(2, env.Dialogs.Messages.Count);
+        var (welcomeTitle, welcomeOptions, welcomeButtons) = env.Dialogs.Shown[0];
+        Assert.Equal("Welcome to Syn3 Updater", welcomeTitle); Assert.True(welcomeOptions!.Logo); Assert.True(welcomeOptions.Markdown); Assert.Equal(new[] { "Continue" }, welcomeButtons);
+        Assert.Contains("How it works", env.Dialogs.Messages[0]); Assert.Contains("Settings", env.Dialogs.Messages[0]);
+
+        var (title, options, buttons) = env.Dialogs.Shown[1];
+        Assert.Equal("Before you start", title); Assert.True(options!.Markdown); Assert.False(options.Logo); Assert.Equal(new[] { "Exit", "I understand and accept" }, buttons);
+        foreach (var point in new[] { "Use at your own risk", "Check your details", "Follow the instructions", "No warranty, no liability", "Not affiliated with Ford", "MY20" })
+            Assert.Contains(point, env.Dialogs.Messages[1]);
+
         Assert.True(Ctx.Main.DisclaimerAccepted);
-        Assert.Contains("\"DisclaimerAccepted\": true", File.ReadAllText(Path.Combine(env.Dir, "data", "settings.json")));   // saved: it does not come back next time
+        Assert.Contains("\"DisclaimerAccepted\": true", File.ReadAllText(Path.Combine(env.Dir, "data", "settings.json")));   // saved: neither popup comes back
         env.Dialogs.Messages.Clear();
-        Assert.True(await DisclaimerGate.EnsureAcceptedAsync(() => throw new InvalidOperationException()));                  // and is not asked again
+        Assert.True(await DisclaimerGate.EnsureAcceptedAsync(() => throw new InvalidOperationException()));
         Assert.Empty(env.Dialogs.Messages);
     }
 
@@ -120,6 +128,6 @@ public class DisclaimerGateTests
     {
         using var env = new AppEnv(disclaimer: false); bool exited = false;                           // default answer: first button (Exit)
         Assert.False(await DisclaimerGate.EnsureAcceptedAsync(() => { exited = true; return Task.CompletedTask; }));
-        Assert.True(exited); Assert.False(Ctx.Main.DisclaimerAccepted);
+        Assert.True(exited); Assert.False(Ctx.Main.DisclaimerAccepted); Assert.Equal(2, env.Dialogs.Messages.Count);   // welcome, then the disclaimer they declined
     }
 }

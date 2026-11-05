@@ -17,6 +17,9 @@ public class DialogRequest
     public DialogTone Tone { get; init; }
     public int DefaultIndex { get; init; }
     public bool IsPrompt { get; init; }
+    public bool ShowLogo { get; init; }
+    public bool UseMarkdown { get; init; }
+    public bool UsePlainText => !UseMarkdown;
     public string Text { get; set; } = "";
     public bool IsError => Tone == DialogTone.Error;
     public bool IsWarning => Tone == DialogTone.Warning;

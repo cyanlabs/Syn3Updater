@@ -34,9 +34,11 @@ public class FakeDialogs : IDialogBackend
     public string? PromptAnswer { get; set; }
     public List<string> Prompts { get; } = new();
 
-    public Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex)
+    public List<(string Title, DialogOptions? Options, string[] Buttons)> Shown { get; } = new();
+
+    public Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex, DialogOptions? options = null)
     {
-        Messages.Add(message);
+        Messages.Add(message); Shown.Add((title, options, buttons));
         if (buttons.Length == 1) return Task.FromResult(0);
         var yes = Rules.FirstOrDefault(r => r.Match(message)) is { Match: not null } rule ? rule.Yes : DefaultYes;
         return Task.FromResult(yes ? 1 : 0);

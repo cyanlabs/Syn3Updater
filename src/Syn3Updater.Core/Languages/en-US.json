@@ -253,5 +253,11 @@
   "App.AboutLicense": "License (GPL-3.0)",
   "App.AboutDisclaimer": "Disclaimer",
   "App.Accept": "I understand and accept",
-  "App.Exit": "Exit"
+  "App.Exit": "Exit",
+  "App.WelcomeTitle": "Welcome to Syn3 Updater",
+  "App.WelcomeBody": "Syn3 Updater prepares USB drives for updating your Ford SYNC 3 system, on Windows, Linux and macOS.\n\n**How it works**\n- Enter your car's SYNC version and region in **Settings**.\n- On **Home**, pick a USB drive and the version you want.\n- The app downloads the files, checks them and copies them to the drive.\n- Plug the drive into your car and follow the steps on screen. The right instructions open automatically when it's done.\n\nNext, a short safety notice - then you're ready to go.",
+  "App.Continue": "Continue",
+  "App.DisclaimerPopupTitle": "Before you start",
+  "App.DisclaimerBody": "Updating your SYNC system carries real risk. Please read this before you continue.\n\n- **Use at your own risk.** A wrong setting or an interrupted update can leave your SYNC unit (APIM) unusable, and repairs can be expensive.\n- **Check your details.** Enter your SYNC version, region and navigation setting exactly as they appear in your car, and answer the MY20 question honestly. Wrong answers are the most common cause of a bricked unit.\n- **Follow the instructions.** Use the guides at cyanlabs.net for your install mode, and never unplug the USB drive or switch off the car during an update.\n- **No warranty, no liability.** Syn3 Updater and CyanLabs are provided as is. To the fullest extent the law allows, they are not responsible for any loss or damage - including to your vehicle, your data or your warranty - arising from using this app or its guides.\n- **Not affiliated with Ford.** This is an unofficial tool. It is not made, approved or endorsed by Ford Motor Company, and using it may affect your vehicle's warranty.\n\nBy choosing **I understand and accept** you confirm that you have read this and accept the risks.",
+  "App.DisclaimerAgreementShort": "I have read the notice above and accept the risks."
 }

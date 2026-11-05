@@ -8,7 +8,8 @@ public enum MdBlockKind { Paragraph, Heading, Bullet, Quote, Code, Rule }
 public abstract record MdInline;
 public sealed record MdText(string Text, bool Bold = false, bool Italic = false, bool Code = false) : MdInline;
 public sealed record MdLink(string Text, string Url) : MdInline;
-public sealed record MdBlock(MdBlockKind Kind, IReadOnlyList<MdInline> Inlines, int Level = 0);
+/// <param name="AfterBlank">True when the source had a blank line before this block (rendered as extra spacing).</param>
+public sealed record MdBlock(MdBlockKind Kind, IReadOnlyList<MdInline> Inlines, int Level = 0, bool AfterBlank = false);
 
 /// <summary>
 /// Small Markdown subset used for changelogs, notices and release notes: headings, bullets, quotes, fenced code,
@@ -28,7 +29,7 @@ public static class Markdown
         if (string.IsNullOrWhiteSpace(markdown)) return blocks;
 
         var lines = markdown.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
-        bool inCode = false; var code = new StringBuilder();
+        bool inCode = false, blank = false; var code = new StringBuilder();
         foreach (var raw in lines)
         {
             var line = raw.TrimEnd();
@@ -38,13 +39,14 @@ public static class Markdown
                 inCode = !inCode; continue;
             }
             if (inCode) { code.Append(raw).Append('\n'); continue; }
-            if (line.Length == 0) continue;
+            if (line.Length == 0) { blank = true; continue; }
 
-            if (Rule.IsMatch(line)) { blocks.Add(new(MdBlockKind.Rule, Array.Empty<MdInline>())); continue; }
-            if (Heading.Match(line) is { Success: true } h) { blocks.Add(new(MdBlockKind.Heading, Inline(h.Groups[2].Value), h.Groups[1].Length)); continue; }
-            if (line.TrimStart().StartsWith('>')) { blocks.Add(new(MdBlockKind.Quote, Inline(line.TrimStart()[1..].TrimStart()))); continue; }
-            if (Bullet.Match(line) is { Success: true } b) { blocks.Add(new(MdBlockKind.Bullet, Inline(b.Groups[1].Value))); continue; }
-            blocks.Add(new(MdBlockKind.Paragraph, Inline(line)));
+            bool gap = blank && blocks.Count > 0; blank = false;
+            if (Rule.IsMatch(line)) { blocks.Add(new(MdBlockKind.Rule, Array.Empty<MdInline>(), 0, gap)); continue; }
+            if (Heading.Match(line) is { Success: true } h) { blocks.Add(new(MdBlockKind.Heading, Inline(h.Groups[2].Value), h.Groups[1].Length, gap)); continue; }
+            if (line.TrimStart().StartsWith('>')) { blocks.Add(new(MdBlockKind.Quote, Inline(line.TrimStart()[1..].TrimStart()), 0, gap)); continue; }
+            if (Bullet.Match(line) is { Success: true } b) { blocks.Add(new(MdBlockKind.Bullet, Inline(b.Groups[1].Value), 0, gap)); continue; }
+            blocks.Add(new(MdBlockKind.Paragraph, Inline(line), 0, gap));
         }
         if (inCode && code.Length > 0) blocks.Add(new(MdBlockKind.Code, new MdInline[] { new MdText(code.ToString().TrimEnd('\n'), Code: true) }));
         return blocks;

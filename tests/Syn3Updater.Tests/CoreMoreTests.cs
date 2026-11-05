@@ -52,6 +52,13 @@ public class MarkdownTests
         Assert.Equal("code line", ((MdText)b[^1].Inlines[0]).Text);
     }
 
+    [Fact]
+    public void BlankLines_AreKeptAsSpacing_ButNotAtTheStart()
+    {
+        var b = Markdown.Parse("\n\nfirst\nsame para\n\nsecond\n- item\n\n- later");
+        Assert.Equal(new[] { false, false, true, false, true }, b.Select(x => x.AfterBlank));
+    }
+
     [Fact] public void EachLine_IsItsOwnBlock() => Assert.Equal(3, Markdown.Parse("Added: a\nFixed: b\r\nNotice: c").Count);
     [Fact] public void UnclosedFence_StillEmitsCode() => Assert.Equal(MdBlockKind.Code, Markdown.Parse("```\nabc")[0].Kind);
 }

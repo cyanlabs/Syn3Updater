@@ -52,7 +52,9 @@ public class MarkdownText : StackPanel
                     });
                     break;
                 default:
-                    Children.Add(BuildText(block, brand, chip, muted));
+                    var text = BuildText(block, brand, chip, muted);
+                    if (block.AfterBlank) text.Margin = new Thickness(text.Margin.Left, text.Margin.Top + 8, text.Margin.Right, text.Margin.Bottom);
+                    Children.Add(text);
                     break;
             }
         }
