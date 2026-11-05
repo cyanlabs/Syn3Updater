@@ -1,0 +1,8 @@
+bin/
+obj/
+*.user
+.vs/
+publish/
+artifacts/
+# API credentials are never committed
+**/ApiSecret.local.*

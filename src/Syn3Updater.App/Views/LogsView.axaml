@@ -1,0 +1,15 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" x:Class="Cyanlabs.Syn3Updater.App.Views.LogsView">
+  <Grid RowDefinitions="Auto,Auto,*" ColumnDefinitions="300,*" ColumnSpacing="14" RowSpacing="10">
+    <TextBlock Grid.ColumnSpan="2" Text="{svc:T Main.Logs}" Classes="h1" />
+    <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="8">
+      <TextBlock Text="{svc:T Logs.Path}" VerticalAlignment="Center" Classes="muted" />
+      <TextBlock Text="{Binding Path}" VerticalAlignment="Center" />
+      <Button Content="{svc:T Logs.OpenFolder}" Command="{Binding OpenFolderCommand}" />
+      <Button Content="{svc:T Home.Refresh}" Command="{Binding RefreshCommand}" />
+      <Button Content="{svc:T Utility.UploadLog}" Command="{Binding UploadCommand}" />
+      <Button Content="{svc:T Logs.Delete}" Command="{Binding DeleteCommand}" />
+    </StackPanel>
+    <ListBox Grid.Row="2" ItemsSource="{Binding Files}" SelectedItem="{Binding Selected}" />
+    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Content}" IsReadOnly="True" AcceptsReturn="True" FontFamily="monospace" TextWrapping="NoWrap" />
+  </Grid>
+</UserControl>

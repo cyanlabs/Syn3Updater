@@ -1,0 +1,25 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels"
+             xmlns:views="using:Cyanlabs.Syn3Updater.App.Views"
+             x:Class="Cyanlabs.Syn3Updater.App.App"
+             RequestedThemeVariant="Default">
+  <Application.DataTemplates>
+    <DataTemplate DataType="vm:HomeViewModel"><views:HomeView /></DataTemplate>
+    <DataTemplate DataType="vm:DownloadViewModel"><views:DownloadView /></DataTemplate>
+    <DataTemplate DataType="vm:UtilityViewModel"><views:UtilityView /></DataTemplate>
+    <DataTemplate DataType="vm:NewsViewModel"><views:NewsView /></DataTemplate>
+    <DataTemplate DataType="vm:LogsViewModel"><views:LogsView /></DataTemplate>
+    <DataTemplate DataType="vm:ProfilesViewModel"><views:ProfilesView /></DataTemplate>
+    <DataTemplate DataType="vm:SettingsViewModel"><views:SettingsView /></DataTemplate>
+    <DataTemplate DataType="vm:AboutViewModel"><views:AboutView /></DataTemplate>
+  </Application.DataTemplates>
+  <Application.Styles>
+    <FluentTheme />
+    <Style Selector="TextBlock.h1"><Setter Property="FontSize" Value="22" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Margin" Value="0,0,0,4" /></Style>
+    <Style Selector="TextBlock.h2"><Setter Property="FontSize" Value="15" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Margin" Value="0,10,0,2" /></Style>
+    <Style Selector="TextBlock.muted"><Setter Property="Opacity" Value="0.65" /></Style>
+    <Style Selector="Border.card"><Setter Property="Padding" Value="16" /><Setter Property="CornerRadius" Value="8" /><Setter Property="BorderThickness" Value="1" /><Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseLowBrush}" /><Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" /></Style>
+    <Style Selector="ComboBox"><Setter Property="HorizontalAlignment" Value="Stretch" /></Style>
+  </Application.Styles>
+</Application>

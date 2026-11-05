@@ -1,0 +1,93 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" x:Class="Cyanlabs.Syn3Updater.App.Views.HomeView">
+  <ScrollViewer>
+    <StackPanel Spacing="14" MaxWidth="900" HorizontalAlignment="Stretch">
+      <TextBlock Text="{svc:T Main.Home}" Classes="h1" />
+
+      <Border Classes="card">
+        <StackPanel Spacing="6">
+          <TextBlock Text="{svc:T Home.CurrentConfiguration}" Classes="h2" Margin="0" />
+          <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="4">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{svc:T Home.Version}" Classes="muted" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentVersion}" />
+            <TextBlock Grid.Row="0" Grid.Column="2" Text="{svc:T Home.Region}" Classes="muted" />
+            <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding CurrentRegion}" />
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="{svc:T Home.Nav}" Classes="muted" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CurrentNav}" />
+            <TextBlock Grid.Row="1" Grid.Column="2" Text="{svc:T Home.MY20Protection}" Classes="muted" />
+            <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding My20Text}" />
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="{svc:T Home.InstallModeForced}" Classes="muted" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ModeForcedText}" />
+            <TextBlock Grid.Row="2" Grid.Column="2" Text="{svc:T Home.Profile}" Classes="muted" />
+            <TextBlock Grid.Row="2" Grid.Column="3" Text="{Binding ProfileName}" />
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="{svc:T Home.DownloadPath}" Classes="muted" />
+            <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding DownloadPath}" TextTrimming="CharacterEllipsis" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="8">
+          <TextBlock Text="{svc:T Home.DriveName}" Classes="h2" Margin="0" />
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+            <ComboBox Grid.Column="0" ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive}" PlaceholderText="{svc:T Home.SelectUSBDrive}" />
+            <Button Grid.Column="1" Content="{svc:T Home.Refresh}" Command="{Binding RefreshDrivesCommand}" />
+            <Button Grid.Column="2" Content="{svc:T Home.NoUSBDir}" Command="{Binding ChooseFolderCommand}" />
+          </Grid>
+          <TextBlock Text="{Binding DriveInfo}" Classes="muted" />
+          <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveTitle}" Classes="muted" FontWeight="SemiBold" Margin="0,6,0,0" />
+          <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveNonNav}" Classes="muted" />
+          <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveNA}" Classes="muted" />
+          <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveEU}" Classes="muted" />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12" RowDefinitions="Auto,Auto">
+          <TextBlock Grid.Column="0" Text="{svc:T Home.Region}" Classes="h2" Margin="0,0,0,4" />
+          <TextBlock Grid.Column="1" Text="{svc:T Home.NewVersion}" Classes="h2" Margin="0,0,0,4" />
+          <TextBlock Grid.Column="2" Text="{svc:T Home.MapVersion}" Classes="h2" Margin="0,0,0,4" />
+          <ComboBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}" />
+          <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Releases}" SelectedItem="{Binding SelectedRelease}" />
+          <ComboBox Grid.Row="1" Grid.Column="2" ItemsSource="{Binding MapVersions}" SelectedItem="{Binding SelectedMap}" />
+        </Grid>
+      </Border>
+
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Loading}" />
+
+      <Border Classes="card" IsVisible="{Binding Notes.Length}">
+        <StackPanel Spacing="6">
+          <TextBlock Text="{svc:T Home.Notes}" Classes="h2" Margin="0" />
+          <SelectableTextBlock Text="{Binding Notes}" TextWrapping="Wrap" />
+          <Button Content="{svc:T Home.FeedbackButton}" Command="{Binding OpenFeedbackCommand}" IsVisible="{Binding FeedbackUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card" IsVisible="{Binding Packages.Count}">
+        <StackPanel Spacing="6">
+          <TextBlock Text="{svc:T Home.SelectPackages}" Classes="h2" Margin="0" />
+          <ItemsControl ItemsSource="{Binding Packages}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:PackageRow">
+                <Grid ColumnDefinitions="*,Auto">
+                  <CheckBox Grid.Column="0" IsChecked="{Binding Selected}" Content="{Binding Display}" />
+                  <TextBlock Grid.Column="1" Text="{Binding SizeText}" Classes="muted" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+          <StackPanel Grid.Column="0" VerticalAlignment="Center">
+            <TextBlock Text="{svc:T Home.InstallMode}" Classes="muted" />
+            <TextBlock Text="{Binding InstallMode}" FontSize="18" FontWeight="SemiBold" />
+          </StackPanel>
+          <Button Grid.Column="1" Content="{svc:T Home.StartDownloadOnly}" Command="{Binding DownloadOnlyCommand}" IsEnabled="{Binding DownloadOnlyEnabled}" />
+          <Button Grid.Column="2" Content="{svc:T Home.StartButton}" Classes="accent" Command="{Binding StartCommand}" IsEnabled="{Binding StartEnabled}" MinWidth="110" HorizontalContentAlignment="Center" />
+        </Grid>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" x:Class="Cyanlabs.Syn3Updater.App.Views.DownloadView">
+  <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="12">
+    <StackPanel Grid.Row="0">
+      <TextBlock Text="{svc:T Main.Downloads}" Classes="h1" />
+      <TextBlock Text="{Binding Headline}" Classes="muted" />
+    </StackPanel>
+    <Border Grid.Row="1" Classes="card">
+      <StackPanel Spacing="8">
+        <TextBlock Text="{Binding Status}" FontWeight="SemiBold" TextWrapping="Wrap" />
+        <ProgressBar Value="{Binding FileProgress}" Maximum="100" />
+        <TextBlock Text="{svc:T Download.TotalDownload}" Classes="muted" />
+        <ProgressBar Value="{Binding TotalProgress}" Maximum="100" />
+        <Button Content="{svc:T Download.CancelButton}" Command="{Binding CancelCommand}" IsEnabled="{Binding IsRunning}" HorizontalAlignment="Right" />
+      </StackPanel>
+    </Border>
+    <Border Grid.Row="2" Classes="card" IsVisible="{Binding Queue.Count}">
+      <StackPanel Spacing="4">
+        <TextBlock Text="{svc:T Download.Queue}" Classes="h2" Margin="0" />
+        <ItemsControl ItemsSource="{Binding Queue}" />
+      </StackPanel>
+    </Border>
+    <Border Grid.Row="3" Classes="card">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="{svc:T Download.Log}" Classes="h2" Margin="0,0,0,6" />
+        <TextBox Text="{Binding Log}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="monospace" />
+      </DockPanel>
+    </Border>
+  </Grid>
+</UserControl>

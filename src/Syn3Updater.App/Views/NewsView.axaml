@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:m="using:Cyanlabs.Syn3Updater.Core.Models" x:Class="Cyanlabs.Syn3Updater.App.Views.NewsView">
+  <ScrollViewer>
+    <StackPanel Spacing="14" MaxWidth="820" HorizontalAlignment="Stretch">
+      <TextBlock Text="{svc:T Main.News}" Classes="h1" />
+      <TextBlock Text="{Binding Status}" Foreground="Firebrick" TextWrapping="Wrap" />
+      <TextBlock Text="{svc:T News.ImportantNoticeTitle}" Classes="h2" />
+      <ItemsControl ItemsSource="{Binding Important}">
+        <ItemsControl.ItemTemplate><DataTemplate DataType="m:Notice">
+          <Border Classes="card" Margin="0,0,0,8"><StackPanel Spacing="4">
+            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="DarkOrange" />
+            <SelectableTextBlock Text="{Binding Content}" TextWrapping="Wrap" />
+          </StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <TextBlock Text="{svc:T News.NoticeTitle}" Classes="h2" />
+      <ItemsControl ItemsSource="{Binding Other}">
+        <ItemsControl.ItemTemplate><DataTemplate DataType="m:Notice">
+          <Border Classes="card" Margin="0,0,0,8"><StackPanel Spacing="4">
+            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+            <SelectableTextBlock Text="{Binding Content}" TextWrapping="Wrap" />
+          </StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <TextBlock Text="{svc:T News.Changelog}" Classes="h2" />
+      <ItemsControl ItemsSource="{Binding Changelogs}">
+        <ItemsControl.ItemTemplate><DataTemplate DataType="m:Changelog">
+          <Border Classes="card" Margin="0,0,0,8"><StackPanel Spacing="4">
+            <TextBlock FontWeight="SemiBold"><Run Text="{Binding Version}" /><Run Text="  " /><Run Text="{Binding Date}" /></TextBlock>
+            <SelectableTextBlock Text="{Binding ReleaseNotes}" TextWrapping="Wrap" />
+          </StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

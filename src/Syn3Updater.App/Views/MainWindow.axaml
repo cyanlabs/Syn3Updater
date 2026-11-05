@@ -1,0 +1,25 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels"
+        x:Class="Cyanlabs.Syn3Updater.App.Views.MainWindow"
+        Title="Syn3 Updater" Width="1100" Height="780" MinWidth="820" MinHeight="560"
+        WindowStartupLocation="CenterScreen">
+  <Grid ColumnDefinitions="200,*">
+    <Border Grid.Column="0" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" Padding="8,16">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="8,0,8,16">
+          <TextBlock Text="Syn3 Updater" FontSize="20" FontWeight="Bold" />
+          <TextBlock Text="CyanLabs" Classes="muted" />
+        </StackPanel>
+        <ListBox ItemsSource="{Binding Pages}" SelectedItem="{Binding Current, Mode=TwoWay}" Background="Transparent">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:PageViewModel">
+              <TextBlock Text="{Binding Title}" FontSize="15" Margin="6,6" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+    <ContentControl Grid.Column="1" Content="{Binding Current}" Margin="24,20" />
+  </Grid>
+</Window>

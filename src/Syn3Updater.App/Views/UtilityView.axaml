@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" x:Class="Cyanlabs.Syn3Updater.App.Views.UtilityView">
+  <ScrollViewer>
+    <StackPanel Spacing="14" MaxWidth="900" HorizontalAlignment="Stretch">
+      <TextBlock Text="{svc:T Main.Utility}" Classes="h1" />
+
+      <Border Classes="card">
+        <StackPanel Spacing="8">
+          <TextBlock Text="{svc:T Utility.SelectUSBDrive}" Classes="h2" Margin="0" />
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <ComboBox ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive}" PlaceholderText="{svc:T Utility.SelectUSBDrive}" />
+            <Button Grid.Column="1" Content="{svc:T Home.Refresh}" Command="{Binding RefreshCommand}" />
+          </Grid>
+          <TextBlock Text="{Binding DriveInfo}" Classes="muted" />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="8">
+          <TextBlock Text="{svc:T Utility.CreateLogTitle}" Classes="h2" Margin="0" />
+          <TextBlock Text="{svc:T Utility.CreateLogDesc}" TextWrapping="Wrap" Classes="muted" />
+          <TextBlock Text="{svc:T Utility.CreateLogStep1}" />
+          <Button Content="{svc:T Utility.GracenotesButton}" Command="{Binding CreateLogUsbCommand}" IsEnabled="{Binding ButtonsEnabled}" />
+          <TextBlock Text="{svc:T Utility.CreateLogStep2}" />
+          <TextBlock Text="{svc:T Utility.CreateLogStep3}" />
+          <Button Content="{svc:T Utility.CreateLogTitle}" Command="{Binding ParseLogCommand}" />
+          <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10" IsVisible="{Binding HasLog}">
+            <TextBox Grid.Column="0" Text="{Binding LogDetails}" IsReadOnly="True" AcceptsReturn="True" MinHeight="170" FontFamily="monospace" />
+            <TextBox Grid.Column="1" Text="{Binding LogPartitions}" IsReadOnly="True" AcceptsReturn="True" MinHeight="170" FontFamily="monospace" />
+            <TextBox Grid.Column="2" Text="{Binding LogAsBuilt}" IsReadOnly="True" AcceptsReturn="True" MinHeight="170" FontFamily="monospace" />
+          </Grid>
+          <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasLog}">
+            <Button Content="{svc:T Utility.CopyAsBuilt}" Command="{Binding CopyAsBuiltCommand}" />
+            <Button Content="{svc:T Utility.ViewAsBuilt}" Command="{Binding ViewAsBuiltCommand}" />
+          </StackPanel>
+          <Button Content="{svc:T Utility.UploadLog}" Command="{Binding UploadLogCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="8">
+          <TextBlock Text="MY20 APIM check" Classes="h2" Margin="0" />
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBox Text="{Binding ApimModelInput}" Watermark="####-14G371-###" />
+            <Button Grid.Column="1" Content="Check" Command="{Binding CheckMy20Command}" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="8">
+          <TextBlock Text="{svc:T Utility.TroubleshootTitle}" Classes="h2" Margin="0" />
+          <TextBlock Text="{svc:T Utility.TroubleshootDesc}" TextWrapping="Wrap" Classes="muted" />
+          <Button Content="{svc:T Utility.TroubleshootMoreDetails}" Command="{Binding TroubleshootCommand}" HorizontalAlignment="Left" />
+
+          <TextBlock Text="{svc:T Utility.GracenotesRemovalTitle}" Classes="h2" />
+          <TextBlock Text="{svc:T Utility.GracenotesRemovalDesc}" TextWrapping="Wrap" Classes="muted" />
+          <Button Content="{svc:T Utility.GracenotesButton}" Command="{Binding GracenotesCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
+
+          <TextBlock Text="{svc:T Utility.VoiceShrinkerTitle}" Classes="h2" />
+          <TextBlock Text="{svc:T Utility.VoiceShrinkerDesc}" TextWrapping="Wrap" Classes="muted" />
+          <Button Content="{svc:T Utility.GracenotesButton}" Command="{Binding SmallVoiceCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
+
+          <TextBlock Text="{svc:T Utility.DowngradeTitle}" Classes="h2" />
+          <TextBlock Text="{svc:T Utility.DowngradeDesc}" TextWrapping="Wrap" Classes="muted" />
+          <Button Content="{svc:T Utility.GracenotesButton}" Command="{Binding DowngradeCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
+
+          <TextBlock Text="{svc:T Utility.RWDataCleanerTitle}" Classes="h2" />
+          <TextBlock Text="{svc:T Utility.RWDataCleanerDesc}" TextWrapping="Wrap" Classes="muted" />
+          <Button Content="{svc:T Utility.RWDataCleanerButton}" Command="{Binding RwDataCleanerCommand}" IsEnabled="{Binding ButtonsEnabled}" HorizontalAlignment="Left" />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
