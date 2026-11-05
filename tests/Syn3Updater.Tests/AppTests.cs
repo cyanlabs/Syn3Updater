@@ -319,6 +319,7 @@ public class PageViewModelTests
         using var env = new AppEnv(); var s = env.Main.Settings; env.Main.Current = s;
         s.Version = "12"; await s.ApplyClickCommand.ExecuteAsync(null);
         Assert.Contains("3.4.20282", s.Message); Assert.Equal(3420282, Ctx.Profile.CurrentVersion);   // rejected, nothing changed
+        Assert.Same(s, env.Main.Current);                                                              // an error keeps you on Settings so you can fix it
 
         s.Version = "3.3.19052"; s.Region = Region.All[0]; s.Nav = true; s.Connections = 4; s.Mode = s.ModeOptions[1]; s.My20 = s.My20Options[2];
         await s.ApplyClickCommand.ExecuteAsync(null);
@@ -326,8 +327,9 @@ public class PageViewModelTests
         Assert.Equal(4, Ctx.Main.DownloadConnections); Assert.Equal(InstallModes.Autoinstall, Ctx.Profile.InstallMode); Assert.False(Ctx.Profile.My20v2);
         Assert.Contains("3.3.19052", File.ReadAllText(Path.Combine(env.Dir, "data", "Profiles", "default.json")).Replace("3319052", "3.3.19052"));
         Assert.Contains(env.Main.Home.ConfigItems, c => c.Value == "EU");
+        Assert.Same(env.Main.Home, env.Main.Current);                                                  // a successful Apply jumps to Home
 
-        s.Version = "3.4.20282"; env.Main.Current = env.Main.Home;                    // leaving the tab saves
+        env.Main.Current = s; s.Version = "3.4.20282"; env.Main.Current = env.Main.Home;              // leaving the tab saves (and does not need a jump)
         Assert.Equal(3420282, Ctx.Profile.CurrentVersion);
     }
 

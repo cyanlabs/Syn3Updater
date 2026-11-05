@@ -131,15 +131,20 @@ public partial class SettingsViewModel : PageViewModel
     }
 
     [RelayCommand]
-    private Task ApplyClickAsync() => ApplyAsync(false);
+    private async Task ApplyClickAsync()
+    {
+        // a successful Apply takes you to Home, ready to pick a drive and version; errors keep you here so you can read and fix them
+        if (await ApplyAsync(false)) MainWindowViewModel.Instance.ShowHome();
+    }
 
-    private async Task ApplyAsync(bool quiet)
+    /// <returns>True when the settings were applied; false when validation or a folder error stopped it (the reason is in <see cref="Message"/>).</returns>
+    private async Task<bool> ApplyAsync(bool quiet)
     {
         // version: "3.4.20282" or "3420282" -> 7 digits
         var digits = new string(Version.Where(char.IsDigit).ToArray());
         if (Version.Trim().Length > 0 && digits.Length != 7)
         {
-            Message = "Version must look like 3.4.20282 (Settings > General > About on the car)."; return;
+            Message = "Version must look like 3.4.20282 (Settings > General > About on the car)."; return false;
         }
         var m = Ctx.Main; var p = Ctx.Profile;
 
@@ -148,7 +153,7 @@ public partial class SettingsViewModel : PageViewModel
         if (newDl.Length > 0 && !string.Equals(newDl, m.DownloadPath, StringComparison.Ordinal))
         {
             try { Directory.CreateDirectory(newDl); }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Message = e.Message; return; }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Message = e.Message; return false; }
             if (m.DownloadPath != null && Directory.Exists(m.DownloadPath) && Directory.EnumerateFiles(m.DownloadPath).Any() &&
                 await Dialogs.Confirm(Ctx.T("MessageBox.DownloadPathChangeCopy", m.DownloadPath, newDl)))
             {
@@ -160,7 +165,7 @@ public partial class SettingsViewModel : PageViewModel
         if (LogPath.Trim().Length > 0)
         {
             try { Directory.CreateDirectory(LogPath.Trim()); m.LogPath = LogPath.Trim(); }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Message = e.Message; return; }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Message = e.Message; return false; }
         }
 
         m.DownloadConnections = Connections;
@@ -181,6 +186,7 @@ public partial class SettingsViewModel : PageViewModel
         // only throw away the Home selection when the car configuration actually changed
         if (before != (p.CurrentRegion, p.CurrentVersion, p.CurrentNav, p.My20v2, p.InstallMode))
             MainWindowViewModel.Instance.Home.ClearSelections();
+        return true;
     }
 
     [RelayCommand]
