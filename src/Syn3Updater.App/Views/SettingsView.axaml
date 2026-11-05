@@ -22,7 +22,7 @@
           <!-- region, version and navigation share one row; the row wraps when the window gets narrow -->
           <WrapPanel ItemSpacing="14" LineSpacing="12">
             <StackPanel Spacing="6" Width="300"><TextBlock Text="{svc:T Settings.Region}" Classes="label" /><ComboBox ItemsSource="{Binding Regions}" SelectedItem="{Binding Region}" /></StackPanel>
-            <StackPanel Spacing="6" Width="190"><TextBlock Text="{svc:T Home.Version}" Classes="label" /><AutoCompleteBox x:Name="VersionBox" Text="{Binding Version, Mode=TwoWay}" ItemsSource="{Binding KnownVersions}" MinimumPrefixLength="0" FilterMode="StartsWith" MaxDropDownHeight="260" Watermark="3.4.20282" ToolTip.Tip="{svc:T Settings.EnterVersion}" /></StackPanel>
+            <StackPanel Spacing="6" Width="190"><TextBlock Text="{svc:T Home.Version}" Classes="label" /><ComboBox x:Name="VersionBox" IsEditable="True" HorizontalAlignment="Stretch" Text="{Binding Version, Mode=TwoWay}" ItemsSource="{Binding KnownVersions}" MaxDropDownHeight="260" PlaceholderText="3.4.20282" ToolTip.Tip="{svc:T Settings.EnterVersion}" /></StackPanel>
             <StackPanel Spacing="6"><TextBlock Text=" " Classes="label" /><CheckBox IsChecked="{Binding Nav}" Content="{svc:T Settings.Navigation}" MinHeight="32" VerticalContentAlignment="Center" /></StackPanel>
           </WrapPanel>
         </StackPanel>

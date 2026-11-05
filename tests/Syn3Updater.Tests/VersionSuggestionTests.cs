@@ -67,11 +67,29 @@ public class VersionSuggestionTests
         using var env = new AppEnv(); var s = env.Main.Settings; await s.LoadVersionsAsync();
         var view = new SettingsView { DataContext = s };
         var window = new Window { Content = view }; window.Show();
-        var box = view.FindControl<AutoCompleteBox>("VersionBox")!;
-        Assert.NotNull(box); Assert.Same(s.KnownVersions, box.ItemsSource);
-        Assert.Equal(AutoCompleteFilterMode.StartsWith, box.FilterMode); Assert.Equal(0, box.MinimumPrefixLength);          // opens with the whole list; narrows as you type
+        var box = view.FindControl<ComboBox>("VersionBox")!;
+        Assert.NotNull(box); Assert.Same(s.KnownVersions, box.ItemsSource); Assert.True(box.IsEditable);      // pick from the list or type any version
         Assert.Equal(s.Version, box.Text);
         box.Text = "3.4.2"; Assert.Equal("3.4.2", s.Version);                                           // typing flows back to the setting
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public async Task PickingAVersionFromTheOpenDropdown_SetsIt_WithoutCrashing()
+    {
+        // regression: choosing a version in Settings used to crash inside the popup while it closed
+        using var env = new AppEnv(); var s = env.Main.Settings; await s.LoadVersionsAsync();
+        var view = new SettingsView { DataContext = s };
+        var window = new Window { Width = 900, Height = 700, Content = view }; window.Show();
+        var box = view.FindControl<ComboBox>("VersionBox")!;
+        box.IsDropDownOpen = true; Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        var pick = s.KnownVersions[1];
+        box.SelectedItem = pick; Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        box.IsDropDownOpen = false; Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        Assert.Equal(pick, s.Version);
+        box.IsDropDownOpen = true; Avalonia.Threading.Dispatcher.UIThread.RunJobs();                       // and again, picking a different one
+        box.SelectedItem = s.KnownVersions[2]; box.IsDropDownOpen = false; Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        Assert.Equal(s.KnownVersions[2], s.Version);
         window.Close();
     }
 
