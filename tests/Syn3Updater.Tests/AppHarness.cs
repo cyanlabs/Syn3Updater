@@ -57,7 +57,7 @@ public class FakeDialogs : IDialogBackend
 /// <summary>Serves bytes derived from the request path (so md5/size are predictable) on localhost.</summary>
 public sealed class FileServer : IDisposable
 {
-    private readonly HttpListener _l = new();
+    private HttpListener _l = new();
     public string Url { get; }
     public FileServer()
     {
@@ -65,8 +65,9 @@ public sealed class FileServer : IDisposable
         {
             var port = Random.Shared.Next(40000, 60000);
             Url = $"http://127.0.0.1:{port}";
-            _l.Prefixes.Clear(); _l.Prefixes.Add(Url + "/");
-            try { _l.Start(); break; } catch (HttpListenerException) when (attempt < 20) { }
+            _l = new HttpListener();                  // a failed Start() disposes the listener on Windows, so every attempt needs a new one
+            _l.Prefixes.Add(Url + "/");
+            try { _l.Start(); break; } catch (HttpListenerException) when (attempt < 20) { _l.Close(); }
         }
         _ = Task.Run(async () =>
         {
