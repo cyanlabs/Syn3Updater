@@ -56,7 +56,7 @@ drive code is covered by parser unit tests but untested against real devices.
 
 ## CI/CD (GitHub Actions)
 
-- **CI** (`.github/workflows/ci.yml`): every push and pull request to `v3` builds and tests on Linux, Windows and macOS.
+- **CI** (`.github/workflows/ci.yml`): every push and pull request to `main` builds and tests on Linux, Windows and macOS.
 - **Release** (`.github/workflows/release.yml`): pushing a tag like `v3.0.0` runs the tests, builds every package and publishes a GitHub Release
   with checksums. It can also be started by hand (Actions > Release > Run workflow) to build packages without publishing.
 
