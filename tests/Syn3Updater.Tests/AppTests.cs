@@ -107,6 +107,32 @@ public class HomeFlowTests
     }
 
     [AvaloniaFact]
+    public async Task ForcedMode_IsShownBeforeAnythingIsPicked_AutoDetectIsNot()
+    {
+        using (var auto = new AppEnv())
+        {
+            auto.Main.Home.ReloadSummary();
+            Assert.Equal("", auto.Main.Home.InstallMode); Assert.False(auto.Main.Home.HasMode); Assert.False(auto.Main.Home.ModeIsForced);   // unknown until a version and maps are chosen
+        }
+        using var env = new AppEnv(); Ctx.Profile.InstallMode = "downgrade";
+        var home = env.Main.Home; home.ReloadSummary();
+        Assert.Equal("downgrade", home.InstallMode); Assert.True(home.HasMode); Assert.True(home.ModeIsForced);
+        Assert.Equal("Downgrade", home.ModeTitle); Assert.NotEmpty(home.ModeDescription);
+        Assert.Equal(ApiEndpoints.InstallDocsUrl("downgrade"), home.InstallDocsUrl);                    // the Instructions link works straight away too
+
+        await AppEnv.Until(() => home.Releases.Count > 0);
+        home.SelectedRelease = home.Releases[0]; await AppEnv.Until(() => home.MapVersions.Count > 0);
+        home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 2);
+        Assert.Equal("downgrade", home.InstallMode);                                                    // picking things does not change a forced mode
+
+        home.ClearSelections();
+        Assert.Equal("downgrade", home.InstallMode); Assert.Empty(home.Packages);                       // and clearing keeps showing it
+
+        Ctx.Profile.InstallMode = "autodetect"; home.ReloadSummary();
+        Assert.Equal("", home.InstallMode); Assert.False(home.HasMode);                                 // switching back to auto-detect forgets it
+    }
+
+    [AvaloniaFact]
     public async Task MissingConfig_ShowsWarning_AndStartSendsYouToSettings()
     {
         using var env = new AppEnv(region: "", version: 0);

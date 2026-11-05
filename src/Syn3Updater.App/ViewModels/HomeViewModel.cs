@@ -125,7 +125,18 @@ public partial class HomeViewModel : PageViewModel
     public bool HasFeedback => !string.IsNullOrEmpty(FeedbackUrl);
     public bool ModeIsForced => Ctx.ModeForced;
     partial void OnNotesChanged(string value) => OnPropertyChanged(nameof(HasNotes));
-    partial void OnInstallModeChanged(string value) { OnPropertyChanged(nameof(HasMode)); OnPropertyChanged(nameof(ModeIsForced)); UpdateModePresentation(); }
+    partial void OnInstallModeChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasMode)); OnPropertyChanged(nameof(ModeIsForced));
+        InstallDocsUrl = value.Length > 0 ? ApiEndpoints.InstallDocsUrl(value) : "";
+        UpdateModePresentation();
+    }
+
+    /// <summary>
+    /// With nothing selected yet the mode is unknown, unless it was forced in Settings: then it is already decided
+    /// and is shown straight away instead of "pick a version and maps".
+    /// </summary>
+    private void ResetInstallMode() => InstallMode = Ctx.ModeForced ? Ctx.Profile.InstallMode : "";
     partial void OnFeedbackUrlChanged(string? value) => OnPropertyChanged(nameof(HasFeedback));
 
     public HomeViewModel()
@@ -147,6 +158,7 @@ public partial class HomeViewModel : PageViewModel
         ModeForcedText = Ctx.T(Ctx.ModeForced ? "String.Yes" : "String.No");
         ProfileName = Ctx.Main.Profile;
         DownloadPath = Ctx.Main.DownloadPath ?? "";
+        if (SelectedMap == null) ResetInstallMode();
         ConfigMissing = (p.CurrentVersion ?? 0) == 0 || string.IsNullOrEmpty(p.CurrentRegion);
         ConfigItems.Clear();
         if (!ConfigMissing)
@@ -166,6 +178,7 @@ public partial class HomeViewModel : PageViewModel
         _suppress = true;
         SelectedMap = null; SelectedRelease = null; Releases.Clear(); MapVersions.Clear(); Packages.Clear();
         Notes = ""; _suppress = false;
+        ResetInstallMode();
         UpdateButtons();
         if (SelectedRegion != null) _ = LoadReleasesAsync();
     }
@@ -255,6 +268,7 @@ public partial class HomeViewModel : PageViewModel
         _suppress = true;
         SelectedRelease = null; SelectedMap = null; Releases.Clear(); MapVersions.Clear(); Packages.Clear(); Notes = ""; FeedbackUrl = null;
         _suppress = false;
+        ResetInstallMode();
         UpdateButtons();
         Loading = true;
         try
