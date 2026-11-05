@@ -157,6 +157,8 @@ public class MainSettings
     public string? AdImageUrl { get; set; }
     public string? AdLinkUrl { get; set; }
     public bool ShowAdSlot { get; set; } = true;
+    /// <summary>Parallel connections per download (1-8). Application-wide.</summary>
+    public int DownloadConnections { get; set; } = 8;
 }
 
 public class ProfileSettings
@@ -166,6 +168,7 @@ public class ProfileSettings
     public bool CurrentNav { get; set; }
     public bool? My20v2 { get; set; }
     public string InstallMode { get; set; } = "autodetect";
+    /// <summary>Legacy per-profile value, superseded by MainSettings.DownloadConnections.</summary>
     public int DownloadConnections { get; set; } = 8;
 
     /// <summary>Formats 3200000-style version as 3.2.00000 (7 digits) else 0.0.00000.</summary>

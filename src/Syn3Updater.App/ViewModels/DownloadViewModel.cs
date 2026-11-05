@@ -13,9 +13,10 @@ public partial class QueueItem : ObservableObject
 {
     public string Name { get; }
     public string Size { get; }
+    public int Order { get; }
     [ObservableProperty] private bool _isActive;
     [ObservableProperty] private bool _isDone;
-    public QueueItem(string name, string size) { Name = name; Size = size; }
+    public QueueItem(string name, string size, int order = 0) { Name = name; Size = size; Order = order; }
 }
 
 public partial class DownloadViewModel : PageViewModel
@@ -23,7 +24,12 @@ public partial class DownloadViewModel : PageViewModel
     public override string TitleKey => "Main.Downloads";
     public override string IconData => "M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z";
 
+    /// <summary>Files still to do in the current phase (the active one first). Finished files move to <see cref="Completed"/>.</summary>
     public ObservableCollection<QueueItem> Queue { get; } = new();
+    public ObservableCollection<QueueItem> Completed { get; } = new();
+    [ObservableProperty] private string _phaseLabel = "";
+    private string _phase = "";
+    private List<QueueItem> _all = new();
     [ObservableProperty] private string _fileCounter = "";
     [ObservableProperty] private string _currentFile = "";
     private int _activeIndex = -1;
@@ -32,8 +38,9 @@ public partial class DownloadViewModel : PageViewModel
     [ObservableProperty] private int _fileProgress;
     [ObservableProperty] private int _totalProgress;
     [ObservableProperty] private bool _isRunning;
-    public bool IsIdle => !IsRunning && Queue.Count == 0;
+    public bool IsIdle => !IsRunning && Queue.Count == 0 && Completed.Count == 0;
     public bool HasQueue => Queue.Count > 0;
+    public bool HasCompleted => Completed.Count > 0;
     partial void OnIsRunningChanged(bool value) => OnPropertyChanged(nameof(IsIdle));
     [ObservableProperty] private string _headline = "";
 
@@ -43,6 +50,7 @@ public partial class DownloadViewModel : PageViewModel
     public DownloadViewModel()
     {
         Queue.CollectionChanged += (_, _) => { OnPropertyChanged(nameof(IsIdle)); OnPropertyChanged(nameof(HasQueue)); };
+        Completed.CollectionChanged += (_, _) => { OnPropertyChanged(nameof(IsIdle)); OnPropertyChanged(nameof(HasCompleted)); };
         Ctx.Log.LineAdded += line =>
         {
             if (!IsRunning) return;
@@ -59,24 +67,30 @@ public partial class DownloadViewModel : PageViewModel
         _cts = new CancellationTokenSource();
         _runLog.Clear(); Log = ""; FileProgress = 0; TotalProgress = 0;
         Headline = $"{spec.Release} - {spec.Region} - {spec.MapVersion}".Trim(' ', '-');
-        Queue.Clear();
-        _activeIndex = -1;
-        for (int q = 0; q < req.Queue.Count; q++) Queue.Add(new QueueItem(req.Queue[q].FileName, Format.Bytes(req.Queue[q].FileSize)));
+        _activeIndex = -1; _phase = "";
+        _all = req.Queue.Select((i, n) => new QueueItem(i.FileName, Format.Bytes(i.FileSize), n)).ToList();
+        ResetQueue(); PhaseLabel = "";
         Ctx.Log.Info($"Install mode: {req.InstallMode}");
 
         var progress = new Progress<RunProgress>(p =>
         {
             if (!string.IsNullOrEmpty(p.Status)) Status = p.Status;
             FileProgress = p.FilePercent; TotalProgress = p.TotalPercent;
+            if (p.Phase.Length > 0 && p.Phase != _phase)
+            {
+                _phase = p.Phase; _activeIndex = -1; ResetQueue();            // downloading -> copying: every file is to do again
+                PhaseLabel = Ctx.T(_phase == "copy" ? "App.PhaseCopy" : "App.PhaseDownload");
+            }
             if (p.CurrentFile != null)
             {
                 CurrentFile = p.CurrentFile;
-                int idx = Queue.ToList().FindIndex(x => x.Name == p.CurrentFile);
-                if (idx >= 0 && idx != _activeIndex)
+                var active = _all.FirstOrDefault(x => x.Name == p.CurrentFile);
+                if (active != null && active.Order != _activeIndex)
                 {
-                    _activeIndex = idx;
-                    for (int q = 0; q < Queue.Count; q++) { Queue[q].IsActive = q == idx; Queue[q].IsDone = q < idx; }
-                    FileCounter = Ctx.T("App.FileOf", idx + 1, Queue.Count);
+                    _activeIndex = active.Order;
+                    foreach (var done in Queue.Where(x => x.Order < _activeIndex).ToList()) { Queue.Remove(done); done.IsActive = false; done.IsDone = true; Completed.Add(done); }
+                    foreach (var q in Queue) q.IsActive = q.Order == _activeIndex;
+                    FileCounter = Ctx.T("App.FileOf", _activeIndex + 1, _all.Count);
                 }
             }
         });
@@ -96,7 +110,7 @@ public partial class DownloadViewModel : PageViewModel
             return;
         }
 
-        foreach (var q in Queue) { q.IsActive = false; q.IsDone = true; }
+        foreach (var q in Queue.ToList()) { Queue.Remove(q); q.IsActive = false; q.IsDone = true; Completed.Add(q); }
         Status = Ctx.T("String.Completed");
         FileProgress = 100; TotalProgress = 100;
         await FinishAsync(req, spec);
@@ -181,6 +195,12 @@ public partial class DownloadViewModel : PageViewModel
 
     /// <summary>https://cyanlabs.net/docs/syn3updater/installmodes/{autoinstall|reformat|downgrade}/</summary>
     public static string InstallDocsUrl(string mode) => ApiEndpoints.InstallDocsUrl(mode);
+
+    private void ResetQueue()
+    {
+        Queue.Clear(); Completed.Clear();
+        foreach (var q in _all) { q.IsActive = false; q.IsDone = false; Queue.Add(q); }
+    }
 
     private static void Return(JobSpec spec)
     {

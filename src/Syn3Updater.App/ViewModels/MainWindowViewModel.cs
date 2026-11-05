@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Cyanlabs.Syn3Updater.App.Services;
+using Cyanlabs.Syn3Updater.Core.Services;
 using Avalonia.Media.Imaging;
 
 namespace Cyanlabs.Syn3Updater.App.ViewModels;
@@ -10,12 +11,60 @@ public partial class MainWindowViewModel : ObservableObject
 {
     public static MainWindowViewModel Instance { get; private set; } = null!;
 
+    // ---- profile switcher (lives in the sidebar) ----
+    public ObservableCollection<string> Profiles { get; } = new();
+    [ObservableProperty] private string? _selectedProfile;
+    public bool CanDeleteProfile => Profiles.Count > 1;
+    private bool _syncingProfile;
+
+    public void ReloadProfiles()
+    {
+        _syncingProfile = true;
+        Profiles.Clear();
+        foreach (var p in Ctx.Store.ListProfiles()) Profiles.Add(p);
+        SelectedProfile = Profiles.FirstOrDefault(p => p == Ctx.Main.Profile);
+        _syncingProfile = false;
+        OnPropertyChanged(nameof(CanDeleteProfile)); OnPropertyChanged(nameof(WindowTitle));
+    }
+
+    partial void OnSelectedProfileChanged(string? value)
+    {
+        if (_syncingProfile || value == null || value == Ctx.Main.Profile) return;
+        Ctx.Store.SwitchProfile(value);
+        ProfileChanged();
+    }
+
+    private void ProfileChanged()
+    {
+        ReloadProfiles();
+        Home.ReloadSummary(); Home.ClearSelections(); Settings.OnShown();
+    }
+
+    [RelayCommand]
+    private async Task AddProfile()
+    {
+        var name = await Dialogs.Prompt(Ctx.T("App.NewProfileTitle"), Ctx.T("Profiles.NewProfile"));
+        if (string.IsNullOrWhiteSpace(name)) return;
+        Ctx.Store.SwitchProfile(AppPaths.FileSafe(name.Trim()));
+        ProfileChanged();
+    }
+
+    [RelayCommand]
+    private async Task DeleteProfile()
+    {
+        if (!CanDeleteProfile || SelectedProfile is not { } doomed) return;
+        if (!await Dialogs.Confirm(Ctx.T("App.DeleteProfileConfirm", doomed), Ctx.T("String.Warning") + "!", warning: true)) return;
+        if (doomed == Ctx.Main.Profile)      // deleting the active profile: move to another one first
+            Ctx.Store.SwitchProfile(Profiles.First(x => x != doomed));
+        Ctx.Store.DeleteProfile(doomed);
+        ProfileChanged();
+    }
+
     public HomeViewModel Home { get; } = new();
     public DownloadViewModel Downloads { get; } = new();
     public UtilityViewModel Utility { get; } = new();
     public NewsViewModel News { get; } = new();
     public LogsViewModel Logs { get; } = new();
-    public ProfilesViewModel Profiles { get; } = new();
     public SettingsViewModel Settings { get; } = new();
     public AboutViewModel About { get; } = new();
 
@@ -58,11 +107,12 @@ public partial class MainWindowViewModel : ObservableObject
     public MainWindowViewModel()
     {
         Instance = this;
-        Pages = new() { About, Home, Utility, Downloads, Profiles, Logs, News, Settings };
-        TopPages = new() { Home, Utility, Downloads, Profiles, Logs, News, About };
+        Pages = new() { About, Home, Utility, Downloads, Logs, News, Settings };
+        TopPages = new() { Home, Utility, Downloads, Logs, News, About };
         BottomPages = new() { Settings };
         _current = Home;
         Home.IsActive = true;
+        ReloadProfiles();
     }
 
     partial void OnCurrentChanging(PageViewModel value) { if (_current != null && _current != value) _current.OnLeaving(); }
@@ -75,7 +125,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     /// <summary>Wide windows show icon + label; narrow ones collapse the sidebar to icons.</summary>
     [ObservableProperty] private bool _sidebarExpanded = true;
-    public double SidebarWidth => SidebarExpanded ? 208 : 64;
+    public double SidebarWidth => SidebarExpanded ? 200 : 64;
     partial void OnSidebarExpandedChanged(bool value) => OnPropertyChanged(nameof(SidebarWidth));
 
     public void ShowHome() => Current = Home;

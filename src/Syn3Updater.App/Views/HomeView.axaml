@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:d="using:Cyanlabs.Syn3Updater.Core.Drives" xmlns:ctl="using:Cyanlabs.Syn3Updater.App.Controls" xmlns:m="using:Cyanlabs.Syn3Updater.Core.Models" x:Class="Cyanlabs.Syn3Updater.App.Views.HomeView">
   <Grid RowDefinitions="*,Auto">
     <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled">
-      <StackPanel MaxWidth="880" Spacing="16" Margin="32,28,32,24">
+      <StackPanel MaxWidth="880" Spacing="16" Margin="28,28,28,24">
 
         <!-- header: title + your current car configuration as chips -->
         <Grid ColumnDefinitions="*,Auto">
@@ -39,7 +39,7 @@
                   <DataTemplate DataType="d:DriveInfoModel">
                     <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,4">
                       <PathIcon Data="M15,7V11H16V13H13V5H15L12,1L9,5H11V13H8V10.93C8.7,10.56 9.2,9.85 9.2,9C9.2,7.8 8.2,6.8 7,6.8C5.8,6.8 4.8,7.8 4.8,9C4.8,9.85 5.3,10.56 6,10.93V13A2,2 0 0,0 8,15H11V18.05C10.3,18.4 9.8,19.1 9.8,20C9.8,21.1 10.7,22 11.8,22C12.9,22 13.8,21.1 13.8,20C13.8,19.1 13.3,18.4 12.6,18.05V15H16A2,2 0 0,0 18,13V11H19V7H15Z" Width="18" Height="18" Foreground="{DynamicResource Brand}" />
-                      <StackPanel><TextBlock Text="{Binding Title}" /><TextBlock Text="{Binding Detail}" Classes="label" /></StackPanel>
+                      <StackPanel><TextBlock Text="{Binding Title}" /><TextBlock Text="{Binding Detail}" Classes="label" TextTrimming="CharacterEllipsis" MaxWidth="400" /></StackPanel>
                     </StackPanel>
                   </DataTemplate>
                 </ComboBox.ItemTemplate>
@@ -124,7 +124,7 @@
     </ScrollViewer>
 
     <!-- sticky action bar: what will happen + Start -->
-    <Border Grid.Row="1" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,1,0,0" Padding="32,12">
+    <Border Grid.Row="1" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,1,0,0" Padding="28,12">
       <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
           <Border Width="40" Height="40" CornerRadius="12" Background="{Binding ModeBackground}" IsVisible="{Binding HasMode}">
@@ -135,7 +135,7 @@
               <TextBlock Text="{Binding ModeTitle}" FontWeight="SemiBold" FontSize="15" Foreground="{Binding ModeBrush}" />
               <Border Classes="chip" Margin="0" Padding="8,1" IsVisible="{Binding ModeIsForced}"><TextBlock Text="{svc:T Home.InstallModeForced}" FontSize="11" /></Border>
             </StackPanel>
-            <TextBlock Text="{Binding ModeDescription}" Classes="label" TextTrimming="CharacterEllipsis" />
+            <TextBlock Text="{Binding ModeDescription}" Classes="label" TextWrapping="Wrap" MaxLines="2" />
           </StackPanel>
           <Button Grid.Column="2" Classes="link" Content="{svc:T App.LearnMore}" Command="{Binding OpenInstructionsCommand}" IsVisible="{Binding HasMode}" VerticalAlignment="Center" />
           <StackPanel Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Center" IsVisible="{Binding !HasMode}">

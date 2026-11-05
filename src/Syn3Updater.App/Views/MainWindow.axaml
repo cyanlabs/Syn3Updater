@@ -1,8 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels"
+        xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services"
         x:Class="Cyanlabs.Syn3Updater.App.Views.MainWindow"
-        Title="{Binding WindowTitle}" Width="1120" Height="800" MinWidth="720" MinHeight="560"
+        Title="{Binding WindowTitle}" Width="800" Height="760" MinWidth="640" MinHeight="560"
         WindowStartupLocation="CenterScreen">
   <Window.Resources>
     <DataTemplate x:Key="NavItem" DataType="vm:PageViewModel">
@@ -31,6 +31,31 @@
           </StackPanel>
         </StackPanel>
         <ItemsControl DockPanel.Dock="Bottom" ItemsSource="{Binding BottomPages}" ItemTemplate="{StaticResource NavItem}" />
+
+        <!-- profile switcher: pick, add or delete a profile without a page of its own -->
+        <StackPanel DockPanel.Dock="Bottom" Margin="14,0,14,8" Spacing="6" IsVisible="{Binding SidebarExpanded}">
+          <TextBlock Text="{svc:T Home.Profile}" Classes="label" />
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4">
+            <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" MinHeight="34" FontSize="13" />
+            <Button Grid.Column="1" Classes="mini" Command="{Binding AddProfileCommand}" ToolTip.Tip="{svc:T App.AddProfile}"><PathIcon Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" Width="16" Height="16" /></Button>
+            <Button Grid.Column="2" Classes="mini" Command="{Binding DeleteProfileCommand}" IsEnabled="{Binding CanDeleteProfile}" ToolTip.Tip="{svc:T App.DeleteProfile}"><PathIcon Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" Width="16" Height="16" /></Button>
+          </Grid>
+        </StackPanel>
+        <Button DockPanel.Dock="Bottom" Classes="nav" IsVisible="{Binding !SidebarExpanded}" ToolTip.Tip="{svc:T Home.Profile}">
+          <Button.Flyout>
+            <Flyout Placement="RightEdgeAlignedBottom">
+              <StackPanel Width="230" Spacing="8">
+                <TextBlock Text="{svc:T Home.Profile}" Classes="label" />
+                <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" />
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Button Command="{Binding AddProfileCommand}" Content="{svc:T App.AddProfile}" />
+                  <Button Command="{Binding DeleteProfileCommand}" IsEnabled="{Binding CanDeleteProfile}"><PathIcon Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" Width="16" Height="16" /></Button>
+                </StackPanel>
+              </StackPanel>
+            </Flyout>
+          </Button.Flyout>
+          <Grid ColumnDefinitions="48,*"><PathIcon Data="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" HorizontalAlignment="Center" VerticalAlignment="Center" /></Grid>
+        </Button>
         <ItemsControl ItemsSource="{Binding TopPages}" ItemTemplate="{StaticResource NavItem}" />
       </DockPanel>
     </Border>

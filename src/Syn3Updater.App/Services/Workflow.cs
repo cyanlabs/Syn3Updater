@@ -86,7 +86,7 @@ public static class Workflow
         {
             Queue = queue, Tools = tools, Action = spec.Action, InstallMode = spec.Mode, Release = spec.Release,
             Region = spec.Region, ModeForced = Ctx.ModeForced, DownloadOnly = spec.DownloadOnly, Drive = drive,
-            SkipFormat = skipFormat, DownloadDir = Ctx.Main.DownloadPath!, Connections = Ctx.Profile.DownloadConnections,
+            SkipFormat = skipFormat, DownloadDir = Ctx.Main.DownloadPath!, Connections = Ctx.Main.DownloadConnections,
             AppVersion = Ctx.Version, Branch = Ctx.Branch,
         };
         Ctx.Log.Info($"Starting process ({spec.Release} - {spec.Region} - {spec.MapVersion})");

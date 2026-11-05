@@ -10,7 +10,6 @@
     <DataTemplate DataType="vm:UtilityViewModel"><views:UtilityView /></DataTemplate>
     <DataTemplate DataType="vm:NewsViewModel"><views:NewsView /></DataTemplate>
     <DataTemplate DataType="vm:LogsViewModel"><views:LogsView /></DataTemplate>
-    <DataTemplate DataType="vm:ProfilesViewModel"><views:ProfilesView /></DataTemplate>
     <DataTemplate DataType="vm:SettingsViewModel"><views:SettingsView /></DataTemplate>
     <DataTemplate DataType="vm:AboutViewModel"><views:AboutView /></DataTemplate>
   </Application.DataTemplates>
@@ -119,6 +118,9 @@
     <Style Selector="Border.ico.red"><Setter Property="Background" Value="#33ef6b62" /></Style><Style Selector="Border.ico.red > PathIcon"><Setter Property="Foreground" Value="#ef6b62" /></Style>
     <Style Selector="Border.ico.orange"><Setter Property="Background" Value="#33f08a3c" /></Style><Style Selector="Border.ico.orange > PathIcon"><Setter Property="Foreground" Value="#f08a3c" /></Style>
 
+    <Style Selector="Border.ico.lime"><Setter Property="Background" Value="#339ccc3d" /></Style><Style Selector="Border.ico.lime > PathIcon"><Setter Property="Foreground" Value="#9ccc3d" /></Style>
+    <Style Selector="Border.card.lime"><Setter Property="Background" Value="#149ccc3d" /><Setter Property="BorderBrush" Value="#559ccc3d" /></Style>
+    <Style Selector="Button.mini"><Setter Property="Width" Value="34" /><Setter Property="Height" Value="34" /><Setter Property="Padding" Value="0" /><Setter Property="HorizontalContentAlignment" Value="Center" /><Setter Property="CornerRadius" Value="8" /></Style>
     <Style Selector="Border.card.teal"><Setter Property="Background" Value="#142fa1ab" /><Setter Property="BorderBrush" Value="#552fa1ab" /></Style>
     <Style Selector="Border.card.blue"><Setter Property="Background" Value="#144f8cff" /><Setter Property="BorderBrush" Value="#554f8cff" /></Style>
     <Style Selector="Border.card.amber"><Setter Property="Background" Value="#14f0a43c" /><Setter Property="BorderBrush" Value="#55f0a43c" /></Style>

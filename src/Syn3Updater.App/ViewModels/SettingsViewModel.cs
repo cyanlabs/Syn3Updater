@@ -59,7 +59,11 @@ public partial class SettingsViewModel : PageViewModel
     private bool _loading;
 
     public SettingsViewModel() { Load(); }
-    public override void OnShown() => Load();
+    /// <summary>The localized warning is stored with a line break; show it as one line.</summary>
+    public string WarningText => Ctx.T("Settings.Warning").Replace("\r\n", " ").Replace("\n", " ").Trim();
+    public string ProfileName => Ctx.Main.Profile;
+
+    public override void OnShown() { Load(); OnPropertyChanged(nameof(WarningText)); OnPropertyChanged(nameof(ProfileName)); }
     public override void OnLeaving() { if (_dirty) _ = ApplyAsync(quiet: true); }
     private bool _dirty;
     protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
@@ -79,7 +83,7 @@ public partial class SettingsViewModel : PageViewModel
         My20 = My20Options[p.My20v2 switch { null => 0, true => 1, false => 2 }];
         Mode = ModeOptions.FirstOrDefault(o => o.Value == p.InstallMode) ?? ModeOptions[0];
         Theme = ThemeOptions.FirstOrDefault(o => o.Value == (m.Theme ?? "Dark")) ?? ThemeOptions[0];
-        Connections = Math.Clamp(p.DownloadConnections, 1, 8);
+        Connections = Math.Clamp(m.DownloadConnections, 1, 8);
         DownloadPath = m.DownloadPath ?? ""; LogPath = m.LogPath ?? "";
         LicenseKey = m.LicenseKey ?? "";
         Advanced = false; Message = "";
@@ -99,6 +103,7 @@ public partial class SettingsViewModel : PageViewModel
     partial void OnLanguageChanged(LanguageOption? value)
     {
         if (_loading || value == null) return;
+        OnPropertyChanged(nameof(WarningText));
         Ctx.Loc.SetLanguage(value.Code);   // preview immediately; persisted on Apply
         Loc.Instance.Refresh();
     }
@@ -158,6 +163,7 @@ public partial class SettingsViewModel : PageViewModel
             catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Message = e.Message; return; }
         }
 
+        m.DownloadConnections = Connections;
         m.Lang = Language?.Code ?? m.Lang;
         m.Theme = Theme?.Value ?? "Default";
         m.LicenseKey = LicenseKey.Trim();
@@ -167,7 +173,6 @@ public partial class SettingsViewModel : PageViewModel
         p.CurrentNav = Nav;
         p.My20v2 = My20?.Value switch { "on" => true, "off" => false, _ => null };
         p.InstallMode = Mode?.Value ?? "autodetect";
-        p.DownloadConnections = Connections;
         Ctx.Save();
         Ctx.Log.Info($"Settings applied - Region: {p.CurrentRegion} - Version: {p.VersionString} - Navigation: {p.CurrentNav}");
         _dirty = false;

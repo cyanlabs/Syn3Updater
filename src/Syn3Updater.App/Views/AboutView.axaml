@@ -1,30 +1,82 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:m="using:Cyanlabs.Syn3Updater.Core.Models" x:Class="Cyanlabs.Syn3Updater.App.Views.AboutView">
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" x:Class="Cyanlabs.Syn3Updater.App.Views.AboutView">
   <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-    <StackPanel MaxWidth="760" Spacing="16" Margin="32,28,32,24">
-      <StackPanel Orientation="Horizontal" Spacing="16">
-        <Border Width="56" Height="56" CornerRadius="14" Background="{DynamicResource Brand}"><TextBlock Text="S3" Foreground="White" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
-        <StackPanel VerticalAlignment="Center"><TextBlock Text="{svc:T About.AboutTitle}" Classes="title" /><TextBlock Text="{Binding Version}" Classes="muted" /></StackPanel>
-      </StackPanel>
+    <StackPanel MaxWidth="820" Spacing="16" Margin="28,28,28,24">
 
-      <Border Classes="card">
+      <!-- hero -->
+      <Border Classes="card teal" Padding="24">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="20">
+          <Border Width="72" Height="72" CornerRadius="20" Background="{DynamicResource Brand}"><TextBlock Text="S3" Foreground="White" FontSize="28" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+          <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+            <TextBlock Text="Syn3 Updater" Classes="title" />
+            <TextBlock Text="{svc:T App.AboutTagline}" Classes="muted" TextWrapping="Wrap" />
+            <WrapPanel ItemSpacing="8" LineSpacing="6" Margin="0,4,0,0">
+              <Border Classes="chip" Margin="0"><TextBlock Text="{Binding VersionText}" /></Border>
+              <Border Classes="chip" Margin="0"><TextBlock Text="{Binding Platform}" /></Border>
+              <Border Classes="chip" Margin="0"><TextBlock Text="{svc:T App.License}" /></Border>
+            </WrapPanel>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <!-- disclaimer: shown first because it must be accepted -->
+      <Border Classes="card amber">
         <StackPanel Spacing="12">
-          <TextBlock Text="{svc:T About.DocumentationTitle}" Classes="section" />
-          <TextBlock Text="{svc:T About.Documentation}" TextWrapping="Wrap" Classes="muted" />
-          <WrapPanel ItemSpacing="8" LineSpacing="8">
-            <Button Content="{svc:T About.DocumentationButton}" Command="{Binding OpenDocsCommand}" Classes="accent" />
-            <Button Content="{svc:T About.ForumButton}" Command="{Binding OpenForumCommand}" />
-            <Button Content="{svc:T About.FHubButton}" Command="{Binding OpenFHubCommand}" />
-            <Button Content="{svc:T About.DonateButton}" Command="{Binding OpenDonateCommand}" />
-          </WrapPanel>
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+            <Border Classes="ico amber"><PathIcon Data="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M11,7H13V13H11V7M11,15H13V17H11V15Z" /></Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="{svc:T About.DisclaimerTitle}" Classes="section" /></StackPanel>
+          </Grid>
+          <Border Classes="banner" IsVisible="{Binding NotAccepted}"><TextBlock Text="{svc:T App.AcceptRequired}" Foreground="{DynamicResource WarnFg}" TextWrapping="Wrap" /></Border>
+          <TextBlock Text="{svc:T About.Disclaimer}" TextWrapping="Wrap" FontSize="13.5" />
+          <TextBlock Text="{svc:T About.Endorsed}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
+          <CheckBox IsChecked="{Binding Accepted}" Content="{svc:T About.DisclaimerAgreement}" FontWeight="SemiBold" />
         </StackPanel>
       </Border>
 
+      <!-- help -->
+      <TextBlock Text="{svc:T App.AboutHelp}" Classes="section" Margin="2,4,0,0" />
+      <UniformGrid Columns="2" Margin="0,0,-8,0">
+        <Button Classes="tile" Command="{Binding OpenDocsCommand}" Margin="0,0,8,8" Padding="16">
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                <Border Classes="ico teal" VerticalAlignment="Top"><PathIcon Data="M18,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V4A2,2 0 0,0 18,2M6,4H11V12L8.5,10.5L6,12V4Z" /></Border>
+                <StackPanel Grid.Column="1" Spacing="2"><TextBlock Text="{svc:T About.DocumentationTitle}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.DocsDesc}" Classes="muted" FontSize="12.5" TextWrapping="Wrap" /></StackPanel>
+              </Grid>
+            </Button>
+        <Button Classes="tile" Command="{Binding OpenForumCommand}" Margin="0,0,8,8" Padding="16">
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                <Border Classes="ico blue" VerticalAlignment="Top"><PathIcon Data="M20,2H4A2,2 0 0,0 2,4V22L6,18H20A2,2 0 0,0 22,16V4A2,2 0 0,0 20,2M6,9H18V11H6V9M14,14H6V12H14V14M18,8H6V6H18V8Z" /></Border>
+                <StackPanel Grid.Column="1" Spacing="2"><TextBlock Text="{svc:T About.ForumButton}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.ForumDesc}" Classes="muted" FontSize="12.5" TextWrapping="Wrap" /></StackPanel>
+              </Grid>
+            </Button>
+        <Button Classes="tile" Command="{Binding OpenFHubCommand}" Margin="0,0,8,8" Padding="16">
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                <Border Classes="ico orange" VerticalAlignment="Top"><PathIcon Data="M22.7,19L13.6,9.9C14.5,7.6 14,4.9 12.1,3C10.1,1 7.1,0.6 4.7,1.7L9,6L6,9L1.6,4.7C0.4,7.1 0.9,10.1 2.9,12.1C4.8,14 7.5,14.5 9.8,13.6L18.9,22.7C19.3,23.1 19.9,23.1 20.3,22.7L22.6,20.4C23.1,20 23.1,19.3 22.7,19Z" /></Border>
+                <StackPanel Grid.Column="1" Spacing="2"><TextBlock Text="{svc:T About.FHubButton}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.FHubDesc}" Classes="muted" FontSize="12.5" TextWrapping="Wrap" /></StackPanel>
+              </Grid>
+            </Button>
+        <Button Classes="tile" Command="{Binding OpenDonateCommand}" Margin="0,0,8,8" Padding="16">
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                <Border Classes="ico pink" VerticalAlignment="Top"><PathIcon Data="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" /></Border>
+                <StackPanel Grid.Column="1" Spacing="2"><TextBlock Text="{svc:T About.DonateButton}" FontWeight="SemiBold" /><TextBlock Text="{svc:T App.DonateDesc}" Classes="muted" FontSize="12.5" TextWrapping="Wrap" /></StackPanel>
+              </Grid>
+            </Button>
+      </UniformGrid>
+
+      <!-- build info -->
       <Border Classes="card">
         <StackPanel Spacing="12">
-          <TextBlock Text="{svc:T About.DisclaimerTitle}" Classes="section" />
-          <TextBlock Text="{svc:T About.Disclaimer}" TextWrapping="Wrap" />
-          <TextBlock Text="{svc:T About.Endorsed}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
-          <CheckBox IsChecked="{Binding Accepted}" Content="{svc:T About.DisclaimerAgreement}" />
+          <TextBlock Text="{svc:T App.AboutBuild}" Classes="section" />
+          <Grid ColumnDefinitions="130,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+            <TextBlock Text="{svc:T App.Version}" Classes="label" /><TextBlock Grid.Column="1" Text="{Binding VersionText}" />
+            <TextBlock Grid.Row="1" Text="{svc:T App.Platform}" Classes="label" /><TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Platform}" TextWrapping="Wrap" />
+            <TextBlock Grid.Row="2" Text="{svc:T App.Runtime}" Classes="label" /><TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Runtime}" />
+            <TextBlock Grid.Row="3" Text="{svc:T App.DataFolder}" Classes="label" /><TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding DataFolder}" Classes="mono" FontSize="12" TextWrapping="Wrap" />
+          </Grid>
+          <WrapPanel ItemSpacing="8" LineSpacing="8">
+            <Button Command="{Binding CopyDiagnosticsCommand}" Content="{svc:T App.CopyDiagnostics}" />
+            <Button Command="{Binding OpenDataFolderCommand}" Content="{svc:T App.OpenDataFolder}" />
+            <Button Command="{Binding OpenGithubCommand}" Content="{svc:T App.Source}" />
+            <Button Command="{Binding OpenLicenseCommand}" Content="GPL-3.0" />
+          </WrapPanel>
         </StackPanel>
       </Border>
     </StackPanel>

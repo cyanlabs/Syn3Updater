@@ -22,7 +22,7 @@ public class UpdateRequest
     public string Branch { get; init; } = "Stable";
 }
 
-public record RunProgress(string Status, int FilePercent, int TotalPercent, string? CurrentFile);
+public record RunProgress(string Status, int FilePercent, int TotalPercent, string? CurrentFile, string Phase = "");
 
 /// <summary>Runs the whole job: (format) -> download -> validate -> copy -> write autoinstall.lst/reformat.lst.</summary>
 public class UpdateRunner
@@ -59,8 +59,9 @@ public class UpdateRunner
             var queue = new List<Ivsu>(req.Queue);
             Directory.CreateDirectory(req.DownloadDir);
             int steps = queue.Count * (req.DownloadOnly ? 2 : 4), done = 0;
+            string phase = "download";
             void Total(string status, int file = 0, string? cur = null) =>
-                progress.Report(new(status, file, steps == 0 ? 0 : Math.Min(100, done * 100 / steps), cur));
+                progress.Report(new(status, file, steps == 0 ? 0 : Math.Min(100, done * 100 / steps), cur, phase));
 
             // ---- download + validate ----
             int connections = req.Connections;
@@ -125,6 +126,7 @@ public class UpdateRunner
             // ---- copy ----
             queue.AddRange(extras);
             steps = queue.Count * 4; // download steps already counted above; extras only copy
+            phase = "copy";
             var syncDir = Path.Combine(target!, "SyncMyRide");
             Directory.CreateDirectory(syncDir);
             Info("Preparing USB drive");

@@ -24,7 +24,7 @@ public class HomeFlowTests
     {
         using var env = new AppEnv();
         var home = env.Main.Home; home.ReloadSummary();
-        Assert.Equal(new[] { "Version", "Region", "Navigation", "MY20 Protection", "Profile" }, home.ConfigItems.Select(c => c.Label));
+        Assert.Equal(new[] { "Version", "Region", "Navigation", "MY20 Protection" }, home.ConfigItems.Select(c => c.Label));   // the profile lives in the sidebar now
         Assert.Equal("3.4.20282", home.ConfigItems[0].Value);
 
         await PickAll(home);
@@ -157,8 +157,9 @@ public class WorkflowTests
     {
         using var env = new AppEnv(); await SelectEverything(env);
         env.Dialogs.FolderToPick = env.UsbDir; await env.Main.Home.ChooseFolderCommand.ExecuteAsync(null);
+        var dl = env.Main.Downloads; var phases = new List<string>();
+        dl.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(DownloadViewModel.PhaseLabel)) phases.Add(dl.PhaseLabel); };
         await env.Main.Home.StartCommand.ExecuteAsync(null);
-        var dl = env.Main.Downloads;
         await AppEnv.Until(() => !dl.IsRunning && dl.Status == Ctx.T("String.Completed"));
 
         Assert.True(File.Exists(Path.Combine(env.UsbDir, "SyncMyRide", "APP1.tar.gz")));
@@ -169,7 +170,8 @@ public class WorkflowTests
         Assert.NotEmpty(Directory.GetFiles(Ctx.Main.LogPath!, "log-*.txt"));
         Assert.Contains(ApiEndpoints.InstallDocsUrl("autoinstall"), env.Dialogs.Opened);     // the CyanLabs instructions open on their own
         Assert.Contains(env.UsbDir, env.Dialogs.Opened);
-        Assert.Equal(100, dl.TotalProgress); Assert.All(dl.Queue, q => Assert.True(q.IsDone)); Assert.Contains("Downloading", dl.Log);
+        Assert.Equal(100, dl.TotalProgress); Assert.Empty(dl.Queue); Assert.Equal(3, dl.Completed.Count); Assert.All(dl.Completed, q => Assert.True(q.IsDone));   // finished files leave "up next"
+        Assert.Contains("Downloading files", phases); Assert.Contains("Copying to the drive", phases); Assert.Contains("Downloading", dl.Log);
         Assert.Same(env.Main.Home, env.Main.Current); Assert.False(Workflow.Busy);
         Assert.Empty(env.Main.Home.Packages);        // selections are cleared for the next run
     }
@@ -272,7 +274,7 @@ public class PageViewModelTests
         s.Version = "3.3.19052"; s.Region = Region.All[0]; s.Nav = true; s.Connections = 4; s.Mode = s.ModeOptions[1]; s.My20 = s.My20Options[2];
         await s.ApplyClickCommand.ExecuteAsync(null);
         Assert.Equal(3319052, Ctx.Profile.CurrentVersion); Assert.Equal("EU", Ctx.Profile.CurrentRegion); Assert.True(Ctx.Profile.CurrentNav);
-        Assert.Equal(4, Ctx.Profile.DownloadConnections); Assert.Equal(InstallModes.Autoinstall, Ctx.Profile.InstallMode); Assert.False(Ctx.Profile.My20v2);
+        Assert.Equal(4, Ctx.Main.DownloadConnections); Assert.Equal(InstallModes.Autoinstall, Ctx.Profile.InstallMode); Assert.False(Ctx.Profile.My20v2);
         Assert.Contains("3.3.19052", File.ReadAllText(Path.Combine(env.Dir, "data", "Profiles", "default.json")).Replace("3319052", "3.3.19052"));
         Assert.Contains(env.Main.Home.ConfigItems, c => c.Value == "EU");
 
@@ -302,18 +304,35 @@ public class PageViewModelTests
     }
 
     [AvaloniaFact]
-    public async Task Profiles_CreateSelectRenameDelete()
+    public async Task SidebarProfiles_AddSwitchDelete()
     {
-        using var env = new AppEnv(); var p = env.Main.Profiles; p.OnShown();
-        p.NewName = "Wife"; p.CreateCommand.Execute(null);
-        Assert.Equal("Wife", Ctx.Main.Profile); Assert.Equal("Wife", p.Current); Assert.Contains("default", p.Profiles);
-        Assert.Contains("Wife", env.Main.WindowTitle);
+        using var env = new AppEnv(); var m = env.Main;
+        Assert.Equal(new[] { "default" }, m.Profiles); Assert.False(m.CanDeleteProfile);
+        await m.DeleteProfileCommand.ExecuteAsync(null); Assert.Empty(env.Dialogs.Messages);          // nothing to delete: last profile is protected
 
-        p.Selected = "default"; p.SelectCommand.Execute(null); Assert.Equal("default", Ctx.Main.Profile);
-        p.Selected = "default"; await p.DeleteCommand.ExecuteAsync(null);                       // the active one cannot be deleted
-        Assert.Contains(env.Dialogs.Messages, m => m == Ctx.T("MessageBox.InvalidProfile"));
-        p.Selected = "Wife"; p.RenameTo = "Spouse"; p.RenameCommand.Execute(null); Assert.Contains("Spouse", p.Profiles);
-        p.Selected = "Spouse"; await p.DeleteCommand.ExecuteAsync(null); Assert.DoesNotContain("Spouse", p.Profiles);
+        env.Dialogs.PromptAnswer = "  "; await m.AddProfileCommand.ExecuteAsync(null); Assert.Single(m.Profiles);   // blank name ignored
+        env.Dialogs.PromptAnswer = null; await m.AddProfileCommand.ExecuteAsync(null); Assert.Single(m.Profiles);    // cancelled
+        env.Dialogs.PromptAnswer = "Wife's car/2"; await m.AddProfileCommand.ExecuteAsync(null);
+        Assert.Equal("Wife's car_2", Ctx.Main.Profile); Assert.Equal("Wife's car_2", m.SelectedProfile); Assert.Equal(2, m.Profiles.Count); Assert.True(m.CanDeleteProfile);
+        Assert.Contains("Wife's car_2", m.WindowTitle);
+        Assert.Null(Ctx.Profile.CurrentRegion);                       // a new profile starts blank
+
+        m.SelectedProfile = "default"; Assert.Equal("default", Ctx.Main.Profile); Assert.Equal("NA", Ctx.Profile.CurrentRegion);
+        Assert.Contains(m.Home.ConfigItems, c => c.Value == "NA");
+
+        env.Dialogs.DefaultYes = false; await m.DeleteProfileCommand.ExecuteAsync(null); Assert.Equal(2, m.Profiles.Count);   // declined
+        env.Dialogs.DefaultYes = true;  await m.DeleteProfileCommand.ExecuteAsync(null);                                      // deleting the ACTIVE profile moves to another
+        Assert.Equal(new[] { "Wife's car_2" }, m.Profiles); Assert.Equal("Wife's car_2", Ctx.Main.Profile); Assert.False(m.CanDeleteProfile);
+        Assert.False(File.Exists(Path.Combine(env.Dir, "data", "Profiles", "default.json")));
+    }
+
+    [AvaloniaFact]
+    public void Settings_WarningIsOneLine_AndNamesTheProfile_ConnectionsAreAppWide()
+    {
+        using var env = new AppEnv(); var s = env.Main.Settings; s.OnShown();
+        Assert.DoesNotContain("\n", s.WarningText); Assert.StartsWith("INCORRECT INFORMATION", s.WarningText, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("default", s.ProfileName); Assert.Equal(2, s.Connections);                       // read from application settings, not the profile
+        Assert.Equal(8, new ProfileSettings().DownloadConnections); Assert.Equal(8, new MainSettings().DownloadConnections);
     }
 
     [AvaloniaFact]
@@ -362,7 +381,13 @@ public class PageViewModelTests
         Assert.False(about.Accepted); about.Accepted = true; Assert.True(Ctx.Main.DisclaimerAccepted);
         await about.OpenDocsCommand.ExecuteAsync(null); await about.OpenForumCommand.ExecuteAsync(null); await about.OpenFHubCommand.ExecuteAsync(null); await about.OpenDonateCommand.ExecuteAsync(null);
         Assert.Equal(4, env.Dialogs.Opened.Count); Assert.Contains("https://cyanlabs.net/support-us/", env.Dialogs.Opened);
-        Assert.Contains("Syn3 Updater", about.Version);
+        await about.OpenGithubCommand.ExecuteAsync(null); await about.OpenLicenseCommand.ExecuteAsync(null); await about.OpenDataFolderCommand.ExecuteAsync(null);
+        Assert.Contains(NewsViewModel.GithubRepo, env.Dialogs.Opened); Assert.Contains("https://www.gnu.org/licenses/gpl-3.0.html", env.Dialogs.Opened); Assert.Contains(about.DataFolder, env.Dialogs.Opened);
+        await about.CopyDiagnosticsCommand.ExecuteAsync(null);
+        Assert.Contains("Platform:", env.Dialogs.Clipboard[0]); Assert.Contains("Profile: default", env.Dialogs.Clipboard[0]); Assert.Contains(about.VersionText, env.Dialogs.Clipboard[0]);
+        Assert.NotEmpty(about.Runtime); Assert.NotEmpty(about.Platform);
+        Assert.False(about.NotAccepted); about.Accepted = false; Assert.True(about.NotAccepted); Assert.False(Ctx.Main.DisclaimerAccepted);
+        Ctx.Main.DisclaimerAccepted = true; about.OnShown(); Assert.True(about.Accepted);
     }
 
     [AvaloniaFact]
@@ -424,10 +449,10 @@ public class PageViewModelTests
     public void MainWindow_Navigation_Sidebar_Title()
     {
         using var env = new AppEnv(); var m = env.Main;
-        Assert.Equal(7, m.TopPages.Count); Assert.Single(m.BottomPages); Assert.True(m.Home.IsActive);
+        Assert.Equal(6, m.TopPages.Count); Assert.Single(m.BottomPages); Assert.True(m.Home.IsActive);
         m.NavigateCommand.Execute(m.Logs); Assert.Same(m.Logs, m.Current); Assert.True(m.Logs.IsActive); Assert.False(m.Home.IsActive);
         m.ShowDownloads(); m.ShowUtility(); m.ShowSettings(); m.ShowHome(); Assert.Same(m.Home, m.Current);
-        m.SidebarExpanded = false; Assert.Equal(64, m.SidebarWidth); m.SidebarExpanded = true; Assert.Equal(208, m.SidebarWidth);
+        m.SidebarExpanded = false; Assert.Equal(64, m.SidebarWidth); m.SidebarExpanded = true; Assert.Equal(200, m.SidebarWidth);
         Assert.StartsWith("Syn3 Updater", m.WindowTitle); Assert.All(m.Pages, p => { Assert.False(string.IsNullOrEmpty(p.Title)); Assert.NotEmpty(p.IconData); });
         Ctx.Loc.SetLanguage("de"); Ctx.Loc.SetLanguage("en-US");
     }

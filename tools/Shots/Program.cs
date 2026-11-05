@@ -58,9 +58,9 @@ var work = Dispatcher.UIThread.InvokeAsync(async () =>
         vm.Downloads.Headline = "Sync 3.4.26057 - NA - Keep Existing Maps"; vm.Downloads.IsRunning = true;
             vm.Downloads.Status = "Downloading: PU5T-14G381-AB_1722.TAR.GZ"; vm.Downloads.CurrentFile = "PU5T-14G381-AB_1722.TAR.GZ";
             vm.Downloads.FileProgress = 63; vm.Downloads.TotalProgress = 31; vm.Downloads.FileCounter = "File 2 of 4";
-            vm.Downloads.Queue.Add(new QueueItem("PU5T-14G386-BB.TAR.GZ", "3 KB") { IsDone = true });
-            vm.Downloads.Queue.Add(new QueueItem("PU5T-14G381-AB_1722.TAR.GZ", "1.3 GB") { IsActive = true });
-            vm.Downloads.Queue.Add(new QueueItem("PU5T-14G391-AC.TAR.GZ", "296 MB"));
+            vm.Downloads.Completed.Add(new QueueItem("PU5T-14G386-BB.TAR.GZ", "3 KB", 0) { IsDone = true });
+            vm.Downloads.PhaseLabel = "Downloading files"; vm.Downloads.Queue.Add(new QueueItem("PU5T-14G381-AB_1722.TAR.GZ", "1.3 GB", 1) { IsActive = true });
+            vm.Downloads.Queue.Add(new QueueItem("PU5T-14G391-AC.TAR.GZ", "296 MB", 2));
             vm.Downloads.Log = "[2026-11-05 18:30:01] INFO: Validated: PU5T-14G386-BB (Skipping Download)\n[2026-11-05 18:30:02] INFO: Downloading: PU5T-14G381-AB_1722.TAR.GZ\n";
         }
     foreach (var p in pages.Count > 0 ? pages : vm.Pages.Select(x => x.GetType().Name.Replace("ViewModel", "")).ToList())

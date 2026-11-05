@@ -155,7 +155,6 @@ public partial class HomeViewModel : PageViewModel
             ConfigItems.Add(new(Ctx.T("Home.Nav"), CurrentNav));
         }
         ConfigItems.Add(new(Ctx.T("Home.MY20Protection"), My20Text));
-        ConfigItems.Add(new(Ctx.T("Home.Profile"), Ctx.Main.Profile));
         if (SelectedRegion == null && Regions.FirstOrDefault(r => r.Code == p.CurrentRegion) is { } r0)
             SelectedRegion = r0;
     }

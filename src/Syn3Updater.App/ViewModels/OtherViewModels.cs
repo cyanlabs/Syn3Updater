@@ -7,71 +7,6 @@ using Cyanlabs.Syn3Updater.Core.Services;
 
 namespace Cyanlabs.Syn3Updater.App.ViewModels;
 
-public partial class ProfilesViewModel : PageViewModel
-{
-    public override string TitleKey => "Main.Profiles";
-    public override string IconData => "M18.92,6.01C18.72,5.42 18.16,5 17.5,5H6.5C5.84,5 5.29,5.42 5.08,6.01L3,12V20A1,1 0 0,0 4,21H5A1,1 0 0,0 6,20V19H18V20A1,1 0 0,0 19,21H20A1,1 0 0,0 21,20V12L18.92,6.01M6.5,16A1.5,1.5 0 0,1 5,14.5A1.5,1.5 0 0,1 6.5,13A1.5,1.5 0 0,1 8,14.5A1.5,1.5 0 0,1 6.5,16M17.5,16A1.5,1.5 0 0,1 16,14.5A1.5,1.5 0 0,1 17.5,13A1.5,1.5 0 0,1 19,14.5A1.5,1.5 0 0,1 17.5,16M5,11L6.5,6.5H17.5L19,11H5Z";
-    public ObservableCollection<string> Profiles { get; } = new();
-    [ObservableProperty] private string? _selected;
-    [ObservableProperty] private string _current = "";
-    [ObservableProperty] private string _newName = "";
-    [ObservableProperty] private string _renameTo = "";
-
-    public override void OnShown() => Reload();
-
-    private void Reload()
-    {
-        Profiles.Clear();
-        foreach (var p in Ctx.Store.ListProfiles()) Profiles.Add(p);
-        Current = Ctx.Main.Profile;
-        MainWindowViewModel.Instance?.RefreshTitle();
-        Selected = Profiles.FirstOrDefault(p => p == Current);
-    }
-
-    private void Switched()
-    {
-        Reload();
-        MainWindowViewModel.Instance.Home.ReloadSummary();
-        MainWindowViewModel.Instance.Home.ClearSelections();
-        MainWindowViewModel.Instance.Settings.OnShown();
-    }
-
-    [RelayCommand]
-    private void Select() { if (Selected != null) { Ctx.Store.SwitchProfile(Selected); Switched(); } }
-
-    [RelayCommand]
-    private void Create()
-    {
-        var name = AppPaths.FileSafe(NewName.Trim());
-        if (NewName.Trim().Length == 0) return;
-        Ctx.Store.SwitchProfile(name); NewName = ""; Switched();
-    }
-
-    [RelayCommand]
-    private async Task DeleteAsync()
-    {
-        if (Selected == null) return;
-        if (Selected == Ctx.Main.Profile) { await Dialogs.Error(Ctx.T("MessageBox.InvalidProfile")); return; }
-        Ctx.Store.DeleteProfile(Selected); Reload();
-    }
-
-    [RelayCommand]
-    private void Rename()
-    {
-        var to = AppPaths.FileSafe(RenameTo.Trim());
-        if (Selected == null || RenameTo.Trim().Length == 0 || to == Selected) return;
-        var from = Selected;
-        bool wasCurrent = from == Ctx.Main.Profile;
-        var src = Path.Combine(Ctx.Paths.ProfileDir, from + ".json");
-        var dst = Path.Combine(Ctx.Paths.ProfileDir, to + ".json");
-        if (wasCurrent) Ctx.Save();
-        if (File.Exists(src) && !File.Exists(dst)) File.Move(src, dst);
-        if (wasCurrent) { Ctx.Main.Profile = to; Ctx.Save(); }
-        RenameTo = ""; Reload();
-        MainWindowViewModel.Instance.Home.ReloadSummary();
-    }
-}
-
 public class LogFile
 {
     public string Path { get; init; } = "";
@@ -236,13 +171,34 @@ public partial class AboutViewModel : PageViewModel
 {
     public override string TitleKey => "Main.About";
     public override string IconData => "M12,2A10,10 0 1,0 12,22A10,10 0 1,0 12,2M11,7H13V9H11V7M11,11H13V17H11V11Z";
-    public string Version => $"Syn3 Updater {Ctx.Version} ({Ctx.Branch}) · {Ctx.OsName()}";
+    public string VersionText => $"{Ctx.Version} ({Ctx.Branch})";
+    public string Platform => Ctx.OsName();
+    public string Runtime => System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription;
+    public string DataFolder => Ctx.Paths.DataDir;
+    public string ProfileName => Ctx.Main.Profile;
     [ObservableProperty] private bool _accepted = Ctx.Main.DisclaimerAccepted;
+    public bool NotAccepted => !Accepted;
 
-    partial void OnAcceptedChanged(bool value) { Ctx.Main.DisclaimerAccepted = value; Ctx.Save(); }
+    partial void OnAcceptedChanged(bool value) { Ctx.Main.DisclaimerAccepted = value; Ctx.Save(); OnPropertyChanged(nameof(NotAccepted)); }
+
+    public override void OnShown()
+    {
+        Accepted = Ctx.Main.DisclaimerAccepted;
+        OnPropertyChanged(nameof(ProfileName)); OnPropertyChanged(nameof(DataFolder));
+    }
+
+    /// <summary>Plain-text summary users can paste into a support thread.</summary>
+    public string Diagnostics =>
+        $"Syn3 Updater {VersionText}{Environment.NewLine}Platform: {Platform}{Environment.NewLine}Runtime: {Runtime}{Environment.NewLine}" +
+        $"Profile: {ProfileName} (version {Ctx.Profile.VersionString}, region {Ctx.Profile.CurrentRegion ?? "-"}, nav {Ctx.Profile.CurrentNav}){Environment.NewLine}" +
+        $"Data folder: {DataFolder}{Environment.NewLine}Download folder: {Ctx.Main.DownloadPath}{Environment.NewLine}Language: {Ctx.Loc.Code}";
 
     [RelayCommand] private Task OpenForumAsync() => Dialogs.OpenUrl("https://community.cyanlabs.net");
     [RelayCommand] private Task OpenDocsAsync() => Dialogs.OpenUrl("https://cyanlabs.net/docs/syn3updater/");
     [RelayCommand] private Task OpenDonateAsync() => Dialogs.OpenUrl("https://cyanlabs.net/support-us/");
     [RelayCommand] private Task OpenFHubAsync() => Dialogs.OpenUrl("https://cyanlabs.net/fhub");
+    [RelayCommand] private Task OpenGithubAsync() => Dialogs.OpenUrl(NewsViewModel.GithubRepo);
+    [RelayCommand] private Task OpenLicenseAsync() => Dialogs.OpenUrl("https://www.gnu.org/licenses/gpl-3.0.html");
+    [RelayCommand] private Task OpenDataFolderAsync() => Dialogs.OpenUrl(DataFolder);
+    [RelayCommand] private Task CopyDiagnosticsAsync() => Dialogs.SetClipboard(Diagnostics);
 }

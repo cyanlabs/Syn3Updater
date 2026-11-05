@@ -1,6 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:d="using:Cyanlabs.Syn3Updater.Core.Drives" xmlns:m="using:Cyanlabs.Syn3Updater.Core.Models" x:Class="Cyanlabs.Syn3Updater.App.Views.DownloadView">
   <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-    <StackPanel MaxWidth="880" Spacing="16" Margin="32,28,32,24">
+    <StackPanel MaxWidth="880" Spacing="16" Margin="28,28,28,24">
       <StackPanel Spacing="4">
         <TextBlock Text="{svc:T Main.Downloads}" Classes="title" />
         <TextBlock Text="{Binding Headline}" Classes="muted" />
@@ -34,13 +34,30 @@
 
       <Border Classes="card" IsVisible="{Binding HasQueue}">
         <StackPanel Spacing="8">
-          <TextBlock Text="{svc:T Download.Queue}" Classes="section" />
+          <Grid ColumnDefinitions="*,Auto"><TextBlock Text="{svc:T App.Remaining}" Classes="section" /><TextBlock Grid.Column="1" Text="{Binding PhaseLabel}" Classes="label" VerticalAlignment="Center" /></Grid>
           <ItemsControl ItemsSource="{Binding Queue}">
             <ItemsControl.ItemTemplate>
               <DataTemplate DataType="vm:QueueItem">
                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Margin="0,5">
-                  <Ellipse Classes="dot" Classes.active="{Binding IsActive}" Classes.done="{Binding IsDone}" VerticalAlignment="Center" />
+                  <Ellipse Classes="dot" Classes.active="{Binding IsActive}" VerticalAlignment="Center" />
                   <TextBlock Grid.Column="1" Text="{Binding Name}" Classes="mono" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Grid.Column="2" Text="{Binding Size}" Classes="label" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card green" IsVisible="{Binding HasCompleted}">
+        <StackPanel Spacing="8">
+          <TextBlock Text="{svc:T App.Completed}" Classes="section" />
+          <ItemsControl ItemsSource="{Binding Completed}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:QueueItem">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Margin="0,4">
+                  <PathIcon Data="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z" Foreground="#4cc38a" Width="14" Height="14" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Text="{Binding Name}" Classes="mono" TextTrimming="CharacterEllipsis" Opacity="0.8" />
                   <TextBlock Grid.Column="2" Text="{Binding Size}" Classes="label" VerticalAlignment="Center" />
                 </Grid>
               </DataTemplate>

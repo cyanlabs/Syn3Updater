@@ -15,6 +15,8 @@ public interface IDialogBackend
     Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex);
     Task<string?> PickFolder(string title);
     Task<string?> PickFile(string title, string filterName, string[] patterns);
+    /// <summary>Asks for one line of text. Returns null when cancelled.</summary>
+    Task<string?> Prompt(string title, string message, string initial);
     Task SetClipboard(string text);
     Task OpenUrl(string url);
 }
@@ -33,6 +35,7 @@ public static class Dialogs
 
     public static Task<int> Show(string message, string title, string[] buttons, int defaultIndex = 0) => Backend.Show(message, title, buttons, false, false, defaultIndex);
     public static Task<string?> PickFolder(string title) => Backend.PickFolder(title);
+    public static Task<string?> Prompt(string title, string message, string initial = "") => Backend.Prompt(title, message, initial);
     public static Task<string?> PickFile(string title, string filterName, params string[] patterns) => Backend.PickFile(title, filterName, patterns);
     public static Task SetClipboard(string text) => Backend.SetClipboard(text);
     public static Task OpenUrl(string url) => Backend.OpenUrl(url);
@@ -43,6 +46,7 @@ internal sealed class AvaloniaDialogBackend : IDialogBackend
     public Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex) =>
         DialogsImpl.Show(message, title, buttons, error ? Brushes.Firebrick : warning ? Brushes.DarkOrange : null, defaultIndex);
     public Task<string?> PickFolder(string title) => DialogsImpl.PickFolder(title);
+    public Task<string?> Prompt(string title, string message, string initial) => DialogsImpl.Prompt(title, message, initial);
     public Task<string?> PickFile(string title, string filterName, string[] patterns) => DialogsImpl.PickFile(title, filterName, patterns);
     public Task SetClipboard(string text) => DialogsImpl.SetClipboard(text);
     public Task OpenUrl(string url) => DialogsImpl.OpenUrl(url);
@@ -86,6 +90,32 @@ public static class DialogsImpl
         panel.Children.Add(row);
         win.Content = panel;
         if (MainWindow is { } owner) await win.ShowDialog(owner); else { win.Show(); await Task.Delay(Timeout.Infinite); }
+        return result;
+    });
+
+    public static Task<string?> Prompt(string title, string message, string initial) => OnUi(async () =>
+    {
+        string? result = null;
+        var win = new Window { Title = title, SizeToContent = SizeToContent.WidthAndHeight, MinWidth = 380, WindowStartupLocation = WindowStartupLocation.CenterOwner, CanResize = false, ShowInTaskbar = false };
+        var box = new TextBox { Text = initial, MinWidth = 320 };
+        var ok = new Button { Content = Ctx.T("String.OK"), MinWidth = 90, HorizontalContentAlignment = HorizontalAlignment.Center };
+        ok.Classes.Add("accent");
+        var cancel = new Button { Content = Ctx.T("Download.CancelButton"), MinWidth = 90, HorizontalContentAlignment = HorizontalAlignment.Center };
+        void Accept() { result = box.Text; win.Close(); }
+        ok.Click += (_, _) => Accept(); cancel.Click += (_, _) => win.Close();
+        box.KeyDown += (_, e) => { if (e.Key == Avalonia.Input.Key.Enter) Accept(); };
+        win.Content = new StackPanel
+        {
+            Margin = new Thickness(24), Spacing = 14,
+            Children =
+            {
+                new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
+                box,
+                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right, Children = { cancel, ok } },
+            },
+        };
+        win.Opened += (_, _) => box.Focus();
+        if (MainWindow is { } owner) await win.ShowDialog(owner); else win.Show();
         return result;
     });
 

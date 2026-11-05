@@ -1,10 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:m="using:Cyanlabs.Syn3Updater.Core.Models" xmlns:ctl="using:Cyanlabs.Syn3Updater.App.Controls" x:Class="Cyanlabs.Syn3Updater.App.Views.NewsView">
   <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-    <StackPanel MaxWidth="820" Spacing="14" Margin="32,28,32,24">
+    <StackPanel MaxWidth="820" Spacing="14" Margin="28,28,28,24">
       <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
         <TextBlock Text="{svc:T Main.News}" Classes="title" />
         <Button Grid.Column="1" Content="GitHub" Command="{Binding VisitGithubCommand}" />
-        <Button Grid.Column="2" Content="{svc:T Home.Refresh}" Command="{Binding LoadCommand}" />
+        <Button Grid.Column="2" Command="{Binding LoadCommand}"><StackPanel Orientation="Horizontal" Spacing="8"><PathIcon Data="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" Width="15" Height="15" /><TextBlock Text="{svc:T Home.Refresh}" VerticalAlignment="Center" /></StackPanel></Button>
       </Grid>
       <TextBlock Text="{Binding Status}" Foreground="{DynamicResource WarnFg}" TextWrapping="Wrap" />
       <ItemsControl ItemsSource="{Binding Important}">
