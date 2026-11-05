@@ -11,3 +11,6 @@ artifacts/
 secrets/*
 !secrets/README.md
 !secrets/api-token.txt.example
+
+# stray run output
+*.log
