@@ -139,6 +139,7 @@ public partial class DownloadViewModel : PageViewModel
 
         var progress = new Progress<RunProgress>(p =>
         {
+            if (!IsRunning) return;                                       // Progress<T> posts asynchronously: a report may arrive after the run ended
             if (!string.IsNullOrEmpty(p.Status)) Status = p.Status;
             FileProgress = p.FilePercent; TotalProgress = p.TotalPercent;
             ApplyTransfer(p);

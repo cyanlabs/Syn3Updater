@@ -355,6 +355,7 @@ public class EjectTests
     [Fact]
     public async Task DefaultRunner_IsTheRealProcessRunner()
     {
+        if (!OperatingSystem.IsLinux()) return;       // the Linux service shells out to lsblk
         var svc = new LinuxDriveService();            // no injection: still constructs and answers (guard rejects a bogus device before touching the system)
         Assert.False((await svc.EjectAsync(new DriveInfoModel { DeviceId = "/dev/definitely-not-there" }, null)).Ok);
     }

@@ -58,9 +58,13 @@ public sealed class FileServer : IDisposable
     public string Url { get; }
     public FileServer()
     {
-        var port = new Random().Next(40000, 60000);
-        Url = $"http://127.0.0.1:{port}";
-        _l.Prefixes.Add(Url + "/"); _l.Start();
+        for (var attempt = 0; ; attempt++)            // tests run in parallel: retry when another server grabbed the random port
+        {
+            var port = Random.Shared.Next(40000, 60000);
+            Url = $"http://127.0.0.1:{port}";
+            _l.Prefixes.Clear(); _l.Prefixes.Add(Url + "/");
+            try { _l.Start(); break; } catch (HttpListenerException) when (attempt < 20) { }
+        }
         _ = Task.Run(async () =>
         {
             while (_l.IsListening)
