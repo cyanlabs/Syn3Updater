@@ -67,7 +67,7 @@
       </Border>
 
       <Border Classes="card" Padding="8,4" IsVisible="{Binding !IsIdle}">
-      <Expander Header="{svc:T Download.Log}" IsExpanded="True">
+      <Expander Header="{svc:T Download.Log}">
         <TextBox Text="{Binding Log}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" Classes="mono" Height="240" FontSize="12" />
       </Expander>
       </Border>
