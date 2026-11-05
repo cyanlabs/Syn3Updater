@@ -133,6 +133,29 @@ public class HomeFlowTests
     }
 
     [AvaloniaFact]
+    public async Task DirectoryEntry_IsTheLastDropdownItem_AndOpensThePicker()
+    {
+        using var env = new AppEnv(); var home = env.Main.Home;
+        Assert.True(home.Drives[^1].IsChooser); Assert.Equal("Select A Directory", home.Drives[^1].Title); Assert.Equal("", home.Drives[^1].Detail);   // there before any refresh
+        await home.RefreshDrivesCommand.ExecuteAsync(null);
+        Assert.True(home.Drives[^1].IsChooser); Assert.Single(home.Drives.Where(d => d.IsChooser));
+
+        env.Dialogs.FolderToPick = env.UsbDir; home.SelectedDrive = home.Drives[^1];
+        await AppEnv.Until(() => home.SelectedDrive?.IsFolder == true);
+        Assert.Equal(env.UsbDir, home.SelectedDrive!.MountPath); Assert.True(home.Drives[^1].IsChooser); Assert.Equal(env.UsbDir, home.DriveInfo);
+
+        env.Dialogs.FolderToPick = null; var before = home.SelectedDrive; home.SelectedDrive = home.Drives[^1];      // cancelled picker
+        await Task.Delay(150);
+        Assert.Same(before, home.SelectedDrive);
+
+        var other = Path.Combine(env.Dir, "other"); Directory.CreateDirectory(other);
+        env.Dialogs.FolderToPick = other; home.SelectedDrive = home.Drives[^1];
+        await AppEnv.Until(() => home.SelectedDrive?.MountPath == other);
+        Assert.Single(home.Drives.Where(d => d.IsFolder)); Assert.True(home.Drives[^1].IsChooser);                    // the new folder replaced the old one
+        await home.RefreshDrivesCommand.ExecuteAsync(null); Assert.Equal(other, home.SelectedDrive!.MountPath);       // and survives a refresh
+    }
+
+    [AvaloniaFact]
     public async Task Api_Failure_IsReported()
     {
         using var env = new AppEnv(); env.Api.Offline = true;

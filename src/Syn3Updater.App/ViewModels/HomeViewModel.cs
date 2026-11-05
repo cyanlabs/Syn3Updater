@@ -132,6 +132,7 @@ public partial class HomeViewModel : PageViewModel
     {
         Ctx.Loc.LanguageChanged += () => ReloadSummary();
         Packages.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasPackages));
+        Drives.Add(Chooser());     // "Select A Directory..." is always available, even before the first refresh
     }
 
     public override void OnShown() { ReloadSummary(); _ = RefreshDrivesAsync(); }
@@ -170,18 +171,29 @@ public partial class HomeViewModel : PageViewModel
     }
 
     // ---------- drives ----------
+    private DriveInfoModel? _lastSelection;
+    private DriveInfoModel Chooser() => new() { IsChooser = true, Name = Ctx.T("Home.NoUSBDir") };
+
+    /// <summary>The dropdown is: detected drives, then the chosen folder (if any), then always "Select A Directory..." last.</summary>
+    private void SetDrives(IEnumerable<DriveInfoModel> drives, DriveInfoModel? folder)
+    {
+        Drives.Clear();
+        foreach (var d in drives) Drives.Add(d);
+        if (folder != null) Drives.Add(folder);
+        Drives.Add(Chooser());
+    }
+
     [RelayCommand]
     public async Task RefreshDrivesAsync()
     {
         try
         {
-            var previous = SelectedDrive;
+            var previous = _lastSelection;
+            var folder = Drives.FirstOrDefault(d => d.IsFolder);
             var found = await Ctx.Drives.ListAsync();
-            Drives.Clear();
-            foreach (var d in found) Drives.Add(d);
-            if (previous?.IsFolder == true) Drives.Add(previous);
-            NoDrives = found.Count == 0 && previous?.IsFolder != true;
-            SelectedDrive = Drives.FirstOrDefault(d => d.DeviceId == previous?.DeviceId && d.IsFolder == previous?.IsFolder) ;
+            SetDrives(found, folder);
+            NoDrives = found.Count == 0 && folder == null;
+            SelectedDrive = Drives.FirstOrDefault(d => !d.IsChooser && d.DeviceId == previous?.DeviceId && d.IsFolder == previous?.IsFolder && previous != null);
         }
         catch (Exception e)
         {
@@ -194,20 +206,26 @@ public partial class HomeViewModel : PageViewModel
     private async Task ChooseFolderAsync()
     {
         var path = await Dialogs.PickFolder(Ctx.T("Home.NoUSBDir"));
-        if (path == null) return;
+        if (path == null) { SelectedDrive = _lastSelection; return; }                  // cancelled: keep what was selected before
         var item = new DriveInfoModel { IsFolder = true, MountPath = path, Name = $"{Ctx.T("Home.NoUSBDir")}: {path}", DeviceId = "" };
-        foreach (var old in Drives.Where(d => d.IsFolder).ToList()) Drives.Remove(old);
-        Drives.Add(item);
+        SetDrives(Drives.Where(d => !d.IsFolder && !d.IsChooser).ToList(), item);
         SelectedDrive = item;
     }
 
     partial void OnSelectedDriveChanged(DriveInfoModel? value)
     {
+        if (value?.IsChooser == true)             // the last dropdown entry is an action, not a drive
+        {
+            SelectedDrive = _lastSelection;
+            _ = ChooseFolderAsync();
+            return;
+        }
         if (value?.Encrypted == true)
         {
             _ = Dialogs.Error(Ctx.T("MessageBox.EncryptedDrive"));
             SelectedDrive = null; return;
         }
+        _lastSelection = value;
         DriveInfo = value == null ? "" : value.IsFolder ? value.MountPath
             : value.MountPath.Length > 0 ? $"Mounted at {value.MountPath}" : "Not mounted yet - it will be mounted automatically";
         if (value != null) Ctx.Log.Info($"USB Drive selected - Name: {value.Name} - FileSystem: {value.FileSystem} - PartitionType: {value.PartitionType} - Path: {value.MountPath}");

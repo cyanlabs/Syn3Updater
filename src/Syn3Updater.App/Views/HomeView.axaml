@@ -33,13 +33,14 @@
         <Border Classes="card">
           <StackPanel Spacing="12">
             <StackPanel Orientation="Horizontal" Spacing="10"><Border Classes="step"><TextBlock Text="1" /></Border><TextBlock Text="{svc:T Home.SelectUSBDrive}" Classes="section" VerticalAlignment="Center" /></StackPanel>
-            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
               <ComboBox ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive}" MinHeight="48" PlaceholderText="{svc:T Home.SelectUSBDrive}">
                 <ComboBox.ItemTemplate>
                   <DataTemplate DataType="d:DriveInfoModel">
                     <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,4">
-                      <PathIcon Data="M15,7V11H16V13H13V5H15L12,1L9,5H11V13H8V10.93C8.7,10.56 9.2,9.85 9.2,9C9.2,7.8 8.2,6.8 7,6.8C5.8,6.8 4.8,7.8 4.8,9C4.8,9.85 5.3,10.56 6,10.93V13A2,2 0 0,0 8,15H11V18.05C10.3,18.4 9.8,19.1 9.8,20C9.8,21.1 10.7,22 11.8,22C12.9,22 13.8,21.1 13.8,20C13.8,19.1 13.3,18.4 12.6,18.05V15H16A2,2 0 0,0 18,13V11H19V7H15Z" Width="18" Height="18" Foreground="{DynamicResource Brand}" />
-                      <StackPanel><TextBlock Text="{Binding Title}" /><TextBlock Text="{Binding Detail}" Classes="label" TextTrimming="CharacterEllipsis" MaxWidth="400" /></StackPanel>
+                      <PathIcon Data="M15,7V11H16V13H13V5H15L12,1L9,5H11V13H8V10.93C8.7,10.56 9.2,9.85 9.2,9C9.2,7.8 8.2,6.8 7,6.8C5.8,6.8 4.8,7.8 4.8,9C4.8,9.85 5.3,10.56 6,10.93V13A2,2 0 0,0 8,15H11V18.05C10.3,18.4 9.8,19.1 9.8,20C9.8,21.1 10.7,22 11.8,22C12.9,22 13.8,21.1 13.8,20C13.8,19.1 13.3,18.4 12.6,18.05V15H16A2,2 0 0,0 18,13V11H19V7H15Z" Width="18" Height="18" Foreground="{DynamicResource Brand}" IsVisible="{Binding !IsFolder}" />
+                      <PathIcon Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" Width="18" Height="18" Foreground="{DynamicResource Brand}" IsVisible="{Binding IsFolder}" />
+                      <StackPanel><TextBlock Text="{Binding Title}" /><TextBlock Text="{Binding Detail}" Classes="label" TextTrimming="CharacterEllipsis" MaxWidth="400" IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" /></StackPanel>
                     </StackPanel>
                   </DataTemplate>
                 </ComboBox.ItemTemplate>
@@ -47,7 +48,6 @@
               <Button Grid.Column="1" Command="{Binding RefreshDrivesCommand}" ToolTip.Tip="{svc:T Home.Refresh}" MinHeight="48" MinWidth="48">
                 <PathIcon Data="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" Width="18" Height="18" />
               </Button>
-              <Button Grid.Column="2" Content="{svc:T App.UseFolder}" Command="{Binding ChooseFolderCommand}" MinHeight="48" />
             </Grid>
             <TextBlock Text="{svc:T App.NoDrives}" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding NoDrives}" />
             <TextBlock Text="{Binding DriveInfo}" Classes="muted" />

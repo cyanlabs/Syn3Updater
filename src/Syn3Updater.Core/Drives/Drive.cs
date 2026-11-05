@@ -16,17 +16,19 @@ public class DriveInfoModel
     public string PartitionType { get; set; } = "";
     public bool Encrypted { get; set; }
     public bool IsFolder { get; set; }
+    /// <summary>The last dropdown entry ("Select A Directory..."): choosing it opens a folder picker instead of selecting a drive.</summary>
+    public bool IsChooser { get; set; }
 
     /// <summary>An exFAT/MBR drive already labelled CYANLABS can be reused without reformatting.</summary>
     public bool CanSkipFormat => FileSystem.Equals("exFAT", StringComparison.OrdinalIgnoreCase)
                                  && PartitionType == "MBR" && VolumeName == "CYANLABS";
 
     /// <summary>"E: SanDisk Ultra (CYANLABS)" on Windows (drive letter is short); name and label elsewhere (mount paths are long).</summary>
-    public string Title => IsFolder ? Name
+    public string Title => IsFolder || IsChooser ? Name
         : $"{(OperatingSystem.IsWindows() ? MountPath.TrimEnd('\\') + " " : "")}{Name}{(string.IsNullOrEmpty(VolumeName) ? "" : $" ({VolumeName})")}".Trim();
-    public string Detail => IsFolder ? "" : $"Free: {Format.Bytes(FreeBytes)}   Size: {Format.Bytes(SizeBytes)}   File System: {FileSystem}{(PartitionType == "" ? "" : $" ({PartitionType})")}";
+    public string Detail => IsFolder || IsChooser ? "" : $"Free: {Format.Bytes(FreeBytes)}   Size: {Format.Bytes(SizeBytes)}   File System: {FileSystem}{(PartitionType == "" ? "" : $" ({PartitionType})")}";
 
-    public string Display => IsFolder ? Name : $"{Name} ({Format.Bytes(SizeBytes)}){(string.IsNullOrEmpty(MountPath) ? "" : " - " + MountPath)}";
+    public string Display => IsFolder || IsChooser ? Name : $"{Name} ({Format.Bytes(SizeBytes)}){(string.IsNullOrEmpty(MountPath) ? "" : " - " + MountPath)}";
     public override string ToString() => Display;
 }
 

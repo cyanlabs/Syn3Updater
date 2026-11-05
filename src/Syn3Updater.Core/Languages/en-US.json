@@ -181,7 +181,7 @@
   "App.Destination": "Destination",
   "App.ChooseVersion": "Choose what to install",
   "App.Packages": "Packages",
-  "App.NoDrives": "No USB drives found. Insert a drive and press Refresh, or use a folder instead.",
+  "App.NoDrives": "No USB drives found. Insert a drive and press Refresh, or choose \"Select A Directory\" in the list above.",
   "App.UseFolder": "Use a folder",
   "App.ConfigMissing": "Set your SYNC version and region before you start.",
   "App.OpenSettings": "Open Settings",
