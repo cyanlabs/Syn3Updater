@@ -46,7 +46,6 @@ public class HomeFlowTests
         await home.OpenInstructionsCommand.ExecuteAsync(null);
         await home.OpenFeedbackCommand.ExecuteAsync(null);
         Assert.Contains(ApiEndpoints.InstallDocsUrl("autoinstall"), env.Dialogs.Opened); Assert.Contains("https://forum/x", env.Dialogs.Opened);
-        await home.RegionInfoCommand.ExecuteAsync(null); Assert.Contains(env.Dialogs.Messages, m => m.Contains("EU: Europe"));
         home.EditConfigCommand.Execute(null); Assert.Same(env.Main.Settings, env.Main.Current);
     }
 

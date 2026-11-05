@@ -126,6 +126,38 @@ public class ApiClient
     public async Task<List<My20Model>> GetMy20Models(CancellationToken ct = default) =>
         (await QueryAsync<My20ModelsRoot>("{ my20models { model } }", ct)).Models ?? new();
 
+    /// <summary>
+    /// Every SYNC application version the backend knows (APPS packages), newest first, without duplicates.
+    /// Used to suggest versions in Settings; users can still type a version that is not in the list.
+    /// </summary>
+    public async Task<List<string>> GetAppVersions(CancellationToken ct = default)
+    {
+        var r = await QueryAsync<IvsuRoot>("""{ ivsu(sort: "-name", limit: -1, filter: {type: {_eq: "APPS"}}) { version } }""", ct);
+        return (r.Ivsus ?? new())
+            .Select(i => i.Version?.Trim()).Where(v => !string.IsNullOrEmpty(v)).Select(v => v!)
+            .Distinct()
+            .OrderByDescending(v => v, VersionOrder.Instance)
+            .ToList();
+    }
+
+    /// <summary>Compares "3.4.26057"-style versions one dotted segment at a time, as numbers ("3.4.9999" is older than "3.4.23088").</summary>
+    public sealed class VersionOrder : IComparer<string>
+    {
+        public static readonly VersionOrder Instance = new();
+        public int Compare(string? a, string? b)
+        {
+            var x = Segments(a); var y = Segments(b);
+            for (int i = 0; i < Math.Max(x.Length, y.Length); i++)
+            {
+                var c = (i < x.Length ? x[i] : 0).CompareTo(i < y.Length ? y[i] : 0);
+                if (c != 0) return c;
+            }
+            return string.CompareOrdinal(a, b);                          // same numbers, different text: keep a stable order
+        }
+        private static long[] Segments(string? v) =>
+            (v ?? "").Split('.').Select(s => long.TryParse(new string(s.Where(char.IsDigit).ToArray()), out var n) ? n : 0).ToArray();
+    }
+
     public async Task<Ivsu> GetSpecialPackage(string name, CancellationToken ct = default)
     {
         var r = await QueryAsync<IvsuRoot>($$$"""

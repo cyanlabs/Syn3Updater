@@ -473,10 +473,6 @@ public partial class HomeViewModel : PageViewModel
         if (!ok) UpdateButtons();
     }
 
-    [RelayCommand]
-    private Task RegionInfoAsync() =>
-        Dialogs.Info(string.Join("\n", Region.All.Select(r => $"{r.Code}: {r.Name}")), Ctx.T("Home.Region"));
-
     [RelayCommand] private void EditConfig() => MainWindowViewModel.Instance.ShowSettings();
     [RelayCommand] private Task OpenInstructionsAsync() => Dialogs.OpenUrl(string.IsNullOrEmpty(InstallDocsUrl) ? ApiEndpoints.DocsBase : InstallDocsUrl);
     [RelayCommand] private void SelectAll() { foreach (var r in Packages) r.Selected = true; UpdateSelectionSummary(); }

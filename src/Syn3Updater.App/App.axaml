@@ -124,6 +124,10 @@
 
     <Style Selector="Border.ico.lime"><Setter Property="Background" Value="#339ccc3d" /></Style><Style Selector="Border.ico.lime > PathIcon"><Setter Property="Foreground" Value="#9ccc3d" /></Style>
     <Style Selector="Border.card.lime"><Setter Property="Background" Value="#149ccc3d" /><Setter Property="BorderBrush" Value="#559ccc3d" /></Style>
+    <Style Selector="Button.help"><Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="3" /><Setter Property="CornerRadius" Value="12" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="0" /></Style>
+    <Style Selector="Button.help PathIcon"><Setter Property="Width" Value="18" /><Setter Property="Height" Value="18" /><Setter Property="Foreground" Value="{DynamicResource Muted}" /></Style>
+    <Style Selector="Button.help:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource BrandSoft}" /></Style>
+    <Style Selector="Button.help:pointerover PathIcon"><Setter Property="Foreground" Value="{DynamicResource Brand}" /></Style>
     <Style Selector="Button.mini"><Setter Property="Width" Value="34" /><Setter Property="Height" Value="34" /><Setter Property="Padding" Value="0" /><Setter Property="HorizontalContentAlignment" Value="Center" /><Setter Property="CornerRadius" Value="8" /></Style>
     <Style Selector="Border.card.teal"><Setter Property="Background" Value="#142fa1ab" /><Setter Property="BorderBrush" Value="#552fa1ab" /></Style>
     <Style Selector="Border.card.blue"><Setter Property="Background" Value="#144f8cff" /><Setter Property="BorderBrush" Value="#554f8cff" /></Style>

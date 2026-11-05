@@ -32,7 +32,26 @@
         <!-- 1. destination -->
         <Border Classes="card">
           <StackPanel Spacing="12">
-            <StackPanel Orientation="Horizontal" Spacing="10"><Border Classes="step"><TextBlock Text="1" /></Border><TextBlock Text="{svc:T Home.SelectUSBDrive}" Classes="section" VerticalAlignment="Center" /></StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <Border Classes="step"><TextBlock Text="1" /></Border>
+              <TextBlock Text="{svc:T Home.SelectUSBDrive}" Classes="section" VerticalAlignment="Center" />
+              <Button x:Name="UsbHelp" Classes="help" ToolTip.Tip="{svc:T Home.RecommendedUSBFlashDriveTitle}">
+                <Button.Flyout>
+                  <Flyout Placement="BottomEdgeAlignedLeft">
+                    <StackPanel Width="340" Spacing="8" Margin="4">
+                      <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveTitle}" FontWeight="SemiBold" />
+                      <StackPanel Spacing="6">
+                        <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveNonNav}" TextWrapping="Wrap" />
+                        <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveNA}" TextWrapping="Wrap" />
+                        <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveEU}" TextWrapping="Wrap" />
+                      </StackPanel>
+                      <TextBlock Text="{svc:T App.UsbFormatNote}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </Flyout>
+                </Button.Flyout>
+                <PathIcon Data="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z" />
+              </Button>
+            </StackPanel>
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
               <ComboBox ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive}" MinHeight="48" PlaceholderText="{svc:T Home.SelectUSBDrive}">
                 <ComboBox.ItemTemplate>
@@ -52,12 +71,6 @@
             </Grid>
             <TextBlock Text="{svc:T App.NoDrives}" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding NoDrives}" />
             <TextBlock Text="{Binding DriveInfo}" Classes="muted" />
-            <StackPanel Spacing="2" Margin="0,4,0,0">
-              <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveTitle}" Classes="label" FontWeight="SemiBold" />
-              <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveNonNav}" Classes="label" TextWrapping="Wrap" />
-              <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveNA}" Classes="label" TextWrapping="Wrap" />
-              <TextBlock Text="{svc:T Home.RecommendedUSBFlashDriveEU}" Classes="label" TextWrapping="Wrap" />
-            </StackPanel>
           </StackPanel>
         </Border>
 
@@ -66,9 +79,31 @@
           <StackPanel Spacing="12">
             <StackPanel Orientation="Horizontal" Spacing="10"><Border Classes="step"><TextBlock Text="2" /></Border><TextBlock Text="{svc:T App.ChooseVersion}" Classes="section" VerticalAlignment="Center" /></StackPanel>
             <Grid ColumnDefinitions="130,*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="12">
-              <TextBlock Grid.Row="0" Text="{svc:T Home.Region}" VerticalAlignment="Center" Classes="muted" />
-              <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}" PlaceholderText="{svc:T Home.Region}" />
-              <Button Grid.Row="0" Grid.Column="2" Content="?" Command="{Binding RegionInfoCommand}" Width="40" HorizontalContentAlignment="Center" FontWeight="Bold" />
+              <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                <TextBlock Text="{svc:T Home.Region}" VerticalAlignment="Center" Classes="muted" />
+                <Button x:Name="RegionHelp" Classes="help" ToolTip.Tip="{svc:T App.RegionsTitle}">
+                  <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedLeft">
+                      <StackPanel Width="380" Spacing="10" Margin="4">
+                        <TextBlock Text="{svc:T App.RegionsTitle}" FontWeight="SemiBold" />
+                        <ItemsControl ItemsSource="{Binding Regions}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="m:Region">
+                              <Grid ColumnDefinitions="52,*" Margin="0,3">
+                                <Border Classes="chip" Margin="0" HorizontalAlignment="Left" Padding="9,2"><TextBlock Text="{Binding Code}" FontWeight="SemiBold" /></Border>
+                                <TextBlock Grid.Column="1" Text="{Binding Name}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                              </Grid>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="{svc:T App.RegionsNote}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Flyout>
+                  </Button.Flyout>
+                  <PathIcon Data="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z" />
+                </Button>
+              </StackPanel>
+              <ComboBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}" PlaceholderText="{svc:T Home.Region}" />
               <TextBlock Grid.Row="1" Text="{svc:T Home.NewVersion}" VerticalAlignment="Center" Classes="muted" />
               <ComboBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" ItemsSource="{Binding Releases}" SelectedItem="{Binding SelectedRelease}" PlaceholderText="{svc:T Home.NewVersion}" />
               <TextBlock Grid.Row="2" Text="{svc:T Home.MapVersion}" VerticalAlignment="Center" Classes="muted" />

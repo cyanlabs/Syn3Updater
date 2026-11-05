@@ -63,7 +63,27 @@ public partial class SettingsViewModel : PageViewModel
     public string WarningText => Ctx.T("Settings.Warning").Replace("\r\n", " ").Replace("\n", " ").Trim();
     public string ProfileName => Ctx.Main.Profile;
 
-    public override void OnShown() { Load(); OnPropertyChanged(nameof(WarningText)); OnPropertyChanged(nameof(ProfileName)); }
+    /// <summary>Versions suggested in the version box (from the API). Empty while loading or offline; typing any version still works.</summary>
+    public ObservableCollection<string> KnownVersions { get; } = new();
+    private bool _loadingVersions;
+
+    /// <summary>Loads the suggestion list once per session; call again (e.g. when the box gets focus) to retry after a failure.</summary>
+    public async Task LoadVersionsAsync()
+    {
+        if (KnownVersions.Count > 0 || _loadingVersions) return;
+        _loadingVersions = true;
+        try
+        {
+            foreach (var v in await Ctx.Api.GetAppVersions()) KnownVersions.Add(v);
+        }
+        catch (Exception e) when (e is ApiException or HttpRequestException or TaskCanceledException)
+        {
+            Ctx.Log.Debug("Version suggestions unavailable: " + e.Message);     // offline: the box is just a text box
+        }
+        finally { _loadingVersions = false; }
+    }
+
+    public override void OnShown() { Load(); OnPropertyChanged(nameof(WarningText)); OnPropertyChanged(nameof(ProfileName)); _ = LoadVersionsAsync(); }
     public override void OnLeaving() { if (_dirty) _ = ApplyAsync(quiet: true); }
     private bool _dirty;
     protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)

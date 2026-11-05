@@ -109,6 +109,7 @@ public sealed class FakeCyanLabs : DelegatingHandler
         Queries.Add(q);
         string Ivsu(string name, string type, string extra = "") => $$"""{"id":"1","name":"{{name}}","type":"{{type}}","regions":["ALL"],"md5":"{{FileServer.Md5(name + ".tar.gz")}}","url":"{{_files}}/{{name}}.tar.gz","version":"{{(type == "APPS" ? "3.4.26057" : "")}}","filesize":"{{FileServer.Blob(name + ".tar.gz").Length}}","notes":"n"{{extra}}}""";
 
+        if (q.Contains("_eq: \"APPS\"")) return Json("{\"data\":{\"ivsu\":[{\"version\":\"3.3.19052\"},{\"version\":\"3.4.23188\"},{\"version\":\"3.4.26057\"},{\"version\":\"3.4.26057\"},{\"version\":null},{\"version\":\"\"},{\"version\":\" 3.4.23088 \"}]}}");
         if (q.Contains("specialpackage")) { var n = q.Split("_eq: \"")[1].Split('"')[0]; return Json("{\"data\":{\"ivsu\":[" + Ivsu(n, "TOOL") + "]}}"); }
         if (q.Contains("map_releases(sort")) return Json("""{"data":{"map_releases":[{"name":"Map 2025","notes":"map notes","esn":false,"regions":["NA"]},{"name":"Map ESN","notes":"","esn":true,"regions":["NA"]}]}}""");
         if (q.Contains("map_releases(limit")) return Json("{\"data\":{\"map_releases\":[{\"name\":\"Map 2025\",\"ivsus\":[{\"map_ivsu\":" + Ivsu("MAP1", "MAP") + "},{\"map_ivsu\":" + Ivsu("LIC1", "MAP_LICENSE") + "}]}]}}");
