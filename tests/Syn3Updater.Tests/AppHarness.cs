@@ -125,6 +125,17 @@ public sealed class FakeCyanLabs : DelegatingHandler
     private static HttpResponseMessage Json(string j) => new(HttpStatusCode.OK) { Content = new StringContent(j, Encoding.UTF8, "application/json") };
 }
 
+/// <summary>A machine with no removable drives, on every OS. Tests that need drives pass their own fake.</summary>
+public sealed class InertDrives : IDriveService
+{
+    public string OsDescription => "none";
+    public Task<IReadOnlyList<DriveInfoModel>> ListAsync(CancellationToken ct = default) => Task.FromResult<IReadOnlyList<DriveInfoModel>>(new List<DriveInfoModel>());
+    public Task<string> FormatAsync(DriveInfoModel drive, IProgress<string> log, CancellationToken ct = default) => throw new Cyanlabs.Syn3Updater.Core.Drives.FormatException("no drives in tests");
+    public Task<string> EnsureMountedAsync(DriveInfoModel drive, CancellationToken ct = default) => Task.FromResult(drive.MountPath);
+    public Task FlushAsync(DriveInfoModel drive, CancellationToken ct = default) => Task.CompletedTask;
+    public Task<EjectResult> EjectAsync(DriveInfoModel drive, string? mountPath, CancellationToken ct = default) => Task.FromResult(new EjectResult(false, "no drives in tests"));
+}
+
 /// <summary>One fully wired app (settings in a temp dir, fake dialogs, fake backend, a real view-model tree).</summary>
 public sealed class AppEnv : IDisposable
 {
@@ -140,7 +151,7 @@ public sealed class AppEnv : IDisposable
     {
         Api = new FakeCyanLabs(Files.Url);
         Cyanlabs.Syn3Updater.App.Services.Dialogs.Backend = Dialogs;
-        Ctx.Init(Path.Combine(Dir, "data"), Api, drives);
+        Ctx.Init(Path.Combine(Dir, "data"), Api, drives ?? new InertDrives());      // tests never talk to the host OS's real drives (CI runners have none)
         Ctx.Main.DownloadPath = DownloadDir; Ctx.Main.LogPath = Path.Combine(Dir, "logs"); Directory.CreateDirectory(Ctx.Main.LogPath);
         Ctx.Main.DisclaimerAccepted = disclaimer;
         Ctx.Profile.CurrentRegion = region; Ctx.Profile.CurrentVersion = version; Ctx.Profile.CurrentNav = nav; Ctx.Main.DownloadConnections = 2;

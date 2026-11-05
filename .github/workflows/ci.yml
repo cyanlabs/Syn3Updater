@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [v3]
+  pull_request:
+    branches: [v3]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+
+jobs:
+  build-test:
+    name: Build and test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Build.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      # The CyanLabs API token is compiled into the app at build time. It is only available to builds of this repository
+      # (not to pull requests from forks); without it the build and tests still work, only the live API check is skipped.
+      - name: Build
+        run: dotnet build tests/Syn3Updater.Tests -c Release
+        env:
+          SYN3_API_TOKEN: ${{ secrets.SYN3_API_TOKEN }}
+
+      - name: Test
+        run: dotnet test tests/Syn3Updater.Tests -c Release --no-build --logger "trx;LogFileName=results.trx" --results-directory TestResults
+        env:
+          SYN3_API_TOKEN: ${{ secrets.SYN3_API_TOKEN }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: TestResults
+          if-no-files-found: ignore

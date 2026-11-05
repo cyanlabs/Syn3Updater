@@ -5,6 +5,7 @@
     <AssemblyName>Syn3Updater</AssemblyName>
     <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
   <ItemGroup>
@@ -14,6 +15,6 @@
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.22" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <ProjectReference Include="..\Syn3Updater.Core\Syn3Updater.Core.csproj" />
-    <AvaloniaResource Include="Assets\**" />
+    <AvaloniaResource Include="Assets\**" Exclude="Assets\app.ico" />
   </ItemGroup>
 </Project>

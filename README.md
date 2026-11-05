@@ -54,6 +54,29 @@ drive code is covered by parser unit tests but untested against real devices.
 - The interrogator tool choice covers the version gaps the original left unmatched (it would have used a null package).
 - "Create 2.2 Upgrade USB" (an empty stub in the source) is implemented against the `upgrade22` package.
 
+## CI/CD (GitHub Actions)
+
+- **CI** (`.github/workflows/ci.yml`): every push and pull request to `v3` builds and tests on Linux, Windows and macOS.
+- **Release** (`.github/workflows/release.yml`): pushing a tag like `v3.0.0` runs the tests, builds every package and publishes a GitHub Release
+  with checksums. It can also be started by hand (Actions > Release > Run workflow) to build packages without publishing.
+
+| Package | Built by | Notes |
+|---|---|---|
+| `Syn3Updater-<v>-linux-x64.tar.gz`, `-linux-arm64` | `scripts/package-linux.sh` | single file + `install.sh` (user-level install, desktop entry, icon) |
+| `Syn3Updater-<v>-win-x64.zip`, `-win-arm64` | `scripts/package-windows.sh` | single `Syn3Updater.exe` (asks for administrator rights to format drives) |
+| `Syn3Updater-<v>-macos-arm64.dmg`, `-macos-x64` | `scripts/package-macos.sh` (macOS only) | `.app` bundle in a DMG |
+
+Repository **secrets** (Settings > Secrets and variables > Actions):
+
+| Secret | Needed for |
+|---|---|
+| `SYN3_API_TOKEN` | the CyanLabs API token compiled into every build (without it the app builds but cannot reach the API) |
+| `MACOS_CERTIFICATE`, `MACOS_CERTIFICATE_PASSWORD`, `MACOS_CODESIGN_IDENTITY` | optional: sign the macOS app with a Developer ID (base64 `.p12`, its password, and the identity name) |
+| `NOTARY_APPLE_ID`, `NOTARY_TEAM_ID`, `NOTARY_PASSWORD` | optional: notarize the signed app (an app-specific password) |
+
+Without the macOS secrets the app is ad-hoc signed: it runs, but users must right-click > Open the first time.
+A token compiled into a public download can be extracted by anyone, so keep it read-only and revocable.
+
 ## UI previews (no window)
 
 `dotnet run --project tools/Shots -- out 1100 800 Home Settings --demo [--light]` renders pages to PNG with Avalonia's

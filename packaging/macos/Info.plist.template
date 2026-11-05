@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key><string>Syn3 Updater</string>
+  <key>CFBundleDisplayName</key><string>Syn3 Updater</string>
+  <key>CFBundleIdentifier</key><string>net.cyanlabs.syn3updater</string>
+  <key>CFBundleExecutable</key><string>Syn3Updater</string>
+  <key>CFBundleIconFile</key><string>Syn3Updater</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+  <key>CFBundleShortVersionString</key><string>@VERSION@</string>
+  <key>CFBundleVersion</key><string>@BUILD@</string>
+  <key>LSMinimumSystemVersion</key><string>13.0</string>
+  <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSPrincipalClass</key><string>NSApplication</string>
+  <key>NSRemovableVolumesUsageDescription</key><string>Syn3 Updater writes the SYNC update files to the USB drive you select.</string>
+  <key>NSDownloadsFolderUsageDescription</key><string>Syn3 Updater saves the downloaded SYNC update files to your Downloads folder.</string>
+</dict>
+</plist>

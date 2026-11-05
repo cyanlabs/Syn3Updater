@@ -1,0 +1,182 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version for a manual build, e.g. 3.0.0-test"
+        required: true
+        default: "3.0.0-test"
+      publish:
+        description: "Also create the GitHub release (and tag) from this build"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+
+jobs:
+  prepare:
+    name: Work out the version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      publish: ${{ steps.v.outputs.publish }}
+    steps:
+      - id: v
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_PUBLISH: ${{ inputs.publish }}
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            version="${GITHUB_REF_NAME#v}"; publish=true
+          else
+            version="$INPUT_VERSION"; publish="$INPUT_PUBLISH"
+          fi
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::'$version' is not a version like 3.0.0 or 3.0.0-beta.1"; exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+          echo "Building $version (publish=$publish)"
+
+  test:
+    name: Tests gate the release
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet test tests/Syn3Updater.Tests -c Release
+        env:
+          SYN3_API_TOKEN: ${{ secrets.SYN3_API_TOKEN }}
+
+  linux:
+    name: Linux ${{ matrix.rid }}
+    needs: [prepare, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [linux-x64, linux-arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Package
+        run: scripts/package-linux.sh "${{ matrix.rid }}" "${{ needs.prepare.outputs.version }}" artifacts
+        env:
+          SYN3_API_TOKEN: ${{ secrets.SYN3_API_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pkg-${{ matrix.rid }}
+          path: artifacts/*
+
+  windows:
+    name: Windows ${{ matrix.rid }}
+    needs: [prepare, test]
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [win-x64, win-arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Package
+        run: scripts/package-windows.sh "${{ matrix.rid }}" "${{ needs.prepare.outputs.version }}" artifacts
+        env:
+          SYN3_API_TOKEN: ${{ secrets.SYN3_API_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pkg-${{ matrix.rid }}
+          path: artifacts/*
+
+  macos:
+    name: macOS ${{ matrix.rid }}
+    needs: [prepare, test]
+    runs-on: macos-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [osx-arm64, osx-x64]
+    env:
+      # optional: with these repository secrets the app is signed with a Developer ID and notarized; without them it is ad-hoc signed
+      MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+      MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Import the signing certificate
+        if: env.MACOS_CERTIFICATE != ''
+        run: |
+          keychain="$RUNNER_TEMP/build.keychain"; password="$(uuidgen)"
+          echo "$MACOS_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain"
+          existing=()
+          while IFS= read -r line; do existing+=("$(echo "$line" | tr -d '"' | xargs)"); done < <(security list-keychains -d user)
+          security list-keychains -d user -s "$keychain" "${existing[@]}"
+          rm -f "$RUNNER_TEMP/certificate.p12"
+
+      - name: Package
+        run: scripts/package-macos.sh "${{ matrix.rid }}" "${{ needs.prepare.outputs.version }}" artifacts
+        env:
+          SYN3_API_TOKEN: ${{ secrets.SYN3_API_TOKEN }}
+          MACOS_CODESIGN_IDENTITY: ${{ secrets.MACOS_CODESIGN_IDENTITY }}
+          NOTARY_APPLE_ID: ${{ secrets.NOTARY_APPLE_ID }}
+          NOTARY_TEAM_ID: ${{ secrets.NOTARY_TEAM_ID }}
+          NOTARY_PASSWORD: ${{ secrets.NOTARY_PASSWORD }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pkg-${{ matrix.rid }}
+          path: artifacts/*
+
+  release:
+    name: Publish the GitHub release
+    needs: [prepare, linux, windows, macos]
+    if: needs.prepare.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: pkg-*
+          path: dist
+          merge-multiple: true
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          cd dist
+          cat ./*.sha256 > SHA256SUMS && rm ./*.sha256
+          ls -l
+          flags=(--generate-notes --title "Syn3 Updater $VERSION")
+          [[ "$VERSION" == *-* ]] && flags+=(--prerelease)
+          gh release create "v$VERSION" ./* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" "${flags[@]}"
