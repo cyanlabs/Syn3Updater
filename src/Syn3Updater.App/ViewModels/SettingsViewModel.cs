@@ -203,9 +203,10 @@ public partial class SettingsViewModel : PageViewModel
         _dirty = false;
         Message = quiet ? "" : Ctx.T("String.Completed");
         MainWindowViewModel.Instance.Home.ReloadSummary();
-        // only throw away the Home selection when the car configuration actually changed
-        if (before != (p.CurrentRegion, p.CurrentVersion, p.CurrentNav, p.My20v2, p.InstallMode))
-            MainWindowViewModel.Instance.Home.ClearSelections();
+        // pressing Apply always starts the Home choices afresh (region, version, maps - not the USB drive); leaving the tab only does so
+        // when the car configuration actually changed, because then the old choices no longer make sense
+        if (!quiet || before != (p.CurrentRegion, p.CurrentVersion, p.CurrentNav, p.My20v2, p.InstallMode))
+            MainWindowViewModel.Instance.Home.ClearSelections(includeRegion: true);
         return true;
     }
 

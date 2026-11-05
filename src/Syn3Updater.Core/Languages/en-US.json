@@ -271,5 +271,8 @@
   "App.EjectedTitle": "Drive ejected",
   "App.RegionsTitle": "Regions",
   "App.RegionsNote": "If you change your region you may need to update your AsBuilt.",
-  "App.UsbFormatNote": "Drives are formatted as exFAT (MBR) before use, which erases everything on them. You are asked to confirm first."
+  "App.UsbFormatNote": "Drives are formatted as exFAT (MBR) before use, which erases everything on them. You are asked to confirm first.",
+  "App.SelectRegion": "Select Region",
+  "App.SelectVersion": "Select Version",
+  "App.SelectMaps": "Select Maps"
 }

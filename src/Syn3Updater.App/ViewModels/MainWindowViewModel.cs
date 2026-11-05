@@ -37,7 +37,7 @@ public partial class MainWindowViewModel : ObservableObject
     private void ProfileChanged()
     {
         ReloadProfiles();
-        Home.ReloadSummary(); Home.ClearSelections(); Settings.OnShown();
+        Home.ReloadSummary(); Home.ClearSelections(includeRegion: true); Settings.OnShown();
     }
 
     [RelayCommand]

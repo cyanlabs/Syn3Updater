@@ -168,14 +168,24 @@ public partial class HomeViewModel : PageViewModel
             ConfigItems.Add(new(Ctx.T("Home.Nav"), CurrentNav));
         }
         ConfigItems.Add(new(Ctx.T("Home.MY20Protection"), My20Text));
-        if (SelectedRegion == null && Regions.FirstOrDefault(r => r.Code == p.CurrentRegion) is { } r0)
-            SelectedRegion = r0;
+        // the profile's region is preselected only the first time Home appears; after that an empty dropdown stays empty until the user picks
+        if (!_regionPreselected)
+        {
+            _regionPreselected = true;
+            if (SelectedRegion == null && Regions.FirstOrDefault(r => r.Code == p.CurrentRegion) is { } r0) SelectedRegion = r0;
+        }
     }
 
-    /// <summary>Called after a completed run: forget the selected release/maps so the next run starts clean.</summary>
-    public void ClearSelections()
+    private bool _regionPreselected;
+
+    /// <summary>
+    /// Empties the release and map choices and the package list. With <paramref name="includeRegion"/> the region dropdown is
+    /// emptied too (after Settings are applied or the profile changes). The USB drive selection is never touched.
+    /// </summary>
+    public void ClearSelections(bool includeRegion = false)
     {
         _suppress = true;
+        if (includeRegion) SelectedRegion = null;
         SelectedMap = null; SelectedRelease = null; Releases.Clear(); MapVersions.Clear(); Packages.Clear();
         Notes = ""; _suppress = false;
         ResetInstallMode();
