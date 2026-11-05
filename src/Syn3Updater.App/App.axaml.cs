@@ -25,6 +25,7 @@ public class App : Application
                 Ctx.Save();
                 Ctx.Log.Save(Ctx.Paths.AppLogFile);
             };
+            _ = vm.LoadAdAsync();
             if (!Ctx.Main.DisclaimerAccepted) vm.Current = vm.About;
             else vm.Home.OnShown();
             // Debug aid: SYN3_PAGE=Settings opens that page first.

@@ -11,6 +11,7 @@ namespace Cyanlabs.Syn3Updater.App.ViewModels;
 public partial class DownloadViewModel : PageViewModel
 {
     public override string TitleKey => "Main.Downloads";
+    public override string IconData => "M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z";
 
     public ObservableCollection<string> Queue { get; } = new();
     [ObservableProperty] private string _log = "";
@@ -90,16 +91,16 @@ public partial class DownloadViewModel : PageViewModel
         switch (spec.Action)
         {
             case UpdateAction.Main:
+                // Open the CyanLabs instructions for this install mode straight away (before the dialog is dismissed).
+                var docsUrl = InstallDocsUrl(req.InstallMode);
+                Ctx.Log.Info("Opening instructions: " + docsUrl);
+                await Dialogs.OpenUrl(docsUrl);
                 if (req.Drive.IsFolder)
                 {
-                    await Dialogs.Info(Ctx.T("MessageBox.CompletedFolder"));
                     await Dialogs.OpenUrl(root);
+                    await Dialogs.Info(Ctx.T("MessageBox.CompletedFolder"));
                 }
-                else
-                {
-                    await Dialogs.Info(Ctx.T("MessageBox.Completed"));
-                    await Dialogs.OpenUrl(ApiEndpoints.DocsBase + "installmodes/" + req.InstallMode);
-                }
+                else await Dialogs.Info(Ctx.T("MessageBox.Completed"));
                 MainWindowViewModel.Instance.Home.ClearSelections();
                 break;
             case UpdateAction.LogUtility:
@@ -141,6 +142,9 @@ public partial class DownloadViewModel : PageViewModel
             await Dialogs.Error(e.Message);
         }
     }
+
+    /// <summary>https://cyanlabs.net/docs/syn3updater/installmodes/{autoinstall|reformat|downgrade}/</summary>
+    public static string InstallDocsUrl(string mode) => ApiEndpoints.InstallDocsUrl(mode);
 
     private static void Return(JobSpec spec)
     {

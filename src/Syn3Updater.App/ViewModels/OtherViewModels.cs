@@ -10,6 +10,7 @@ namespace Cyanlabs.Syn3Updater.App.ViewModels;
 public partial class ProfilesViewModel : PageViewModel
 {
     public override string TitleKey => "Main.Profiles";
+    public override string IconData => "M18.92,6.01C18.72,5.42 18.16,5 17.5,5H6.5C5.84,5 5.29,5.42 5.08,6.01L3,12V20A1,1 0 0,0 4,21H5A1,1 0 0,0 6,20V19H18V20A1,1 0 0,0 19,21H20A1,1 0 0,0 21,20V12L18.92,6.01M6.5,16A1.5,1.5 0 0,1 5,14.5A1.5,1.5 0 0,1 6.5,13A1.5,1.5 0 0,1 8,14.5A1.5,1.5 0 0,1 6.5,16M17.5,16A1.5,1.5 0 0,1 16,14.5A1.5,1.5 0 0,1 17.5,13A1.5,1.5 0 0,1 19,14.5A1.5,1.5 0 0,1 17.5,16M5,11L6.5,6.5H17.5L19,11H5Z";
     public ObservableCollection<string> Profiles { get; } = new();
     [ObservableProperty] private string? _selected;
     [ObservableProperty] private string _current = "";
@@ -23,6 +24,7 @@ public partial class ProfilesViewModel : PageViewModel
         Profiles.Clear();
         foreach (var p in Ctx.Store.ListProfiles()) Profiles.Add(p);
         Current = Ctx.Main.Profile;
+        MainWindowViewModel.Instance?.RefreshTitle();
         Selected = Profiles.FirstOrDefault(p => p == Current);
     }
 
@@ -81,6 +83,7 @@ public class LogFile
 public partial class LogsViewModel : PageViewModel
 {
     public override string TitleKey => "Main.Logs";
+    public override string IconData => "M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,9V3.5L18.5,9H13Z";
     public ObservableCollection<LogFile> Files { get; } = new();
     [ObservableProperty] private LogFile? _selected;
     [ObservableProperty] private string _content = "";
@@ -125,6 +128,7 @@ public partial class LogsViewModel : PageViewModel
 public partial class NewsViewModel : PageViewModel
 {
     public override string TitleKey => "Main.News";
+    public override string IconData => "M20,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M4,8H20V10H4V8M4,12H20V14H4V12M4,16H14V18H4V16Z";
     public ObservableCollection<Notice> Important { get; } = new();
     public ObservableCollection<Notice> Other { get; } = new();
     public ObservableCollection<Changelog> Changelogs { get; } = new();
@@ -157,6 +161,7 @@ public partial class NewsViewModel : PageViewModel
 public partial class AboutViewModel : PageViewModel
 {
     public override string TitleKey => "Main.About";
+    public override string IconData => "M12,2A10,10 0 1,0 12,22A10,10 0 1,0 12,2M11,7H13V9H11V7M11,11H13V17H11V11Z";
     public string Version => $"Syn3 Updater {Ctx.Version} ({Ctx.Branch}) · {Ctx.OsName()}";
     [ObservableProperty] private bool _accepted = Ctx.Main.DisclaimerAccepted;
 

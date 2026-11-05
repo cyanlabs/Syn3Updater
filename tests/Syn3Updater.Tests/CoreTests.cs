@@ -166,6 +166,12 @@ public class DriveTests
 
 public class MiscTests
 {
+    [Theory]
+    [InlineData("autoinstall", "https://cyanlabs.net/docs/syn3updater/installmodes/autoinstall/")]
+    [InlineData("Reformat", "https://cyanlabs.net/docs/syn3updater/installmodes/reformat/")]
+    [InlineData("downgrade", "https://cyanlabs.net/docs/syn3updater/installmodes/downgrade/")]
+    public void InstallDocsUrl_PerMode(string mode, string expected) => Assert.Equal(expected, ApiEndpoints.InstallDocsUrl(mode));
+
     [Fact]
     public void Localizer_LoadsAllEmbeddedLanguages_AndFallsBack()
     {

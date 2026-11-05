@@ -3,7 +3,7 @@
              xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels"
              xmlns:views="using:Cyanlabs.Syn3Updater.App.Views"
              x:Class="Cyanlabs.Syn3Updater.App.App"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Dark">
   <Application.DataTemplates>
     <DataTemplate DataType="vm:HomeViewModel"><views:HomeView /></DataTemplate>
     <DataTemplate DataType="vm:DownloadViewModel"><views:DownloadView /></DataTemplate>
@@ -15,11 +15,21 @@
     <DataTemplate DataType="vm:AboutViewModel"><views:AboutView /></DataTemplate>
   </Application.DataTemplates>
   <Application.Styles>
-    <FluentTheme />
-    <Style Selector="TextBlock.h1"><Setter Property="FontSize" Value="22" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Margin" Value="0,0,0,4" /></Style>
-    <Style Selector="TextBlock.h2"><Setter Property="FontSize" Value="15" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Margin" Value="0,10,0,2" /></Style>
+    <FluentTheme>
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Dark" Accent="#2fa1ab" AltHigh="#1c1f21" AltLow="#1c1f21" AltMedium="#1c1f21" AltMediumHigh="#1c1f21" AltMediumLow="#1c1f21" RegionColor="#1f2326" />
+        <ColorPaletteResources x:Key="Light" Accent="#1f8a94" RegionColor="#f3f6f7" />
+      </FluentTheme.Palettes>
+    </FluentTheme>
+    <Style Selector="TextBlock.h1"><Setter Property="FontSize" Value="28" /><Setter Property="FontWeight" Value="Light" /><Setter Property="Margin" Value="0,0,0,6" /></Style>
+    <Style Selector="TextBlock.h2"><Setter Property="FontSize" Value="20" /><Setter Property="FontWeight" Value="Light" /><Setter Property="Margin" Value="0,10,0,2" /></Style>
     <Style Selector="TextBlock.muted"><Setter Property="Opacity" Value="0.65" /></Style>
     <Style Selector="Border.card"><Setter Property="Padding" Value="16" /><Setter Property="CornerRadius" Value="8" /><Setter Property="BorderThickness" Value="1" /><Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseLowBrush}" /><Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" /></Style>
+    <Style Selector="Button"><Setter Property="CornerRadius" Value="2" /></Style>
+    <Style Selector="Button.nav"><Setter Property="Width" Value="56" /><Setter Property="Height" Value="52" /><Setter Property="Padding" Value="0" /><Setter Property="Background" Value="Transparent" /><Setter Property="CornerRadius" Value="0" /><Setter Property="HorizontalContentAlignment" Value="Center" /></Style>
+    <Style Selector="Button.nav:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="#33ffffff" /></Style>
+    <Style Selector="Button.nav.active /template/ ContentPresenter"><Setter Property="Background" Value="#22000000" /></Style>
+    <Style Selector="Button.nav PathIcon"><Setter Property="Width" Value="26" /><Setter Property="Height" Value="26" /><Setter Property="Foreground" Value="#f2fbfc" /></Style>
     <Style Selector="ComboBox"><Setter Property="HorizontalAlignment" Value="Stretch" /></Style>
   </Application.Styles>
 </Application>

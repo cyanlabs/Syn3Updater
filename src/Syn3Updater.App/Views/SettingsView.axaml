@@ -44,6 +44,11 @@
           </StackPanel>
           <TextBlock Text="{svc:T Settings.MapKey}" Classes="muted" />
           <TextBox Text="{Binding LicenseKey}" />
+          <TextBlock Text="Ad slot banner image URL" Classes="muted" />
+          <TextBox Text="{Binding AdImageUrl}" Watermark="https://.../banner-728x90.png" />
+          <TextBlock Text="Ad slot click-through URL" Classes="muted" />
+          <TextBox Text="{Binding AdLinkUrl}" />
+          <CheckBox IsChecked="{Binding ShowAdSlot}" Content="Show the ad space (placeholder when no banner is set)" />
           <TextBlock Text="CyanLabs API token (or set SYN3_API_TOKEN)" Classes="muted" />
           <TextBox Text="{Binding ApiToken}" PasswordChar="•" />
         </StackPanel>

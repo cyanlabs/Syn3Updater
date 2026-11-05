@@ -21,6 +21,9 @@ public class DriveInfoModel
     public bool CanSkipFormat => FileSystem.Equals("exFAT", StringComparison.OrdinalIgnoreCase)
                                  && PartitionType == "MBR" && VolumeName == "CYANLABS";
 
+    public string Title => IsFolder ? Name : $"{MountPath} {Name}{(string.IsNullOrEmpty(VolumeName) ? "" : $" ({VolumeName})")}".Trim();
+    public string Detail => IsFolder ? "" : $"Free: {Format.Bytes(FreeBytes)}   Size: {Format.Bytes(SizeBytes)}   File System: {FileSystem}{(PartitionType == "" ? "" : $" ({PartitionType})")}";
+
     public string Display => IsFolder ? Name : $"{Name} ({Format.Bytes(SizeBytes)}){(string.IsNullOrEmpty(MountPath) ? "" : " - " + MountPath)}";
     public override string ToString() => Display;
 }

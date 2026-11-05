@@ -17,6 +17,8 @@ public static class ApiEndpoints
     public const string AsBuiltPost = ApiBase + "Syn3Updater/apim-asbuilt-decode/";
     public const string AsBuiltOutput = "https://cyanlabs.net/fhub/sync3/apim-asbuilt-decoder/?filename=";
     public const string DocsBase = "https://cyanlabs.net/docs/syn3updater/";
+    /// <summary>Instructions page for an install mode: autoinstall, reformat or downgrade.</summary>
+    public static string InstallDocsUrl(string mode) => DocsBase + "installmodes/" + mode.Trim().ToLowerInvariant() + "/";
 
     public const int BlacklistedVersion = 3419274;
     public const int ReformatVersion = 3200000;

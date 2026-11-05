@@ -36,6 +36,7 @@ public partial class PackageRow : ObservableObject
 public partial class HomeViewModel : PageViewModel
 {
     public override string TitleKey => "Main.Home";
+    public override string IconData => "M10,20V14H14V20H19V12H22L12,3L2,12H5V20Z";
 
     public ObservableCollection<DriveInfoModel> Drives { get; } = new();
     public IReadOnlyList<Region> Regions => Region.All;
@@ -320,6 +321,10 @@ public partial class HomeViewModel : PageViewModel
         });
         if (!ok) UpdateButtons();
     }
+
+    [RelayCommand]
+    private Task RegionInfoAsync() =>
+        Dialogs.Info(string.Join("\n", Region.All.Select(r => $"{r.Code}: {r.Name}")), Ctx.T("Home.Region"));
 
     [RelayCommand] private Task OpenFeedbackAsync() => FeedbackUrl is { Length: > 0 } u ? Dialogs.OpenUrl(u) : Task.CompletedTask;
 }

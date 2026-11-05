@@ -10,5 +10,7 @@ public abstract class PageViewModel : ObservableObject
     /// <summary>Language key for the sidebar title.</summary>
     public abstract string TitleKey { get; }
     public string Title => Ctx.T(TitleKey);
+    /// <summary>SVG path data (24x24) for the sidebar icon.</summary>
+    public abstract string IconData { get; }
     public virtual void OnShown() { }
 }
