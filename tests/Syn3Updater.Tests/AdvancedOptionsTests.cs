@@ -25,17 +25,38 @@ public class AdvancedOptionsTests
         window.Close();
     }
 
+    private static string RepoFile(string relative)
+    {
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir != null; dir = dir.Parent)
+            if (File.Exists(Path.Combine(dir.FullName, relative))) return Path.Combine(dir.FullName, relative);
+        throw new FileNotFoundException(relative);
+    }
+
+    /// <summary>The headless test app has no theme, so the styling is verified where it is defined: in the XAML.</summary>
+    [Fact]
+    public void BothOrangeWarnings_ShareOneStyle_WithNoLocalOverrides()
+    {
+        var app = System.Xml.Linq.XDocument.Load(RepoFile("src/Syn3Updater.App/App.axaml"));
+        var style = app.Descendants().Single(e => e.Name.LocalName == "Style" && (string?)e.Attribute("Selector") == "TextBlock.warning");
+        string Setter(string prop) => style.Elements().Single(e => (string?)e.Attribute("Property") == prop).Attribute("Value")!.Value;
+        Assert.Equal("12.5", Setter("FontSize")); Assert.Equal("SemiBold", Setter("FontWeight")); Assert.Equal("{DynamicResource WarnFg}", Setter("Foreground")); Assert.Equal("Wrap", Setter("TextWrapping"));
+
+        var settings = System.Xml.Linq.XDocument.Load(RepoFile("src/Syn3Updater.App/Views/SettingsView.axaml"));
+        foreach (var name in new[] { "CarWarning", "AdvancedWarning" })
+        {
+            var tb = settings.Descendants().Single(e => e.Name.LocalName == "TextBlock" && e.Attributes().Any(a => a.Name.LocalName == "Name" && a.Value == name));
+            Assert.Equal("warning", (string?)tb.Attribute("Classes"));
+            foreach (var local in new[] { "FontSize", "FontWeight", "Foreground", "TextWrapping" }) Assert.Null(tb.Attribute(local));      // nothing here can make the two drift apart again
+        }
+    }
+
     [AvaloniaFact]
-    public void BothOrangeWarnings_ShareOneStyle()
+    public void TheCarWarning_ShowsTheLocalisedTextOnOneLine()
     {
         using var env = new AppEnv(); var s = env.Main.Settings; s.OnShown();
         var view = new SettingsView { DataContext = s }; var window = new Window { Content = view }; window.Show();
-        var car = view.FindControl<TextBlock>("CarWarning")!; var advanced = view.FindControl<TextBlock>("AdvancedWarning")!;
-        Assert.Equal(s.WarningText, car.Text);
-        Assert.All(new[] { car, advanced }, t => Assert.Contains("warning", t.Classes));
-        Assert.Equal(car.FontSize, advanced.FontSize); Assert.Equal(car.FontWeight, advanced.FontWeight); Assert.Equal(car.TextWrapping, advanced.TextWrapping);
-        Assert.Equal(12.5, advanced.FontSize); Assert.Equal(Avalonia.Media.FontWeight.SemiBold, advanced.FontWeight);                 // the Advanced options font, now used by both
-        Assert.Equal(((Avalonia.Media.ISolidColorBrush)car.Foreground!).Color, ((Avalonia.Media.ISolidColorBrush)advanced.Foreground!).Color);
+        var car = view.FindControl<TextBlock>("CarWarning")!;
+        Assert.Equal(s.WarningText, car.Text); Assert.DoesNotContain("\n", car.Text);
         window.Close();
     }
 }
