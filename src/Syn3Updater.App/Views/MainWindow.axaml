@@ -17,7 +17,8 @@
     </DataTemplate>
   </Window.Resources>
 
-  <Grid ColumnDefinitions="Auto,*" >
+  <Panel>
+  <Grid ColumnDefinitions="Auto,*" IsEnabled="{Binding !Dialog.HasDialog}">
     <Border Grid.Column="0" Background="{DynamicResource SidebarBg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,0,1,0"
             Width="{Binding SidebarWidth}">
       <DockPanel Margin="0,14,0,12">
@@ -73,4 +74,27 @@
       </Border>
     </Grid>
   </Grid>
+
+    <!-- in-window dialogs: no separate OS windows, so the desktop never moves focus or the pointer -->
+    <Border IsVisible="{Binding Dialog.HasDialog}" Background="#b0000000" ZIndex="100">
+      <Border Classes="card" MinWidth="360" MaxWidth="560" Margin="24" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Spacing="16" DataContext="{Binding Dialog.Current}">
+          <TextBlock Text="{Binding Title}" Classes="section" Classes.dlgerr="{Binding IsError}" Classes.dlgwarn="{Binding IsWarning}" TextWrapping="Wrap" />
+          <ScrollViewer MaxHeight="430" HorizontalScrollBarVisibility="Disabled">
+            <SelectableTextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+          </ScrollViewer>
+          <TextBox x:Name="PromptBox" Text="{Binding Text}" IsVisible="{Binding IsPrompt}" />
+          <ItemsControl ItemsSource="{Binding Buttons}" HorizontalAlignment="Right">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="10" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="svc:DialogButton">
+                <Button Content="{Binding Label}" MinWidth="90" HorizontalContentAlignment="Center" Classes.accent="{Binding IsPrimary}"
+                        Command="{Binding $parent[Window].DataContext.Dialog.ChooseCommand}" CommandParameter="{Binding Index}" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+    </Border>
+  </Panel>
 </Window>

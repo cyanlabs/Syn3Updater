@@ -34,6 +34,11 @@ var work = Dispatcher.UIThread.InvokeAsync(async () =>
     _ = vm.LoadAdAsync(); vm.Home.OnShown();
     var win = new MainWindow { DataContext = vm, Width = w, Height = h };
     win.Show();
+    if (args.Contains("--dialog"))      // first-start disclaimer popup
+    {
+        Cyanlabs.Syn3Updater.App.Services.Ctx.Main.DisclaimerAccepted = false;
+        _ = Cyanlabs.Syn3Updater.App.Services.DisclaimerGate.EnsureAcceptedAsync(() => Task.CompletedTask);
+    }
         void ApplyDemo()
         {
             // sample state so the "active" layouts can be reviewed without touching real drives or the network

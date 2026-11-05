@@ -251,5 +251,7 @@
   "App.AboutFHub": "F Hub",
   "App.AboutDonate": "Support Us",
   "App.AboutLicense": "License (GPL-3.0)",
-  "App.AboutDisclaimer": "Disclaimer"
+  "App.AboutDisclaimer": "Disclaimer",
+  "App.Accept": "I understand and accept",
+  "App.Exit": "Exit"
 }

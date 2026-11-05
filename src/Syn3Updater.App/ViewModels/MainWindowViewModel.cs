@@ -60,6 +60,8 @@ public partial class MainWindowViewModel : ObservableObject
         ProfileChanged();
     }
 
+    public DialogHostViewModel Dialog => DialogHostViewModel.Instance;
+
     public HomeViewModel Home { get; } = new();
     public DownloadViewModel Downloads { get; } = new();
     public UtilityViewModel Utility { get; } = new();

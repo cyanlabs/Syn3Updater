@@ -43,10 +43,32 @@ public static class Dialogs
 
 internal sealed class AvaloniaDialogBackend : IDialogBackend
 {
-    public Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex) =>
-        DialogsImpl.Show(message, title, buttons, error ? Brushes.Firebrick : warning ? Brushes.DarkOrange : null, defaultIndex);
+    public async Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex)
+    {
+        var host = DialogHostViewModel.Instance;
+        if (!host.IsAttached)    // no main window yet (or already closed): a stand-alone window is the only option
+            return await DialogsImpl.Show(message, title, buttons, error ? Brushes.Firebrick : warning ? Brushes.DarkOrange : null, defaultIndex);
+        return await host.ShowAsync(new DialogRequest
+        {
+            Title = title, Message = message.Trim(), DefaultIndex = Math.Clamp(defaultIndex, 0, buttons.Length - 1),
+            Tone = error ? DialogTone.Error : warning ? DialogTone.Warning : DialogTone.Normal,
+            Buttons = buttons.Select((label, i) => new DialogButton(label, i, buttons.Length > 1 && i == buttons.Length - 1)).ToList(),
+        });
+    }
+
+    public async Task<string?> Prompt(string title, string message, string initial)
+    {
+        var host = DialogHostViewModel.Instance;
+        if (!host.IsAttached) return await DialogsImpl.Prompt(title, message, initial);
+        var request = new DialogRequest
+        {
+            Title = title, Message = message, IsPrompt = true, Text = initial, DefaultIndex = 1,
+            Buttons = new[] { new DialogButton(Ctx.T("Download.CancelButton"), 0, false), new DialogButton(Ctx.T("String.OK"), 1, true) },
+        };
+        return await host.ShowAsync(request) == 1 ? request.Text : null;
+    }
+
     public Task<string?> PickFolder(string title) => DialogsImpl.PickFolder(title);
-    public Task<string?> Prompt(string title, string message, string initial) => DialogsImpl.Prompt(title, message, initial);
     public Task<string?> PickFile(string title, string filterName, string[] patterns) => DialogsImpl.PickFile(title, filterName, patterns);
     public Task SetClipboard(string text) => DialogsImpl.SetClipboard(text);
     public Task OpenUrl(string url) => DialogsImpl.OpenUrl(url);
