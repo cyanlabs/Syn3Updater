@@ -218,8 +218,10 @@ public class RunnerTransferProgressTests : IDisposable
 public sealed class ScriptedCommands
 {
     public List<string> Calls { get; } = new();
+    /// <summary>Whatever was piped to a program's standard input (e.g. a diskpart script).</summary>
+    public List<string> Stdin { get; } = new();
     public Func<string, string[], ProcessResult> Handler { get; set; } = (_, _) => new ProcessResult(0, "", "");
-    public CommandRunner Runner => (file, args, stdin, ct, timeout) => { var a = args.ToArray(); lock (Calls) Calls.Add(file + " " + string.Join(" ", a)); return Task.FromResult(Handler(file, a)); };
+    public CommandRunner Runner => (file, args, stdin, ct, timeout) => { var a = args.ToArray(); lock (Calls) { Calls.Add(file + " " + string.Join(" ", a)); if (stdin != null) Stdin.Add(stdin); } return Task.FromResult(Handler(file, a)); };
     public static ProcessResult Ok(string stdout = "") => new(0, stdout, "");
     public static ProcessResult Fail(string stderr, int code = 1) => new(code, "", stderr);
 }

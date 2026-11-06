@@ -26,7 +26,7 @@ Without a token the app still builds, but API calls are rejected.
 |---|---|---|
 | Linux | `lsblk` (USB/hotplug disks only; never a disk holding `/`, `/home`, `/boot`) | `sfdisk` + `mkfs.exfat` via `pkexec` (needs `exfatprogs`, `polkit`, `udisks2` to mount) |
 | macOS | `diskutil` (external only) | `diskutil eraseDisk` |
-| Windows | PowerShell storage cmdlets | `diskpart` (app requests Administrator) |
+| Windows | PowerShell storage cmdlets | PowerShell storage cmdlets (`Clear-Disk`, `Initialize-Disk`, `New-Partition`, `Format-Volume`); `diskpart` only if the cmdlets are missing (app requests Administrator) |
 
 **Safe eject** (button beside Refresh on Home and Utilities, on the Downloads page, and offered when a run finishes):
 
