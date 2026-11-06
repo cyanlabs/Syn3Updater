@@ -39,6 +39,8 @@ public class SettingsStore
     /// </summary>
     private void MigrateProfile()
     {
+        // the order of the fields in a file is not guaranteed, so make sure a fixed mode never survives without MY20 protection being off
+        if (Profile.My20v2 != false && InstallModes.IsForced(Profile.InstallMode)) Profile.InstallMode = InstallModes.AutoDetect;
         if (Profile.LegacyDownloadConnections is not int legacy) return;
         if (!HasKey(_paths.MainConfigFile, nameof(MainSettings.DownloadConnections))) Main.DownloadConnections = Math.Clamp(legacy, 1, 8);
         Profile.LegacyDownloadConnections = null;

@@ -35,7 +35,7 @@
           <TextBlock x:Name="AdvancedWarning" Classes="warning" Text="{svc:T App.AdvancedWarning}" />
           <CheckBox IsChecked="{Binding Advanced}" Content="{svc:T Settings.AdvancedModeToggle}" />
           <Grid ColumnDefinitions="*,*" ColumnSpacing="14" IsVisible="{Binding Advanced}">
-            <StackPanel Spacing="6"><TextBlock Text="{svc:T Settings.InstallMode}" Classes="label" /><ComboBox ItemsSource="{Binding ModeOptions}" SelectedItem="{Binding Mode}" /></StackPanel>
+            <StackPanel Spacing="6"><TextBlock Text="{svc:T Settings.InstallMode}" Classes="label" /><ComboBox ItemsSource="{Binding ModeOptions}" SelectedItem="{Binding Mode}" IsEnabled="{Binding ModeEnabled}" /></StackPanel>
             <StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="{svc:T Settings.My20Mode}" Classes="label" /><ComboBox ItemsSource="{Binding My20Options}" SelectedItem="{Binding My20}" /></StackPanel>
           </Grid>
         </StackPanel>
