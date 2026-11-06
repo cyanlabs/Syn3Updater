@@ -29,7 +29,8 @@
 	<ItemGroup>
 		<PackageReference Include="FluentWPF" Version="0.10.2" />
 		<PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.3.326103" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<!-- must match Syn3Updater.csproj: both ship the one Newtonsoft.Json.dll into the same install folder. Move both to 13.x together. -->
+		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
 		<ProjectReference Include="..\Launcher.Core\Launcher.Core.csproj" />
 	</ItemGroup>
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">

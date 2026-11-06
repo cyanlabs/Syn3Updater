@@ -7,6 +7,8 @@
 		<Nullable>disable</Nullable>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<!-- keep in step with the Launcher and Syn3Updater (shared Newtonsoft.Json.dll in one folder); 12.0.3 has a known advisory, move all three to 13.x together -->
+		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+		<NuGetAuditSuppress Include="https://github.com/advisories/GHSA-5crp-9r3c-p9vr" />
 	</ItemGroup>
 </Project>

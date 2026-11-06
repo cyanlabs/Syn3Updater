@@ -35,3 +35,9 @@ jobs:
           dotnet-version: 10.0.x
       - run: dotnet build Launcher -c Release -f net472
       - run: dotnet build Launcher -c Release -f net6.0-windows10.0.18362
+      # the .NET Framework build is the drop-in replacement for v2's Launcher.exe (it needs the DLLs next to it)
+      - uses: actions/upload-artifact@v6
+        with:
+          name: Launcher-net472
+          path: bin/Release/net472/
+          if-no-files-found: error
