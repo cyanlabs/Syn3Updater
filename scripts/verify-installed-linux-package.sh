@@ -18,6 +18,8 @@ exec_path="$(grep '^Exec=' "$DESK" | head -1 | cut -d= -f2-)"; exec_path="${exec
 [[ -x "$exec_path" ]] || fail "Exec points at a file that does not exist: $exec_path"      # exact case: this was the Nobara bug
 [[ "$(grep '^TryExec=' "$DESK" | cut -d= -f2-)" == "$APP" ]] || fail "TryExec is wrong"
 grep -q '^Icon=syn3updater$' "$DESK" || fail "Icon is not syn3updater"
+grep -q '^MimeType=.*x-scheme-handler/syn3updater;' "$DESK" || fail "the launcher entry does not claim syn3updater:// links"
+grep '^Exec=' "$DESK" | head -1 | grep -q ' %u$' || fail "Exec does not pass the link (%u)"
 if command -v desktop-file-validate >/dev/null 2>&1; then desktop-file-validate "$DESK" || fail "desktop-file-validate rejected the entry"; ok "desktop-file-validate"; fi
 ok "launcher entry points at $exec_path"
 

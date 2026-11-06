@@ -2,9 +2,10 @@
 Type=Application
 Name=Syn3 Updater
 Comment=Ford SYNC 3 update USB creator
-Exec=/opt/syn3updater/Syn3Updater
+Exec=/opt/syn3updater/Syn3Updater %u
 TryExec=/opt/syn3updater/Syn3Updater
 Icon=syn3updater
 Terminal=false
 Categories=Utility;
 Keywords=Ford;SYNC;SYNC3;USB;update;
+MimeType=x-scheme-handler/syn3updater;
