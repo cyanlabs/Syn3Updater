@@ -74,6 +74,7 @@ public class UpdateRunner
 
             var queue = new List<Ivsu>(req.Queue);
             Directory.CreateDirectory(req.DownloadDir);
+            if (FileService.CleanStalePartials(req.DownloadDir, TimeSpan.FromDays(14)) is > 0 and var stale) Info($"Removed {stale} abandoned partial download(s) older than 14 days");
             int steps = queue.Count * (req.DownloadOnly ? 2 : 4), done = 0;
             string phase = "download";
             int connections = req.Connections;
@@ -120,7 +121,14 @@ public class UpdateRunner
                         if (attempt > 1 || HasSize(local, item.FileSize)) lock (gate) planned += item.FileSize;
                         fileBytes = 0;
                         Total($"Downloading{(attempt > 1 ? $" (attempt #{attempt})" : "")}: {item.FileName}", 0, item.FileName);
-                        if (!await _files.DownloadAsync(item.Url, local, connections, fp, ct, Bytes(item.FileName))) return false;
+                        if (!await _files.DownloadAsync(item.Url, local, connections, fp, ct, Bytes(item.FileName), alreadyThere =>
+                            {
+                                // continuing an interrupted download: those bytes will not be transferred again, so they leave the "still to come" total
+                                lock (gate) planned = Math.Max(0, planned - alreadyThere);
+                                var pct = item.FileSize > 0 ? Math.Min(100, (int)(alreadyThere * 100 / item.FileSize)) : 0;
+                                Info($"Resuming: {item.FileName} ({pct}% was already downloaded)");
+                                Total($"Resuming: {item.FileName} ({pct}% already downloaded)", pct, item.FileName);
+                            })) return false;
                         lock (gate) { movedBefore += fileBytes; fileBytes = 0; }
                         done++;
                         Total($"Validating: {item.FileName}", 0, item.FileName);
