@@ -103,7 +103,7 @@ public class SettingsAndPathsTests : IDisposable
         Assert.Equal("default", store.Main.Profile);
         Assert.EndsWith("Syn3Updater", store.Main.DownloadPath);
         Assert.True(Directory.Exists(store.Main.LogPath));
-        Assert.Equal(8, store.Profile.DownloadConnections);
+        Assert.Equal(8, store.Main.DownloadConnections); Assert.Null(store.Profile.LegacyDownloadConnections);
 
         store.Main.Lang = "de"; store.Profile.CurrentRegion = "EU"; store.Profile.CurrentVersion = 3420282; store.Save();
         var again = new SettingsStore(paths); again.Load();

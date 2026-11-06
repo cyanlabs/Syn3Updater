@@ -33,7 +33,45 @@ public record Region(string Code, string Name)
 /// <summary>Install modes the updater can generate files for.</summary>
 public static class InstallModes
 {
-    public const string Autoinstall = "autoinstall", Reformat = "reformat", Downgrade = "downgrade";
+    public const string AutoDetect = "autodetect", Autoinstall = "autoinstall", Reformat = "reformat", Downgrade = "downgrade";
+
+    /// <summary>
+    /// The mode a settings file really means. v2's Settings page saved the selected combobox TEXT, so a v2 profile holds "Auto-Detect" in English and the translated
+    /// text in every other language (plus "autodetect" from older builds). Only the three real modes are kept (any case); ANY other value means auto-detect. Treating
+    /// that text as a forced mode would pass a mode name nothing understands to the install-list builder, which falls back to a plain autoinstall list: the wrong USB
+    /// for a car that needs a reformat or downgrade.
+    /// </summary>
+    public static string Normalize(string? value)
+    {
+        var v = (value ?? "").Trim().ToLowerInvariant();
+        return v is Autoinstall or Reformat or Downgrade ? v : AutoDetect;
+    }
+
+    /// <summary>True when the user fixed a mode in Settings instead of leaving it to auto-detect.</summary>
+    public static bool IsForced(string? mode) => Normalize(mode) != AutoDetect;
+}
+
+/// <summary>Reads true/false/null, also as the strings "true"/"false" or 0/1; anything else is null (auto-detect). A wrongly typed value must not make the whole profile unreadable.</summary>
+public sealed class LenientBoolConverter : System.Text.Json.Serialization.JsonConverter<bool?>
+{
+    public override bool? Read(ref System.Text.Json.Utf8JsonReader reader, Type typeToConvert, System.Text.Json.JsonSerializerOptions options)
+    {
+        switch (reader.TokenType)
+        {
+            case System.Text.Json.JsonTokenType.True: return true;
+            case System.Text.Json.JsonTokenType.False: return false;
+            case System.Text.Json.JsonTokenType.String: return bool.TryParse(reader.GetString(), out var b) ? b : null;
+            case System.Text.Json.JsonTokenType.Number: return reader.TryGetInt32(out var n) && (n == 0 || n == 1) ? n == 1 : null;
+            case System.Text.Json.JsonTokenType.StartObject:
+            case System.Text.Json.JsonTokenType.StartArray: reader.Skip(); return null;
+            default: return null;
+        }
+    }
+
+    public override void Write(System.Text.Json.Utf8JsonWriter writer, bool? value, System.Text.Json.JsonSerializerOptions options)
+    {
+        if (value.HasValue) writer.WriteBooleanValue(value.Value); else writer.WriteNullValue();
+    }
 }
 
 /// <summary>Special-purpose package keys on the API.</summary>
@@ -167,10 +205,19 @@ public class ProfileSettings
     public string? CurrentRegion { get; set; }
     public int? CurrentVersion { get; set; } = 0;
     public bool CurrentNav { get; set; }
+    /// <summary>MY20 protection: null = auto-detect, true = enabled, false = disabled. The same meaning and JSON as v2.</summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(LenientBoolConverter))]
     public bool? My20v2 { get; set; }
-    public string InstallMode { get; set; } = "autodetect";
-    /// <summary>Legacy per-profile value, superseded by MainSettings.DownloadConnections.</summary>
-    public int DownloadConnections { get; set; } = 8;
+    private string _installMode = InstallModes.AutoDetect;
+    /// <summary>One of autodetect, autoinstall, reformat, downgrade. Whatever is assigned (including text a v2 file holds) is normalized, see <see cref="InstallModes.Normalize"/>.</summary>
+    public string InstallMode { get => _installMode; set => _installMode = InstallModes.Normalize(value); }
+    /// <summary>
+    /// Only ever read: v2 kept the download connections in the profile file; they now live in MainSettings (application-wide). SettingsStore moves a value found here
+    /// into the application settings once and clears it, so it is never written back (the null is skipped when saving).
+    /// </summary>
+    [System.Text.Json.Serialization.JsonPropertyName("DownloadConnections")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public int? LegacyDownloadConnections { get; set; }
 
     /// <summary>Formats 3200000-style version as 3.2.00000 (7 digits) else 0.0.00000.</summary>
     public string VersionString => FormatVersion(CurrentVersion);

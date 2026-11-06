@@ -51,6 +51,7 @@ drive code is covered by parser unit tests but untested against real devices.
 - Settings live in `~/.local/share/CyanLabs/Syn3Updater` (Linux), `%LOCALAPPDATA%` (Windows); macOS uses .NET LocalApplicationData (`~/.local/share`).
 - GraphQL via plain HTTP + System.Text.Json (no GraphQL client dependency); downloads write to `*.part` and rename on success.
 - `autoinstall.lst`/`reformat.lst` are always written with CRLF line endings.
+- v2 settings files are read as they are. The install mode must be `autoinstall`, `reformat` or `downgrade` (any case); anything else, including the text v2's Settings page saved for "Auto-Detect" in any language, falls back to auto-detect. `My20v2` keeps its meaning (null auto, true on, false off) and a wrongly typed value counts as auto-detect instead of discarding the profile. The download connections v2 kept in the profile file move once into the application settings (`settings.json`) and are no longer written to profiles.
 - The interrogator tool choice covers the version gaps the original left unmatched (it would have used a null package).
 - "Create 2.2 Upgrade USB" (an empty stub in the source) is implemented against the `upgrade22` package.
 
