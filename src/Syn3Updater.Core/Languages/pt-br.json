@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "A região atual e a região selecionada não são iguais, isto pode causar problemas!\nDeseja continuar mesmo assim?",
   "MessageBox.CancelDownloadIsDrive": "Pasta de Download e USB de destino são os mesmos, favor selecionar nova pasta de download ou outro pen-drive.",
   "MessageBox.CancelNoApps": "Selecionada reformatação ou downgrade, mas nenhum pacote de APPS foi selecionado. SYN3 Updater determinou que downgrade ou reformatação são necessários, isto resultará num sistema travado. ABORTANDO!\n",
-  "MessageBox.CancelFormatUSB": "TODOS OS DADOS NO PEN-DRIVE SERÃO APAGADOS {0}\nLetra do Drive: {1}\n\nClique SIM para formatar e continuar.",
+  "MessageBox.CancelFormatUSB": "TODOS OS DADOS NO PEN-DRIVE SERÃO APAGADOS{0}\nLetra do Drive: {1}\n\nClique SIM para formatar e continuar.",
   "MessageBox.DownloadInProgress": "Outra operação já está sendo executada, favor aguardar o fim desta antes de continuar.",
   "MessageBox.OptionalFormatUSB": "Este pen-drive já foi utilizado pelo Syn3 Updater.\n\n{0}\nLetra do Drive: {1}\n\nPara usar os arquivos que já estão no pen drive clique Não\nPara formatar o pen drive clique Sim\n\nVocê deseja formatar este pen drive?",
   "MessageBox.FailedToValidate3": "Falha ao validar {0} por 3 vezes, ABORTANDO!",

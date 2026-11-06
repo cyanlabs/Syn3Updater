@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "Nåværende region og ny region er ikke den samme, dette fungerer kanskje ikke. Vil du fortsette uansett?",
   "MessageBox.CancelDownloadIsDrive": "Nedlastingsstien og destinasjons-USB-stasjonen er den samme. Endre nedlastingsstien.",
   "MessageBox.CancelNoApps": "Modus er omformatert eller nedgradert og ingen apppakker er valgt, dette vil resultere i et system som ikke starter opp, ABORTING! Ingen \"APPS\" -pakke er valgt, men Syn3 Updater har bestemt at en nedgradering eller omformatering er nødvendig. Dette vil resultere i et system som ikke starter opp. Avbryter!",
-  "MessageBox.CancelFormatUSB": "ADVARSEL, ALLE DATA PÅ DEN VALGTE DRIVE MISTES {0}  nDrive Letter: {1}  n  nKlikk på YES for å formatere og fortsette.",
+  "MessageBox.CancelFormatUSB": "ADVARSEL, ALLE DATA PÅ DEN VALGTE DRIVE MISTES{0}\nDrive Letter: {1}\n\nKlikk på YES for å formatere og fortsette.",
   "MessageBox.DownloadInProgress": "En nedlasting eller kopi pågår allerede. Vennligst vent eller avbryt nedlastingen først.",
   "MessageBox.OptionalFormatUSB": "Denne USB-stasjonen har allerede blitt brukt av Syn3 Updater.  N  n {0}  nDrive Letter: {1}  n  nFor å bruke eksisterende filer på USB-stasjonen, klikk Nei  nFor å formatere USB-stasjonen, klikk Ja  n  nGjør vil du formatere den valgte USB-stasjonen?",
   "MessageBox.FailedToValidate3": "Kunne ikke validere {0} tre ganger, ABORTING PROCESS!",

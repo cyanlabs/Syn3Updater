@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "La Región Actual y la Región Seleccionada no son la misma, esto puede no funcionar!\nDesea continuar?",
   "MessageBox.CancelDownloadIsDrive": "El directorio de descarga y la unidad USB destino son iguales, por favor cambie el directorio de descarga o seleccione otro USB.",
   "MessageBox.CancelNoApps": "El modo de instalación es reformat o downgrade, no se seleccionó un paquete \"APPS\" pero Syn3 Updater determinó que un downgrade o reformat es requerido, esto resultará en un sistema que no inicia. Abortando!.",
-  "MessageBox.CancelFormatUSB": "ADVERTENCIA, TODOS LOS DATOS DE LA UNIDAD SELECCIONADA SE PERDERAN {0}\nLetra de Unidad: {1} \n\nSeleccione SI para formatear y continuar.",
+  "MessageBox.CancelFormatUSB": "ADVERTENCIA, TODOS LOS DATOS DE LA UNIDAD SELECCIONADA SE PERDERAN{0}\nLetra de Unidad: {1} \n\nSeleccione SI para formatear y continuar.",
   "MessageBox.DownloadInProgress": "Otra operación ya está en progreso, por favor espere a que la operación actual termine antes de continuar.",
   "MessageBox.OptionalFormatUSB": "Esta unidad USB ya ha sido usada por Syn3 Updater.\n\n{0}\nLetra de Unidad: {1}\n\nPara usar los archivos existentes en el unidad USB seleccione No\nPara formatear el unidad USB seleccione Si\n\nQuiere formatear la unidad USB seleccionada?",
   "MessageBox.FailedToValidate3": "Fallo al validar {0} 3 veces, ABORTANDO EL PROCESO!",

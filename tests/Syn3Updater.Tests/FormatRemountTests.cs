@@ -35,7 +35,7 @@ public class FormatRemountTests
         using var env = new AppEnv(drives: drives);
         var stale = Path.Combine(root, "run", "media", "scott", "DVD_ROM");      // what the drive was called when it was selected
         var usb = new DriveInfoModel { DeviceId = "/dev/sdx", MountPath = stale, Name = "Stick", FileSystem = "ntfs", PartitionType = "MBR" };
-        env.Dialogs.Say(m => m.Contains("/dev/sdx"), true);                       // confirm the format
+        env.Dialogs.Say(m => m.StartsWith("ALL DATA ON THE SELECTED DRIVE"), true);   // confirm the format
 
         Assert.True(await Workflow.StartAsync(new JobSpec
         {

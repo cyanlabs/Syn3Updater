@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "La regió actual i la seleccionada no coincideixen, això no funcionarà!\nVoleu continuar tanamateix?",
   "MessageBox.CancelDownloadIsDrive": "La destinació de descàrrega i de l'USB són la mateixa, si us plau canvieu a destinació de descàrrega o seleccioneu una altre USB.",
   "MessageBox.CancelNoApps": "El mode d'instal·lació seleccionat és reformat o versió anterior, però no s'ha seleccionat cap paquet \"APPS\", i Syn3 Updater ha determinat que cal una versió anterior o un reformat; això deixaria el sistema sense arrencar. S'avorta!",
-  "MessageBox.CancelFormatUSB": "TOTES LES DADES DE LA UNITAT SELECCIONADA ES PERDRAN {0}\nLletra d'unitat: {1}\n\nFeu clic a SÍ per formatar i continuar.",
+  "MessageBox.CancelFormatUSB": "TOTES LES DADES DE LA UNITAT SELECCIONADA ES PERDRAN{0}\nLletra d'unitat: {1}\n\nFeu clic a SÍ per formatar i continuar.",
   "MessageBox.DownloadInProgress": "Ja s'està executant una altra operació; espereu que acabi abans de continuar.",
   "MessageBox.OptionalFormatUSB": "Aquesta unitat USB ja ha estat utilitzada per Syn3 Updater.\n\n{0}\nLletra d'unitat: {1}\n\nPer utilitzar els fitxers existents a la unitat USB feu clic a No\nPer formatar la unitat USB feu clic a Sí\n\nVoleu formatar la unitat USB seleccionada?",
   "MessageBox.FailedToValidate3": "No s'ha pogut validar {0} 3 vegades, S'AVORTA EL PROCÉS!",

@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "Regiunea actuală și regiunea nouă nu sunt aceleași, este posibil să nu funcționeze. Doriți să continuați oricum?",
   "MessageBox.CancelDownloadIsDrive": "Calea de descărcare și unitatea USB de destinație sunt aceleași, vă rugăm să schimbați calea de descărcare.",
   "MessageBox.CancelNoApps": "Modul este reformatat sau retrogradat și nu a fost selectat niciun pachet de aplicații, ceea ce va duce la un sistem non-boot, ABORTARE! Nu a fost selectat niciun pachet „APPS”, dar Syn3 Updater a stabilit că este necesară o retrogradare sau reformatare, ceea ce va duce la un sistem care nu va porni. Abort!",
-  "MessageBox.CancelFormatUSB": "TOATE DATELE PE UNITATEA SELECȚIONATĂ vor fi PIERDUTE {0} \nScrisoare de conducere: {1} \n\nFaceți clic pe DA pentru a formata și continua.",
+  "MessageBox.CancelFormatUSB": "TOATE DATELE PE UNITATEA SELECȚIONATĂ vor fi PIERDUTE{0} \nScrisoare de conducere: {1} \n\nFaceți clic pe DA pentru a formata și continua.",
   "MessageBox.DownloadInProgress": "O descărcare sau o copie este deja în desfășurare, vă rugăm să așteptați sau să anulați mai întâi descărcarea.",
   "MessageBox.OptionalFormatUSB": "Această unitate USB a fost deja utilizată de Syn3 Updater. \n\n{0}\nLITERA UNITATII: {1}\n\nPentru a utiliza fișierele existente pe unitatea USB, faceți clic pe Nu\nPentru a formata unitatea USB, faceți clic pe Da\n\nDo doriți să formatați unitatea USB selectată?",
   "MessageBox.FailedToValidate3": "Nu s-a validat {0} de 3 ori, SE INCETEAZA PROCESUL!",

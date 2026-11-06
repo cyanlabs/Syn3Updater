@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "Vámi vybraný aktuální region se neshoduje, systém nemusí fungovat správně!\nChcete přesto pokračovat?",
   "MessageBox.CancelDownloadIsDrive": "Cesta ke stažení a cílová jednotka USB jsou stejné, změňte prosím cestu ke stažení nebo vyberte jinou jednotku USB.",
   "MessageBox.CancelNoApps": "Vybraný Režim Instalace je přeformátování nebo downgrade, protože nebyl vybrán žádný balíček \"APPS“. Syn3 Updater určil, že je nutný downgrade nebo přeformátování, což bude mít následek, že se systém nespustí. Přerušuji!",
-  "MessageBox.CancelFormatUSB": "UPOZORNĚNÍ, VEŠKERÁ DATA NA VYBRANÉM DISKU BUDOU SMAZÁNA {0}\nDisk: {1}\n\nKliknutím na ANO budete pokračovat ve formátování.",
+  "MessageBox.CancelFormatUSB": "UPOZORNĚNÍ, VEŠKERÁ DATA NA VYBRANÉM DISKU BUDOU SMAZÁNA{0}\nDisk: {1}\n\nKliknutím na ANO budete pokračovat ve formátování.",
   "MessageBox.DownloadInProgress": "Je již spuštěna jiná operace, počkejte prosím na dokončení stávající operace, než budete pokračovat.",
   "MessageBox.OptionalFormatUSB": "Tato jednotka USB již byla používána programem Syn3 Updater.\n\n{0}\nDisk: {1}\n\nChcete-li na jednotce USB používat existující soubory, klikněte na Ne\nChcete-li zformátovat jednotku USB, klikněte na Ano\n\nChcete naformátovat vybranou jednotku USB?",
   "MessageBox.FailedToValidate3": "Po 3 pokusech se nepodařilo ověřit jednotku {0}, PROCES BYL ZRUŠEN!",

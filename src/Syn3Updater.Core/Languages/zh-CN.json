@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "当前的区域和您选择的区域不匹配，这可能无法正常使用！\n您要继续吗？",
   "MessageBox.CancelDownloadIsDrive": "下载路径和目标U盘相同，请更改下载路径或选择其他U盘。",
   "MessageBox.CancelNoApps": "已选择的安装模式是重新格式化或降级，但没有选择 \"APPS \"包，由于Syn3 Updater已经确定需要降级或重新格式化，这将导致系统无法启动。已终止!",
-  "MessageBox.CancelFormatUSB": "警告，所选驱动器上的所有数据都将丢失 {0}\n盘符:{1}\n\n单击 \"是 \"进行格式化并继续。",
+  "MessageBox.CancelFormatUSB": "警告，所选驱动器上的所有数据都将丢失{0}\n盘符:{1}\n\n单击 \"是 \"进行格式化并继续。",
   "MessageBox.DownloadInProgress": "另一个操作正在进行，请等待当前操作完成后再继续。",
   "MessageBox.OptionalFormatUSB": "这个U盘已经被 Syn3 Updater 使用过。\n\n{0}\n盘符:{1}\n\n要使用USB驱动器上的现有文件，请单击 \"否\"\n要格式化USB驱动器，请点击 \"是\"\n\n您是否要格式化所选的U盘？",
   "MessageBox.FailedToValidate3": "3次验证 {0} 失败，已经终止操作！",

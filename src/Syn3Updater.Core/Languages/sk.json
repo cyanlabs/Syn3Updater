@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "Súčasný a nový región nie sú zhodné. Je možné, že to nebude pracovať správne. Chcete napriek tomu pokračovať?",
   "MessageBox.CancelDownloadIsDrive": "Cesta sťahovania a cieľová jednotka USB sú rovnaké. Zmeňte prosím cestu sťahovania.",
   "MessageBox.CancelNoApps": "Vybratý režim inštalácie je preformátovaný alebo má nižšiu verziu, ale nebol vybraný žiadny balík „APPS“, ale program Syn3 Updater určil, že je potrebný prechod na nižšiu verziu alebo preformátovanie, čo bude mať za následok nespustenie systému. Prerušujem!",
-  "MessageBox.CancelFormatUSB": "VAROVANIE, VŠETKY ÚDAJE NA VYBRANOM DISKU BUDÚ ZMAZANÉ {0}\nPísmeno disku: {1} \n\nStlač ÁNO pre pokračovanie a formátovanie.",
+  "MessageBox.CancelFormatUSB": "VAROVANIE, VŠETKY ÚDAJE NA VYBRANOM DISKU BUDÚ ZMAZANÉ{0}\nPísmeno disku: {1} \n\nStlač ÁNO pre pokračovanie a formátovanie.",
   "MessageBox.DownloadInProgress": "Už beží iná operácia. Pred pokračovaním počkajte na dokončenie existujúcej operácie.",
   "MessageBox.OptionalFormatUSB": "Tento USB disk už bol používaný programom Syn3 Updater.\n\n{0}\nPísmeno disku: {1}\n\nAk chcete použiť existujúce súbory na USB disku, stlačte Nie\nAk chcete naformátovať  USB disk, stlačte Áno\n\nChcete naformátovať vybraný USB disk?",
   "MessageBox.FailedToValidate3": "Nepodarilo sa overiť {0} 3-krát, PROCES SA PRERUŠUJE!!",

@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "Den aktuelle region og din valgte region stemmer ikke overens, dette vil muligvis ikke fungerer!\nØnsker du at fortsætte alligevel ?",
   "MessageBox.CancelDownloadIsDrive": "Download sti og destinations USB drev er de samme, vælg venligst en anden download sti eller et andet USB drev",
   "MessageBox.CancelNoApps": "Det valgte InstallMode er reformat eller nedgrader uden \"APPS\" pakken, Sync3 Updater har konstateret at en nedgradering eller reformat er nødvendig, dette vil resultere i et ikke bootbatbart system. Annullere!",
-  "MessageBox.CancelFormatUSB": "ADVARSEL, ALLE DATA PÅ DET VALGTE DREV VIL BLIVE SLETTET {0}\nDrev Navn: {1}\n\nTryk JA for at formatere og fortsætte",
+  "MessageBox.CancelFormatUSB": "ADVARSEL, ALLE DATA PÅ DET VALGTE DREV VIL BLIVE SLETTET{0}\nDrev Navn: {1}\n\nTryk JA for at formatere og fortsætte",
   "MessageBox.DownloadInProgress": "En anden handling kører allerede. Vent til den eksisterende handling er afsluttet, før du fortsætter.",
   "MessageBox.OptionalFormatUSB": "Dette USB-drev er allerede blevet brugt af Syn3 Updater.\n\n{0}\nDrev Navn: {1}\n\nTryk på Nej for at bruge eksisterende filer på USB-drevet\nTryk på Ja for at formatere USB-drevet\n\nVil du formatere det valgte USB-drev?",
   "MessageBox.FailedToValidate3": "Kunne ikke validere {0} 3 gange, AFBRYDER PROCESSEN!",

@@ -1,4 +1,16 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:d="using:Cyanlabs.Syn3Updater.Core.Drives" xmlns:ctl="using:Cyanlabs.Syn3Updater.App.Controls" xmlns:m="using:Cyanlabs.Syn3Updater.Core.Models" x:Class="Cyanlabs.Syn3Updater.App.Views.HomeView">
+  <UserControl.Styles>
+    <!-- bottom bar, wide: [what will happen] [MY20] [Download only] [Start] on one row -->
+    <Style Selector="Grid.bar > Grid#ModeInfo"><Setter Property="Grid.Row" Value="0" /><Setter Property="Grid.Column" Value="0" /></Style>
+    <Style Selector="Grid.bar > Border#My20Badge"><Setter Property="Grid.Row" Value="0" /><Setter Property="Grid.Column" Value="1" /></Style>
+    <Style Selector="Grid.bar > Button#DownloadOnlyButton"><Setter Property="Grid.Row" Value="0" /><Setter Property="Grid.Column" Value="2" /></Style>
+    <Style Selector="Grid.bar > Button#StartButton"><Setter Property="Grid.Row" Value="0" /><Setter Property="Grid.Column" Value="3" /></Style>
+    <!-- narrow: what will happen gets the whole first row so none of it is cut off; MY20 and the buttons share the second -->
+    <Style Selector="Grid.bar.compact > Grid#ModeInfo"><Setter Property="Grid.ColumnSpan" Value="4" /></Style>
+    <Style Selector="Grid.bar.compact > Border#My20Badge"><Setter Property="Grid.Row" Value="1" /><Setter Property="Grid.Column" Value="0" /><Setter Property="HorizontalAlignment" Value="Left" /></Style>
+    <Style Selector="Grid.bar.compact > Button#DownloadOnlyButton"><Setter Property="Grid.Row" Value="1" /></Style>
+    <Style Selector="Grid.bar.compact > Button#StartButton"><Setter Property="Grid.Row" Value="1" /></Style>
+  </UserControl.Styles>
   <Grid RowDefinitions="*,Auto">
     <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled">
       <StackPanel MaxWidth="880" Spacing="16" Margin="28,28,28,24">
@@ -157,8 +169,8 @@
 
     <!-- sticky action bar: what will happen + Start -->
     <Border Grid.Row="1" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,1,0,0" Padding="28,12">
-      <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
-        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+      <Grid x:Name="BarGrid" Classes="bar" ColumnDefinitions="*,Auto,Auto,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+        <Grid x:Name="ModeInfo" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
           <Border Width="40" Height="40" CornerRadius="12" Background="{Binding ModeBackground}" IsVisible="{Binding HasMode}">
             <PathIcon Data="{Binding ModeIcon}" Foreground="{Binding ModeBrush}" Width="20" Height="20" />
           </Border>
@@ -167,7 +179,7 @@
               <TextBlock Text="{Binding ModeTitle}" FontWeight="SemiBold" FontSize="15" Foreground="{Binding ModeBrush}" />
               <Border Classes="chip" Margin="0" Padding="8,1" IsVisible="{Binding ModeIsForced}"><TextBlock Text="{svc:T Home.InstallModeForced}" FontSize="11" /></Border>
             </StackPanel>
-            <TextBlock Text="{Binding ModeDescription}" Classes="label" TextWrapping="Wrap" MaxLines="2" />
+            <TextBlock Text="{Binding ModeDescription}" Classes="label" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ModeDescription}" />
           </StackPanel>
           <Button Grid.Column="2" Classes="link" Content="{svc:T App.LearnMore}" Command="{Binding OpenInstructionsCommand}" IsVisible="{Binding HasMode}" VerticalAlignment="Center" />
           <StackPanel Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Center" IsVisible="{Binding !HasMode}">
@@ -175,8 +187,15 @@
             <TextBlock Text="{svc:T App.NoMode}" Classes="muted" TextTrimming="CharacterEllipsis" />
           </StackPanel>
         </Grid>
-        <Button Grid.Column="1" Content="{svc:T Home.StartDownloadOnly}" Command="{Binding DownloadOnlyCommand}" IsEnabled="{Binding DownloadOnlyEnabled}" MinHeight="40" />
-        <Button Grid.Column="2" Content="{svc:T Home.StartButton}" Classes="accent" Command="{Binding StartCommand}" IsEnabled="{Binding StartEnabled}" MinWidth="120" MinHeight="40" HorizontalContentAlignment="Center" FontWeight="SemiBold" />
+        <!-- MY20 protection decides which install modes are allowed, so it sits next to the mode it affects, with a colour and a shield: green = on, blue = auto-detect, amber = off -->
+        <Border x:Name="My20Badge" Background="{Binding My20Background}" CornerRadius="10" Padding="10,7" VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <PathIcon Data="{Binding My20Icon}" Foreground="{Binding My20Brush}" Width="16" Height="16" />
+            <TextBlock Text="{Binding My20Label}" Foreground="{Binding My20Brush}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+          </StackPanel>
+        </Border>
+        <Button x:Name="DownloadOnlyButton" Content="{svc:T Home.StartDownloadOnly}" Command="{Binding DownloadOnlyCommand}" IsEnabled="{Binding DownloadOnlyEnabled}" MinHeight="40" />
+        <Button x:Name="StartButton" Content="{svc:T Home.StartButton}" Classes="accent" Command="{Binding StartCommand}" IsEnabled="{Binding StartEnabled}" MinWidth="120" MinHeight="40" HorizontalContentAlignment="Center" FontWeight="SemiBold" />
       </Grid>
     </Border>
   </Grid>

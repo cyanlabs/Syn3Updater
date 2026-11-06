@@ -103,6 +103,11 @@ public partial class HomeViewModel : PageViewModel
     [ObservableProperty] private string _currentRegion = "";
     [ObservableProperty] private string _currentNav = "";
     [ObservableProperty] private string _my20Text = "";
+    /// <summary>"MY20 Protection: Auto-Detect" with a colour and shield for the bottom bar: green = on, blue = auto-detect, amber = off.</summary>
+    [ObservableProperty] private string _my20Label = "";
+    [ObservableProperty] private string _my20Icon = "";
+    [ObservableProperty] private Avalonia.Media.IBrush? _my20Brush;
+    [ObservableProperty] private Avalonia.Media.IBrush? _my20Background;
     [ObservableProperty] private string _modeForcedText = "";
     [ObservableProperty] private string _profileName = "";
     [ObservableProperty] private string _downloadPath = "";
@@ -177,7 +182,7 @@ public partial class HomeViewModel : PageViewModel
             ConfigItems.Add(new(Ctx.T("Home.Region"), p.CurrentRegion!));
             ConfigItems.Add(new(Ctx.T("Home.Nav"), CurrentNav));
         }
-        ConfigItems.Add(new(Ctx.T("Home.MY20Protection"), My20Text));
+        UpdateMy20Badge(p.My20v2);
         // the profile's region is preselected only the first time Home appears; after that an empty dropdown stays empty until the user picks
         if (!_regionPreselected)
         {
@@ -187,6 +192,19 @@ public partial class HomeViewModel : PageViewModel
     }
 
     private bool _regionPreselected;
+
+    private const string ShieldCheck = "M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z";
+    private const string ShieldAlert = "M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M11,7H13V13H11V7M11,15H13V17H11V15Z";
+    private const string ShieldHalf = "M12,12H19C18.47,16.11 15.72,19.78 12,20.93V12H5V6.3L12,3.19M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1Z";
+
+    private void UpdateMy20Badge(bool? my20)
+    {
+        var (colour, icon) = my20 switch { true => ("#3fb97a", ShieldCheck), false => ("#e8a23a", ShieldAlert), null => ("#5b9de6", ShieldHalf) };
+        var c = Avalonia.Media.Color.Parse(colour);
+        My20Icon = icon; My20Brush = new Avalonia.Media.SolidColorBrush(c);
+        My20Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromArgb(0x2e, c.R, c.G, c.B));
+        My20Label = $"{Ctx.T("Home.MY20Protection")}: {My20Text}";
+    }
 
     // The dropdown cascade (region -> releases -> maps -> packages) loads in the background; these let a syn3updater:// link wait for each step.
     private Task _releasesTask = Task.CompletedTask, _mapsTask = Task.CompletedTask, _packagesTask = Task.CompletedTask;
