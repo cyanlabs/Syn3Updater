@@ -381,7 +381,7 @@ public partial class HomeViewModel : PageViewModel
                 var maps = await Ctx.Api.GetMapReleases(SelectedRegion!.Code, compat);
                 foreach (var m in maps.MapReleases ?? new())
                 {
-                    bool esnBlocked = (rel.OnlyMaps || p.My20v2 == true) && m.Esn;
+                    bool esnBlocked = InstallModeResolver.EsnBlocked(rel.OnlyMaps, p.My20v2, m.Esn);
                     m.IsEnabled = !esnBlocked;
                     MapVersions.Add(new MapItem { Kind = MapChoice.MapPackage, Release = m, Display = m.Name + (esnBlocked ? " " + Ctx.T("Home.MapNotCompatibleMy20") : "") });
                 }
