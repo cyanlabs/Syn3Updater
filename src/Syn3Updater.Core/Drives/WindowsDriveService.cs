@@ -8,12 +8,14 @@ public class WindowsDriveService : IDriveService
     private readonly CommandRunner _run;
     private readonly Func<string, bool> _exists;
     private readonly Func<int, CancellationToken, Task> _delay;
+    private readonly Func<string, bool> _ready;
 
-    public WindowsDriveService(CommandRunner? run = null, Func<string, bool>? exists = null, Func<int, CancellationToken, Task>? delay = null)
+    public WindowsDriveService(CommandRunner? run = null, Func<string, bool>? exists = null, Func<int, CancellationToken, Task>? delay = null, Func<string, bool>? ready = null)
     {
         _run = run ?? ((file, args, stdin, ct, timeout) => ProcessRunner.RunAsync(file, args, stdin, ct, timeout));
         _exists = exists ?? ProcessRunner.Exists;
         _delay = delay ?? Task.Delay;
+        _ready = ready ?? (root => { try { return Directory.Exists(root); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return false; } });
     }
 
     private Task<ProcessResult> Run(string file, IEnumerable<string> args, string? stdin = null, CancellationToken ct = default, int timeoutMs = 120_000) =>
@@ -73,16 +75,19 @@ public class WindowsDriveService : IDriveService
 
     /// <summary>
     /// Formats with the PowerShell storage cmdlets: structured errors, no text script piped into diskpart and no dependence on its
-    /// localized output. <c>{0}</c> is the validated disk number and <c>{1}</c> the drive letter to keep ('' = any). Exit code 3 means the
-    /// cmdlets do not exist on this system, which is the only case that falls back to diskpart.
+    /// localized output. <c>{0}</c> is the validated disk number and <c>{1}</c> the drive letter to keep ('' = any). <c>{2}</c> and <c>{3}</c> are the size and
+    /// name of the drive the user confirmed (0 / '' = unknown): the script refuses if disk <c>{0}</c> is a different device by now, so that check happens at the
+    /// moment of the format and not in a separate listing beforehand. Exit code 3 means the cmdlets do not exist on this system, which is the only case that
+    /// falls back to diskpart.
     /// </summary>
     public const string FormatScript = """
         $ErrorActionPreference = 'Stop'
         if (-not (Get-Command Clear-Disk -ErrorAction SilentlyContinue)) { [Console]::Error.WriteLine('The Windows storage cmdlets are not available'); exit 3 }
         try {
-          $n = {0}; $keep = '{1}'
+          $n = {0}; $keep = '{1}'; $size = {2}; $name = '{3}'
           $d = Get-Disk -Number $n
           if ($d.BusType -ne 'USB' -or $d.IsSystem -or $d.IsBoot) { throw ('Disk ' + $n + ' is not a removable USB disk; refusing to format it.') }
+          if (($size -gt 0 -and [int64]$d.Size -ne $size) -or ($name -ne '' -and $d.FriendlyName -ne $name)) { throw ('Disk ' + $n + ' is no longer the drive you selected (it is now ' + $d.FriendlyName + '); refusing to format it.') }
           if ($d.IsOffline) { Set-Disk -Number $n -IsOffline $false }
           if ($d.IsReadOnly) { Set-Disk -Number $n -IsReadOnly $false }
           Clear-Disk -Number $n -RemoveData -RemoveOEM -Confirm:$false
@@ -98,13 +103,15 @@ public class WindowsDriveService : IDriveService
     public async Task<string> FormatAsync(DriveInfoModel drive, IProgress<string> log, CancellationToken ct = default)
     {
         if (!int.TryParse(drive.DeviceId, out var number) || number < 0) throw new Drives.FormatException("Invalid disk number.");
-        if (!(await ListAsync(ct)).Any(d => d.DeviceId == drive.DeviceId))
-            throw new Drives.FormatException($"Disk {number} is no longer a USB drive; refusing to format it.");
+        // No separate "is it still listed?" pass first: it was a second PowerShell run (seconds), and one bad listing made it refuse a perfectly good drive
+        // ("Disk 1 is no longer a USB drive"). The script checks the disk itself, atomically with the format.
         var letter = string.IsNullOrEmpty(drive.MountPath) ? "" : drive.MountPath[..1];
         if (letter != "" && !System.Text.RegularExpressions.Regex.IsMatch(letter, "^[A-Za-z]$")) letter = "";        // only ever a single letter reaches the script
         log.Report("Re-creating partition table as MBR and formatting as exFAT on the selected USB drive");
 
-        var script = FormatScript.Replace("{0}", number.ToString(System.Globalization.CultureInfo.InvariantCulture)).Replace("{1}", letter.ToUpperInvariant());
+        var size = Math.Max(0, drive.SizeBytes).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var script = FormatScript.Replace("{0}", number.ToString(System.Globalization.CultureInfo.InvariantCulture)).Replace("{1}", letter.ToUpperInvariant())
+            .Replace("{2}", size).Replace("{3}", ScriptSafeName(drive.Name));
         var r = await Run("powershell", new[] { "-NoProfile", "-NonInteractive", "-Command", script }, ct: ct, timeoutMs: 600_000);
         string? assigned = null;
         if (r.ExitCode == 3)
@@ -124,11 +131,24 @@ public class WindowsDriveService : IDriveService
             if (m.Success) assigned = m.Groups[1].Value.ToUpperInvariant();
         }
 
-        await _delay(5000, ct);
+        // The script reports the letter it ended up with: wait (up to ~10 s) for Windows to finish mounting it instead of a fixed 5 s pause and another full listing.
+        if (assigned != null) { await WaitUntilReadyAsync(assigned + @":\", ct); return assigned + @":\"; }
+        await _delay(3000, ct);                                                          // diskpart gave no letter: look at the drives once
         var after = (await ListAsync(ct)).FirstOrDefault(d => d.DeviceId == drive.DeviceId);
         if (after?.MountPath is { Length: > 0 } mount) return mount;
-        if (assigned != null) return assigned + @":\";
         return letter != "" ? letter.ToUpperInvariant() + @":\" : throw new Drives.FormatException("Formatted, but no drive letter was assigned.");
+    }
+
+    private async Task WaitUntilReadyAsync(string root, CancellationToken ct)
+    {
+        for (var i = 0; i < 20 && !_ready(root); i++) await _delay(500, ct);
+    }
+
+    /// <summary>A name that is safe inside a single-quoted PowerShell string on a command line, or '' (skip the name check) when it holds anything odd.</summary>
+    private static string ScriptSafeName(string? name)
+    {
+        if (string.IsNullOrEmpty(name) || name.Any(c => c < ' ' || c == '"' || c == '`')) return "";
+        return name.Replace("'", "''");
     }
 
     /// <summary>Last resort for Windows installs that lack the storage module (e.g. stripped-down editions).</summary>
@@ -151,16 +171,38 @@ public class WindowsDriveService : IDriveService
         var letter = System.Text.RegularExpressions.Regex.Match(mountPath ?? drive.MountPath ?? "", @"^([A-Za-z]):");
         if (!letter.Success) return new(false, "The drive has no drive letter.");
         var l = char.ToUpperInvariant(letter.Groups[1].Value[0]);
-        if (!(await ListAsync(ct)).Any(d => d.MountPath.StartsWith(l + ":", StringComparison.OrdinalIgnoreCase)))
+        if (!await IsUsbVolumeAsync(l, ct))
             return new(false, $"{l}: is not a removable USB drive; refusing to eject it.");     // never touch a system or fixed disk
         var script = $"$l='{l}:'; try {{ Write-VolumeCache -DriveLetter {l} -ErrorAction Stop }} catch {{ }}; " +
                      "$i = (New-Object -ComObject Shell.Application).Namespace(17).ParseName($l); if ($null -eq $i) { exit 3 }; $i.InvokeVerb('Eject')";
-        var r = await Run("powershell", new[] { "-NoProfile", "-NonInteractive", "-Command", script }, ct: ct);
-        if (r.ExitCode == 3) return new(false, $"Windows does not list drive {l}: any more.");
-        if (!r.Ok) return new(false, "Could not eject the drive: " + r.StdErr.Trim());
-        await _delay(1500, ct);                                    // the verb returns before Windows has finished
-        var still = (await ListAsync(ct)).Any(d => d.MountPath.StartsWith(l + ":", StringComparison.OrdinalIgnoreCase));
-        return still ? new(false, "Windows could not eject the drive. Close anything that is using it (such as Explorer windows) and try again.")
-                     : new(true, "The drive was ejected. You can remove it now.");
+        // Windows often refuses the first try because something (the indexer, antivirus, a thumbnail cache) still has the volume open for a moment, so ask again
+        // a couple of times before giving up; a real error from PowerShell is reported straight away.
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            var r = await Run("powershell", new[] { "-NoProfile", "-NonInteractive", "-Command", script }, ct: ct);
+            if (r.ExitCode == 3) return new(false, $"Windows does not list drive {l}: any more.");
+            if (!r.Ok) return new(false, "Could not eject the drive: " + r.StdErr.Trim());
+            for (var look = 0; look < 4; look++)                           // the verb returns before Windows has finished
+            {
+                await _delay(1000, ct);
+                if (!await StillMountedAsync(l, ct)) return new(true, "The drive was ejected. You can remove it now.");
+            }
+            if (attempt < 3) await _delay(2000, ct);
+        }
+        return new(false, "Windows could not eject the drive. Close anything that is using it (such as Explorer windows) and try again.");
+    }
+
+    private async Task<bool> StillMountedAsync(char l, CancellationToken ct) =>
+        (await ListAsync(ct)).Any(d => d.MountPath.StartsWith(l + ":", StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>True when the letter belongs to a USB drive. One odd listing does not decide it: look twice before refusing.</summary>
+    private async Task<bool> IsUsbVolumeAsync(char l, CancellationToken ct)
+    {
+        for (var i = 0; i < 2; i++)
+        {
+            if (await StillMountedAsync(l, ct)) return true;
+            if (i == 0) await _delay(1000, ct);
+        }
+        return false;
     }
 }

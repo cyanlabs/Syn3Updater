@@ -332,6 +332,35 @@ public class EjectTests
     }
 
     [Fact]
+    public async Task Windows_Eject_TriesAgain_WhenWindowsHoldsTheVolumeForAMoment()
+    {
+        int verbs = 0;
+        var cmd = new ScriptedCommands { Handler = (f, a) => { if (a[^1].Contains("InvokeVerb")) verbs++; return a[^1].Contains("Get-Disk") ? ScriptedCommands.Ok(verbs >= 2 ? "[]" : WinPresent) : ScriptedCommands.Ok(); } };
+        var svc = new WindowsDriveService(cmd.Runner, _ => true, (_, _) => Task.CompletedTask);
+        var r = await svc.EjectAsync(new DriveInfoModel { MountPath = @"E:\" }, null);
+        Assert.True(r.Ok); Assert.Equal(2, verbs);                                                  // the first Eject did not take, the second did
+        var stuck = new ScriptedCommands { Handler = (f, a) => a[^1].Contains("Get-Disk") ? ScriptedCommands.Ok(WinPresent) : ScriptedCommands.Ok() };
+        var no = await new WindowsDriveService(stuck.Runner, _ => true, (_, _) => Task.CompletedTask).EjectAsync(new DriveInfoModel { MountPath = @"E:\" }, null);
+        Assert.False(no.Ok); Assert.Equal(3, stuck.Calls.Count(c => c.Contains("InvokeVerb")));      // but not forever: three tries, then the explanation
+    }
+
+    [Fact]
+    public async Task Windows_Eject_DoesNotRefuseAGoodDrive_BecauseOneListingCameBackEmpty()
+    {
+        int lists = 0; bool ejected = false;
+        var cmd = new ScriptedCommands { Handler = (f, a) =>
+        {
+            if (a[^1].Contains("InvokeVerb")) { ejected = true; return ScriptedCommands.Ok(); }
+            if (!a[^1].Contains("Get-Disk")) return ScriptedCommands.Ok();
+            return ScriptedCommands.Ok(ejected || ++lists == 1 ? "[]" : WinPresent);            // the first listing is empty, the next ones are normal
+        } };
+        var svc = new WindowsDriveService(cmd.Runner, _ => true, (_, _) => Task.CompletedTask);
+        var r = await svc.EjectAsync(new DriveInfoModel { MountPath = @"E:\" }, null);
+        Assert.True(r.Ok);
+        Assert.Contains(cmd.Calls, c => c.Contains("InvokeVerb"));                                  // it did go on to eject
+    }
+
+    [Fact]
     public async Task Windows_ReportsWhenTheDriveIsStillThere_BadLetters_AndMissingDrives()
     {
         var stuck = new ScriptedCommands { Handler = (f, a) => a[^1].Contains("Get-Disk") ? ScriptedCommands.Ok(WinPresent) : ScriptedCommands.Ok() };
