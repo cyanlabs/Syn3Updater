@@ -27,7 +27,8 @@ Release:        %{rpmrel}
 Summary:        Ford SYNC 3 update USB creator
 License:        GPL-3.0-only
 URL:            https://github.com/CyanLabs/Syn3Updater
-Requires:       util-linux, udisks2, polkit, exfatprogs, libicu, openssl-libs, fontconfig
+# .NET needs OpenSSL 3: by soname, because Fedora 45+ ships OpenSSL 4 as openssl-libs and OpenSSL 3 as openssl3-libs (found by the container check)
+Requires:       util-linux, udisks2, polkit, exfatprogs, libicu, fontconfig, libssl.so.3()(64bit), libcrypto.so.3()(64bit)
 Requires:       libX11.so.6()(64bit), libICE.so.6()(64bit), libSM.so.6()(64bit), libXcursor.so.1()(64bit), libXi.so.6()(64bit), libXrandr.so.2()(64bit), libXext.so.6()(64bit)
 
 %description
