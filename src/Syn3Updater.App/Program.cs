@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using Avalonia;
 using Avalonia.Logging;
+using Cyanlabs.Syn3Updater.App.Services;
+using Cyanlabs.Syn3Updater.Core.Services;
 
 namespace Cyanlabs.Syn3Updater.App;
 
@@ -13,6 +15,14 @@ internal static class Program
         if (Environment.GetEnvironmentVariable("SYN3_DEBUG") == "1")
             Trace.Listeners.Add(new ConsoleTraceListener(true));
         InstallCrashLog();
+
+        // One copy per user: a second launch (typically a syn3updater:// link clicked while the app is open) hands its link to the first and exits.
+        AppLaunch.StartupLink = UrlIntentParser.Find(args);
+        var pipe = SingleInstance.NameFor(AppPaths.DefaultDataDir());
+        var primary = SingleInstance.TryBecomePrimary(pipe);
+        if (primary == null && SingleInstance.TrySendAsync(pipe, AppLaunch.StartupLink ?? "activate").GetAwaiter().GetResult()) return 0;
+        // (if nobody answered, the other copy is still starting up or stuck: carry on as a normal start rather than refusing to open)
+        AppLaunch.Primary = primary;
         return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 

@@ -92,6 +92,18 @@ A token compiled into a public download can be extracted by anyone, so keep it r
 - **Drive verification**: after copying and flushing, every file on the stick is read back and checked against the download (Linux and macOS bypass the OS cache for this read).
 - **Languages** live in `src/Syn3Updater.Core/Languages/*.json`. A test keeps every language complete and in step with `en-US`, and fails on keys nothing uses or text hardcoded in XAML.
 
+## syn3updater:// links
+
+Links such as `syn3updater://Region=EU;Release=3.4.19274;Maps=Navigation_Map_Name` (on the CyanLabs website and forum, as in v2) open the app and
+preselect the region, SYNC release (`Sync <Release>`) and maps (underscores stand for spaces) on Home. Like v2, a link needs `Region` to do anything.
+A link can only choose among the options the app already offers: it never presses Start, never formats a drive and cannot name a file or path.
+If a link arrives while an update is running it is refused with the usual "another operation is running" message.
+
+- **One copy at a time:** a second launch (for example clicking a link while the app is open) hands the link to the running copy and exits.
+- **Windows:** the app registers itself for the current user (`HKCU\Software\Classes\syn3updater`, no administrator rights) each time it starts, pointing at the running `Syn3Updater.exe`, as v2 did.
+- **Linux:** `install.sh` and the packages declare `x-scheme-handler/syn3updater` in the launcher entry; running `./Syn3Updater` straight from the archive does not register anything.
+- **macOS:** declared in the app bundle's `Info.plist`.
+
 ## UI previews (no window)
 
 `dotnet run --project tools/Shots -- out 1100 800 Home Settings --demo [--light]` renders pages to PNG with Avalonia's

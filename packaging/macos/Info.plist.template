@@ -14,6 +14,11 @@
   <key>LSMinimumSystemVersion</key><string>13.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
   <key>NSHighResolutionCapable</key><true/>
+  <key>CFBundleURLTypes</key>
+  <array><dict>
+    <key>CFBundleURLName</key><string>net.cyanlabs.syn3updater</string>
+    <key>CFBundleURLSchemes</key><array><string>syn3updater</string></array>
+  </dict></array>
   <key>NSPrincipalClass</key><string>NSApplication</string>
   <key>NSRemovableVolumesUsageDescription</key><string>Syn3 Updater writes the SYNC update files to the USB drive you select.</string>
   <key>NSDownloadsFolderUsageDescription</key><string>Syn3 Updater saves the downloaded SYNC update files to your Downloads folder.</string>
