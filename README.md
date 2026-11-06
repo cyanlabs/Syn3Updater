@@ -65,11 +65,12 @@ drive code is covered by parser unit tests but untested against real devices.
 | `Syn3Updater-<v>-linux-x64.tar.gz`, `-linux-arm64` | `scripts/package-linux.sh` | single file + `install.sh` / `uninstall.sh` (user-level install; the launcher entry is generated with the real path; checks for the tools USB preparation needs) |
 | `Syn3Updater-<v>-linux-x64.deb`, `-linux-arm64` | `scripts/package-deb.sh` | installs to `/opt/syn3updater` with a `/usr/bin/syn3updater` command and an application-menu entry; depends on the USB tools and runtime libraries (Debian 11+, Ubuntu 20.04+) |
 | `Syn3Updater-<v>-linux-x64.rpm`, `-linux-arm64` | `scripts/package-rpm.sh` | same layout for Fedora / Nobara / RHEL-family; pre-releases get `Release: 0.<pre>.1` so the final release upgrades them |
+| `Syn3Updater-<v>-linux-x64.pkg.tar.zst`, `-linux-arm64` | `scripts/package-arch.sh` | native Arch package: `sudo pacman -U <file>` (also Manjaro, Omarchy, CachyOS...). Built from the AUR recipe in an Arch container; named `syn3updater-bin`, so installing from the AUR later is a normal upgrade. A pre-release `3.0.0-test7` is versioned `3.0.0test7`, which pacman sorts before `3.0.0`. Not in a repository, so pacman never offers updates |
 | AUR `syn3updater-bin` (not published yet) | `packaging/aur/PKGBUILD`, `scripts/update-aur-package.sh` | uses the release tarballs; see `packaging/aur/README.md` |
 | `Syn3Updater-<v>-win-x64.zip`, `-win-arm64` | `scripts/package-windows.sh` | single `Syn3Updater.exe` (asks for administrator rights to format drives) |
 | `Syn3Updater-<v>-macos-arm64.dmg`, `-macos-x64` | `scripts/package-macos.sh` (macOS only) | `.app` bundle in a DMG |
 
-CI installs the `.deb` and `.rpm` in real Debian, Ubuntu and Fedora containers (and builds the AUR package in Arch Linux) before a release is published, so wrong dependency names or a broken launcher stop it.
+CI installs the `.deb`, `.rpm` and Arch package in real Debian, Ubuntu, Fedora and Arch containers (and builds the AUR package in Arch Linux) before a release is published, so wrong dependency names or a broken launcher stop it.
 
 Repository **secrets** (Settings > Secrets and variables > Actions):
 

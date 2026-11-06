@@ -4,10 +4,10 @@ name: Package check
 # whenever the packaging scripts change.
 on:
   pull_request:
-    paths: ["scripts/package-linux.sh", "scripts/verify-linux-package.sh", "scripts/package-deb.sh", "scripts/package-rpm.sh", "scripts/stage-linux-root.sh", "scripts/verify-*linux*.sh", "scripts/verify-aur-package.sh", "scripts/update-aur-package.sh", "packaging/linux/**", "packaging/aur/**", ".github/workflows/package-check.yml"]
+    paths: ["scripts/package-linux.sh", "scripts/verify-linux-package.sh", "scripts/package-deb.sh", "scripts/package-rpm.sh", "scripts/package-arch.sh", "scripts/stage-linux-root.sh", "scripts/verify-*linux*.sh", "scripts/verify-aur-package.sh", "scripts/update-aur-package.sh", "packaging/linux/**", "packaging/aur/**", ".github/workflows/package-check.yml"]
   push:
     branches: [main]
-    paths: ["scripts/package-linux.sh", "scripts/verify-linux-package.sh", "scripts/package-deb.sh", "scripts/package-rpm.sh", "scripts/stage-linux-root.sh", "scripts/verify-*linux*.sh", "scripts/verify-aur-package.sh", "scripts/update-aur-package.sh", "packaging/linux/**", "packaging/aur/**", ".github/workflows/package-check.yml"]
+    paths: ["scripts/package-linux.sh", "scripts/verify-linux-package.sh", "scripts/package-deb.sh", "scripts/package-rpm.sh", "scripts/package-arch.sh", "scripts/stage-linux-root.sh", "scripts/verify-*linux*.sh", "scripts/verify-aur-package.sh", "scripts/update-aur-package.sh", "packaging/linux/**", "packaging/aur/**", ".github/workflows/package-check.yml"]
   workflow_dispatch:
 
 permissions:
@@ -31,12 +31,13 @@ jobs:
         env:
           SYN3_API_TOKEN: ${{ secrets.SYN3_API_TOKEN }}
       - run: scripts/verify-linux-package.sh artifacts/*.tar.gz
-      - name: Build the .deb and .rpm
+      - name: Build the .deb, .rpm and Arch package
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq rpm
           scripts/package-deb.sh linux-x64 0.0.0-check artifacts
           scripts/package-rpm.sh linux-x64 0.0.0-check artifacts
-      - name: Install the .deb and .rpm in Debian, Ubuntu and Fedora
+          scripts/package-arch.sh linux-x64 0.0.0-check artifacts
+      - name: Install them in Debian, Ubuntu, Fedora and Arch
         run: scripts/verify-linux-distro-packages.sh artifacts
-      - name: Build the AUR package in Arch Linux
+      - name: Build the AUR package (from the GitHub release layout) in Arch Linux
         run: scripts/verify-aur-package.sh artifacts/Syn3Updater-0.0.0-check-linux-x64.tar.gz
