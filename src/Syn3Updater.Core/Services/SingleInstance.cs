@@ -60,7 +60,12 @@ public sealed class SingleInstance : IDisposable
             }
             catch (OperationCanceledException) { return; }
             catch (Exception e) when (e is IOException or ObjectDisposedException or InvalidOperationException) { if (_cts.IsCancellationRequested) return; }
-            finally { try { if (_server.IsConnected) _server.Disconnect(); } catch (Exception e) when (e is IOException or ObjectDisposedException or InvalidOperationException) { } }
+            finally
+            {
+                // Always disconnect, even when IsConnected is already false: once the sender has closed its end, Windows still needs the server end
+                // disconnected before it will accept the next client, otherwise a second link a moment later waits out its timeout and a second window opens.
+                try { _server.Disconnect(); } catch (Exception e) when (e is IOException or ObjectDisposedException or InvalidOperationException) { }
+            }
         }
     });
 
