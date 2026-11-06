@@ -59,7 +59,11 @@ public partial class SettingsViewModel : PageViewModel
     [ObservableProperty] private string _version = "";
     [ObservableProperty] private bool _nav;
     [ObservableProperty] private ChoiceOption? _channel;
-    [ObservableProperty] private ChoiceOption? _my20;
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(ModeEnabled))] private ChoiceOption? _my20;
+    /// <summary>The install mode can only be fixed while MY20 protection is explicitly off (as in v2).</summary>
+    public bool ModeEnabled => My20?.Value == "off";
+    partial void OnMy20Changed(ChoiceOption? value) { if (!_loading && value?.Value != "off") Mode = ModeOptions[0]; }
+    partial void OnAdvancedChanged(bool value) { if (!_loading && !value) Mode = ModeOptions[0]; }
     [ObservableProperty] private ChoiceOption? _mode;
     [ObservableProperty] private ChoiceOption? _theme;
     [ObservableProperty] private int _connections = 1;
@@ -131,7 +135,7 @@ public partial class SettingsViewModel : PageViewModel
     protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
-        if (!_loading && e.PropertyName is not (nameof(Message) or nameof(Advanced) or nameof(WarningText) or nameof(ProfileName) or nameof(ConfigRequired) or nameof(SetupText) or nameof(IsActive))) _dirty = true;
+        if (!_loading && e.PropertyName is not (nameof(Message) or nameof(Advanced) or nameof(WarningText) or nameof(ModeEnabled) or nameof(ProfileName) or nameof(ConfigRequired) or nameof(SetupText) or nameof(IsActive))) _dirty = true;
     }
 
     private void Load()
@@ -257,7 +261,7 @@ public partial class SettingsViewModel : PageViewModel
         p.CurrentVersion = digits.Length == 7 ? int.Parse(digits) : 0;
         p.CurrentNav = Nav;
         p.My20v2 = My20?.Value switch { "on" => true, "off" => false, _ => null };
-        p.InstallMode = Mode?.Value ?? "autodetect";
+        p.InstallMode = My20?.Value == "off" ? Mode?.Value ?? InstallModes.AutoDetect : InstallModes.AutoDetect;
         Ctx.Save();
         Ctx.Log.Info($"Settings applied - Region: {p.CurrentRegion} - Version: {p.VersionString} - Navigation: {p.CurrentNav}");
         _dirty = false;

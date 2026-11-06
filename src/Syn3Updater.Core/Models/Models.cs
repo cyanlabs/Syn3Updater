@@ -207,10 +207,24 @@ public class ProfileSettings
     public bool CurrentNav { get; set; }
     /// <summary>MY20 protection: null = auto-detect, true = enabled, false = disabled. The same meaning and JSON as v2.</summary>
     [System.Text.Json.Serialization.JsonConverter(typeof(LenientBoolConverter))]
-    public bool? My20v2 { get; set; }
+    public bool? My20v2
+    {
+        get => _my20v2;
+        set
+        {
+            _my20v2 = value;
+            // v2's rule: a fixed install mode only exists while MY20 protection is explicitly off. Turning it on (or back to auto-detect), or detection finding an MY20 unit,
+            // drops any fixed mode: reformat and downgrade must never be forced onto a unit that may be MY20.
+            if (value != false && InstallModes.IsForced(_installMode)) _installMode = InstallModes.AutoDetect;
+        }
+    }
+    private bool? _my20v2;
     private string _installMode = InstallModes.AutoDetect;
     /// <summary>One of autodetect, autoinstall, reformat, downgrade. Whatever is assigned (including text a v2 file holds) is normalized, see <see cref="InstallModes.Normalize"/>.</summary>
     public string InstallMode { get => _installMode; set => _installMode = InstallModes.Normalize(value); }
+    /// <summary>True when the user fixed an install mode AND that is allowed: only while MY20 protection is explicitly off (as in v2). Otherwise the app chooses the mode itself.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool ModeForced => My20v2 == false && InstallModes.IsForced(InstallMode);
     /// <summary>
     /// Only ever read: v2 kept the download connections in the profile file; they now live in MainSettings (application-wide). SettingsStore moves a value found here
     /// into the application settings once and clears it, so it is never written back (the null is skipped when saving).

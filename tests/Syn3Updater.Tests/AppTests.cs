@@ -99,7 +99,7 @@ public class HomeFlowTests
     [AvaloniaFact]
     public async Task ForcedInstallMode_IsKept_AndShownAsForced()
     {
-        using var env = new AppEnv(); Ctx.Profile.InstallMode = "reformat";
+        using var env = new AppEnv(); Ctx.Profile.My20v2 = false; Ctx.Profile.InstallMode = "reformat";
         var home = env.Main.Home; home.ReloadSummary();
         await PickAll(home); home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 2);
         Assert.Equal("reformat", home.InstallMode); Assert.True(home.ModeIsForced); Assert.Equal("Yes", home.ModeForcedText);
@@ -113,7 +113,7 @@ public class HomeFlowTests
             auto.Main.Home.ReloadSummary();
             Assert.Equal("", auto.Main.Home.InstallMode); Assert.False(auto.Main.Home.HasMode); Assert.False(auto.Main.Home.ModeIsForced);   // unknown until a version and maps are chosen
         }
-        using var env = new AppEnv(); Ctx.Profile.InstallMode = "downgrade";
+        using var env = new AppEnv(); Ctx.Profile.My20v2 = false; Ctx.Profile.InstallMode = "downgrade";
         var home = env.Main.Home; home.ReloadSummary();
         Assert.Equal("downgrade", home.InstallMode); Assert.True(home.HasMode); Assert.True(home.ModeIsForced);
         Assert.Equal("Downgrade", home.ModeTitle); Assert.NotEmpty(home.ModeDescription);
@@ -587,7 +587,7 @@ public class SmallPieceTests
         using var env = new AppEnv();
         Assert.False(string.IsNullOrEmpty(Ctx.OsName())); Assert.Equal("Stable", Ctx.Branch); Assert.Contains("Home", Ctx.T("Main.Home"));
         await Ctx.RandomizeUserAgentAsync(); Assert.StartsWith("UA/", Ctx.Http.DefaultRequestHeaders.UserAgent.ToString());
-        Ctx.Save(); Assert.False(Ctx.ModeForced); Ctx.Profile.InstallMode = "reformat"; Assert.True(Ctx.ModeForced);
+        Ctx.Save(); Assert.False(Ctx.ModeForced); Ctx.Profile.InstallMode = "reformat"; Assert.False(Ctx.ModeForced);   /* MY20 protection not off */ Ctx.Profile.My20v2 = false; Ctx.Profile.InstallMode = "reformat"; Assert.True(Ctx.ModeForced);
         Assert.Equal("Light", (new SettingsViewModel()).ThemeOptions[1].Value);
     }
 }

@@ -55,7 +55,7 @@ public class V2SettingsCarryOverTests : IDisposable
     public void TheRealModes_AreKept_InAnyCase(string raw, string expected)
     {
         Assert.Equal(expected, InstallModes.Normalize(raw)); Assert.True(InstallModes.IsForced(raw));
-        var s = LoadWith(V2Profile.Replace("\"Auto-Detect\"", $"\"{raw}\""));
+        var s = LoadWith(V2Profile.Replace("\"Auto-Detect\"", $"\"{raw}\"").Replace("\"My20v2\": null", "\"My20v2\": false"));      // v2 only let you fix a mode with MY20 protection off
         Assert.Equal(expected, s.Profile.InstallMode);                                                              // a mode somebody really chose is NOT lost
     }
 
@@ -139,7 +139,7 @@ public class V2SettingsCarryOverTests : IDisposable
     {
         var paths = new AppPaths(_dir); var s = new SettingsStore(paths); s.Load(); s.Save();
         Assert.False(JsonDocument.Parse(File.ReadAllText(paths.ProfileFile("default"))).RootElement.TryGetProperty("DownloadConnections", out _));
-        File.WriteAllText(paths.ProfileFile("car2"), V2Profile.Replace("\"Auto-Detect\"", "\"Reformat\"").Replace("\"DownloadConnections\": 8", "\"DownloadConnections\": 2"));
+        File.WriteAllText(paths.ProfileFile("car2"), V2Profile.Replace("\"Auto-Detect\"", "\"Reformat\"").Replace("\"My20v2\": null", "\"My20v2\": false").Replace("\"DownloadConnections\": 8", "\"DownloadConnections\": 2"));
         s.SwitchProfile("car2");
         Assert.Equal("reformat", s.Profile.InstallMode); Assert.Null(s.Profile.LegacyDownloadConnections);
         Assert.Equal(8, s.Main.DownloadConnections);                          // the app settings already had a value (written on the first save), so the old per-profile 2 does not override it
