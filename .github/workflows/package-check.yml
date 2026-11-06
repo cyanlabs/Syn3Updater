@@ -4,10 +4,10 @@ name: Package check
 # whenever the packaging scripts change.
 on:
   pull_request:
-    paths: ["scripts/package-linux.sh", "scripts/verify-linux-package.sh", "scripts/package-deb.sh", "scripts/package-rpm.sh", "scripts/package-arch.sh", "scripts/stage-linux-root.sh", "scripts/verify-*linux*.sh", "scripts/verify-aur-package.sh", "scripts/update-aur-package.sh", "packaging/linux/**", "packaging/aur/**", ".github/workflows/package-check.yml"]
+    paths: ["scripts/package-linux.sh", "scripts/verify-linux-package.sh", "scripts/package-deb.sh", "scripts/package-rpm.sh", "scripts/package-arch.sh", "scripts/stage-linux-root.sh", "scripts/package-windows.sh", "scripts/make-legacy-zip.sh", "packaging/windows/**", "scripts/verify-*linux*.sh", "scripts/verify-aur-package.sh", "scripts/update-aur-package.sh", "packaging/linux/**", "packaging/aur/**", ".github/workflows/package-check.yml"]
   push:
     branches: [main]
-    paths: ["scripts/package-linux.sh", "scripts/verify-linux-package.sh", "scripts/package-deb.sh", "scripts/package-rpm.sh", "scripts/package-arch.sh", "scripts/stage-linux-root.sh", "scripts/verify-*linux*.sh", "scripts/verify-aur-package.sh", "scripts/update-aur-package.sh", "packaging/linux/**", "packaging/aur/**", ".github/workflows/package-check.yml"]
+    paths: ["scripts/package-linux.sh", "scripts/verify-linux-package.sh", "scripts/package-deb.sh", "scripts/package-rpm.sh", "scripts/package-arch.sh", "scripts/stage-linux-root.sh", "scripts/package-windows.sh", "scripts/make-legacy-zip.sh", "packaging/windows/**", "scripts/verify-*linux*.sh", "scripts/verify-aur-package.sh", "scripts/update-aur-package.sh", "packaging/linux/**", "packaging/aur/**", ".github/workflows/package-check.yml"]
   workflow_dispatch:
 
 permissions:
@@ -41,3 +41,28 @@ jobs:
         run: scripts/verify-linux-distro-packages.sh artifacts
       - name: Build the AUR package (from the GitHub release layout) in Arch Linux
         run: scripts/verify-aur-package.sh artifacts/Syn3Updater-0.0.0-check-linux-x64.tar.gz
+
+  windows-package:
+    name: Windows package carries the real Launcher
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - name: Build the Windows package and the flat zip for the v2 Launcher
+        run: |
+          scripts/package-windows.sh win-x64 0.0.0-check artifacts
+          scripts/make-legacy-zip.sh artifacts/Syn3Updater-0.0.0-check-win-x64.zip 2.99.99.1 artifacts/2.99.99.1.zip
+      - name: Check what is inside
+        run: |
+          set -euo pipefail
+          want="Launcher.exe Launcher.exe.config Launcher.Core.dll FluentWPF.dll Newtonsoft.Json.dll Syn3Updater.exe LICENSE README.txt"
+          nested="$(unzip -Z1 artifacts/Syn3Updater-0.0.0-check-win-x64.zip | sed 's#^[^/]*/##' | grep -v '^$' | sort | tr '\n' ' ')"
+          flat="$(unzip -Z1 artifacts/2.99.99.1.zip | sort | tr '\n' ' ')"
+          # shellcheck disable=SC2086
+          expected="$(printf '%s\n' $want | sort | tr '\n' ' ')"
+          echo "nested: $nested"; echo "flat:   $flat"
+          [[ "$nested" == "$expected" ]] || { echo "the Windows package has the wrong files"; exit 1; }
+          [[ "$flat" == "$expected" ]] || { echo "the flat zip has the wrong files"; exit 1; }

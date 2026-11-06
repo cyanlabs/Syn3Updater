@@ -248,14 +248,11 @@ jobs:
           cd dist
           cat ./*.sha256 > SHA256SUMS && rm ./*.sha256
           if [[ -n "$LEGACY_TAG" ]]; then
-            # The v2 Launcher wants ONE flat zip named <tag>.zip (Syn3Updater.exe and Launcher.exe at the top, no folder) whose content type is
-            # application/x-zip-compressed; it renames its own Launcher.exe away and copies the zip over its folder. Launcher.exe is a copy of the v3 program for now.
+            # The v2 Launcher wants ONE flat zip named <tag>.zip (no folder) whose content type is application/x-zip-compressed; it renames its own Launcher.exe away and
+            # copies the zip over its folder. It holds the same files as the Windows package: Syn3Updater.exe plus the hybrid Launcher.exe and its libraries.
             win="$(find . -maxdepth 1 -name 'Syn3Updater-*-win-x64.zip' | head -n1)"
-            legacy_dir="$RUNNER_TEMP/legacy"; rm -rf "$legacy_dir"; mkdir -p "$legacy_dir/in"
-            unzip -q "$win" -d "$legacy_dir/in"
-            inner="$(find "$legacy_dir/in" -mindepth 1 -maxdepth 1 -type d | head -n1)"
-            cp "$inner/Syn3Updater.exe" "$inner/Launcher.exe"
-            ( cd "$inner" && zip -q -j "$legacy_dir/$LEGACY_TAG.zip" Syn3Updater.exe Launcher.exe LICENSE README.txt )
+            legacy_dir="$RUNNER_TEMP/legacy"; rm -rf "$legacy_dir"; mkdir -p "$legacy_dir"
+            "$GITHUB_WORKSPACE/scripts/make-legacy-zip.sh" "$win" "$LEGACY_TAG" "$legacy_dir/$LEGACY_TAG.zip"
             ( cd "$legacy_dir" && sha256sum "$LEGACY_TAG.zip" ) >> SHA256SUMS
           fi
           ls -l

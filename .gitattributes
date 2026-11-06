@@ -1,0 +1,2 @@
+# keep Git from touching these (no line-ending conversion)
+packaging/windows/launcher/* binary

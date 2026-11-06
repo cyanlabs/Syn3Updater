@@ -13,9 +13,16 @@ OUT="$(cd "$OUT" && pwd)"
 dotnet publish src/Syn3Updater.App -c Release -r "$RID" --self-contained \
   -p:Version="$VERSION" -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o "$STAGE"
 cp LICENSE "$STAGE/"
+# The hybrid Launcher goes in every Windows package: when the Launcher installs a package it removes old files the package does not ship (every .dll, on the
+# first run after the v2 Launcher), so a package without the Launcher's own libraries would make it delete them. The files are pinned by hash.
+LAUNCHER_DIR="packaging/windows/launcher"
+( cd "$LAUNCHER_DIR" && if command -v sha256sum >/dev/null 2>&1; then sha256sum -c --quiet SHA256SUMS; else shasum -a 256 -c --quiet SHA256SUMS; fi ) \
+  || { echo "the Launcher files in $LAUNCHER_DIR do not match SHA256SUMS" >&2; exit 1; }
+while read -r _ file; do cp "$LAUNCHER_DIR/${file#\*}" "$STAGE/"; done < "$LAUNCHER_DIR/SHA256SUMS"
 cat > "$STAGE/README.txt" <<TXT
 Syn3 Updater $VERSION
-Run Syn3Updater.exe. It asks for administrator rights because formatting a USB drive needs them.
+Start Launcher.exe: it keeps Syn3 Updater up to date and then opens it. Syn3Updater.exe can also be run directly (no update check).
+Syn3 Updater asks for administrator rights because formatting a USB drive needs them.
 TXT
 
 rm -f "$OUT/$NAME.zip"
