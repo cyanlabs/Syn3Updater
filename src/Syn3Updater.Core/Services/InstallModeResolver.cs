@@ -12,6 +12,12 @@ public record InstallModeResult(string? Mode, bool Invalid, string? Option);
 /// </summary>
 public static class InstallModeResolver
 {
+    /// <summary>
+    /// An ESN-locked map cannot be chosen when MY20 protection is Enabled, or when the release is "Only update maps" (the apps are kept, so the unit may not
+    /// be reformatted around it). The maps list greys such maps out, which is what makes those two "Not possible" in the install flow.
+    /// </summary>
+    public static bool EsnBlocked(bool releaseIsOnlyMaps, bool? my20, bool mapIsEsn) => (releaseIsOnlyMaps || my20 == true) && mapIsEsn;
+
     public static InstallModeResult Resolve(int currentVersion, bool? my20, bool modeForced,
         MapChoice map, bool mapIsEsn, bool releaseIsOnlyMaps)
     {
