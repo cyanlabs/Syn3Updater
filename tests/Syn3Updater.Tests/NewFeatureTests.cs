@@ -151,7 +151,7 @@ public class SystemInfoAndLogTests
         Assert.Equal("3.0.0 (Stable)", d["App version"]);
         Assert.Contains("Operating system", d.Keys); Assert.Contains(".NET runtime", d.Keys); Assert.Contains("Architecture", d.Keys);
         Assert.Contains(SystemInfo.ToolsFor()[0] + "=NO", d["Tools"]);
-        Assert.Contains(SystemInfo.ToolsFor()[1] + "=yes", d["Tools"]);
+        foreach (var other in SystemInfo.ToolsFor().Skip(1)) Assert.Contains(other + "=yes", d["Tools"]);   // macOS has just one tool
         Assert.DoesNotContain(Environment.UserName + "/", string.Join("\n", facts.Select(f => f.Value)));
     }
 

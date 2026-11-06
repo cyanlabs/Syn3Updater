@@ -147,7 +147,8 @@ public class ResumeDownloadTests : IDisposable
         using var server = new ResumeServer(); var svc = Svc();
         Assert.False(await Interrupt(svc, server, 45, connections: 4)); var had = DoneChunks(Dest + ".part.json"); Assert.InRange(had, 1, 15);
         server.ClearRanges(); Assert.True(await svc.DownloadAsync(server.Url, Dest, 4, new Progress<int>(), default));
-        Assert.Equal(server.Data, await File.ReadAllBytesAsync(Dest)); Assert.True(server.RangesSnapshot().Length <= 16 - had + 0); Assert.True(server.RangesSnapshot().Length >= 1);
+        Assert.Equal(server.Data, await File.ReadAllBytesAsync(Dest)); var asked = server.RangesSnapshot().Distinct().Count();   // a request from the cancelled first run can still land late, so count each chunk once
+        Assert.True(asked <= 16 - had); Assert.True(asked >= 1);
     }
 
     [Fact]
