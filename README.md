@@ -100,11 +100,12 @@ Settings > Update channel decides which builds the update notice offers. The cha
 |---|---|---|---|
 | **Stable** (default for releases) | tested releases | `3.0.0` | a normal GitHub release on `CyanLabs/Syn3Updater` |
 | **Beta** (default for test builds) | the newest release *or* pre-release | `3.1.0-beta.2`, `3.0.0-test8` | a pre-release on `CyanLabs/Syn3Updater` |
-| **Nightly** | automatic, untested builds of the latest code | `3.1.0-nightly.20261108.5` | one rolling pre-release named `nightly` on `CyanLabs/Syn3UpdaterDev` only |
+| **Nightly** (off for now) | automatic, untested builds of the latest code | `3.1.0-nightly.20261108.5` | one rolling pre-release named `nightly` on `CyanLabs/Syn3Updater` |
 
 - A newer build in your own channel is a normal update. Choosing a *different* channel offers that channel's newest build even if its number is lower (as in v2): for example a Beta tester who picks Stable is offered the latest stable release.
-- Nightlies are built by `release.yml` at 03:17 UTC, only when `main` changed since the last one and only in the Dev repo (it can also be run by hand with "nightly"). The version is `<Version in Directory.Build.props>-nightly.<date>.<run number>`,
-  and the app reads it from the release title because the tag is always `nightly`. They are kept out of the production repo on purpose: the v2 Launcher treats that repo's newest pre-release as its Beta update.
+- **Nightlies are switched off.** `release.yml` has a scheduled run at 03:17 UTC, but it does nothing until the repository variable `NIGHTLY_ENABLED` is set to `true` (Settings > Secrets and variables > Actions > Variables). When enabled it builds only when `main` changed since the last nightly, and only in `CyanLabs/Syn3Updater` (forks skip). A manual run with "nightly" ticked always goes ahead, so do not do that yet either.
+  The version is `<Version in Directory.Build.props>-nightly.<date>.<run number>`, the release tag is always `nightly` and the app reads the version from the release title.
+  **Do not enable it until every user has moved off the v2 Launcher:** that Launcher takes the newest release as its Beta update and crashes on a tag that is not a version number (the 2.14.2.1+ Launcher ignores such tags). Until then the Nightly choice in Settings simply finds nothing to offer.
 - The word sent to the API and written in logs as the "branch" is the channel of the running build (`Stable`, `Beta` or `Nightly`).
 
 ## Releasing for the v2 Launcher
@@ -113,7 +114,7 @@ The v2 Launcher (2.14.2.0 and older) cannot read a tag like `v3.0.0-test9`: it r
 
 | `legacy_tag` | Result |
 |---|---|
-| empty | the normal release: tag `v<version>`, no flat zip. Fine for the Dev repo and for people who do not use the Launcher; **do not use it on `CyanLabs/Syn3Updater`** while v2 Launchers exist |
+| empty | the normal release: tag `v<version>`, no flat zip. **do not use it on `CyanLabs/Syn3Updater`** while v2 Launchers exist |
 | `auto` | the next free `2.99.99.N` (numbered 1 to 999, compared as numbers: 2.99.99.2 is lower than 2.99.99.12), for test builds |
 | an exact tag such as `3.0.0.0` | that tag, for the real release (it fails at once if the tag or release already exists) |
 

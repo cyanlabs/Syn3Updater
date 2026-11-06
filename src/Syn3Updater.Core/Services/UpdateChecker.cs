@@ -28,10 +28,7 @@ public static class Channels
 public class UpdateChecker
 {
     public const string Repo = "CyanLabs/Syn3Updater";
-    /// <summary>Nightly builds live only here, never in the production repo (the v2 Launcher treats that repo's newest pre-release as the Beta update).</summary>
-    public const string NightlyRepo = "CyanLabs/Syn3UpdaterDev";
-    public const string ReleasesApi = $"https://api.github.com/repos/{Repo}/releases?per_page=20";
-    public const string NightlyReleasesApi = $"https://api.github.com/repos/{NightlyRepo}/releases?per_page=10";
+    public const string ReleasesApi = $"https://api.github.com/repos/{Repo}/releases?per_page=30";
     private readonly HttpClient _http;
     private readonly string? _url;
 
@@ -46,7 +43,7 @@ public class UpdateChecker
     {
         try
         {
-            using var req = new HttpRequestMessage(HttpMethod.Get, _url ?? (channel == UpdateChannel.Nightly ? NightlyReleasesApi : ReleasesApi));
+            using var req = new HttpRequestMessage(HttpMethod.Get, _url ?? ReleasesApi);
             req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cts.CancelAfter(TimeSpan.FromSeconds(15));
