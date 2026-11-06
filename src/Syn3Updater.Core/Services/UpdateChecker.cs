@@ -90,16 +90,17 @@ public class UpdateChecker
 
     private static readonly Regex VersionInTitle = new(@"\d+\.\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z.\-]+)?", RegexOptions.Compiled);
     /// <summary>
-    /// The version a release really is. Normally its tag. Two cases use the title instead: nightlies (the tag is just "nightly"), and a pre-release published
-    /// under a bare numeric tag such as 3.0.0.0 (the v2 Launcher only accepts those) whose title names the real build, 3.0.0-test8. Without the second,
-    /// 3.0.0.0 would look newer than the 3.0.0-test8 it contains and everyone on that build would be told to update to it.
+    /// The version a release really is. Normally its tag. Two cases use the title instead: nightlies (the tag is just "nightly"), and a release flagged
+    /// pre-release that sits under a bare numeric tag (2.9.9.5, 3.0.0.0: the v2 Launcher only accepts those) while its title names the real pre-release,
+    /// "Syn3 Updater 3.0.0-test9". Without that, the bare tag would look like a different (and for 3.0.0.0 a newer) version than the build it contains.
+    /// A release that is NOT flagged pre-release always keeps its tag, so the final 3.0.0.0 still beats every test build.
     /// </summary>
     private static string? VersionOf(string? tag, string? title, bool prerelease)
     {
         var fromTitle = title != null && VersionInTitle.Match(title) is { Success: true } m ? m.Value : null;
         var t = SemVer.Parse(tag);
         if (t == null) return fromTitle;
-        if (prerelease && !t.IsPrerelease && SemVer.Parse(fromTitle) is { IsPrerelease: true } named && named.SameNumbers(t)) return fromTitle;
+        if (prerelease && !t.IsPrerelease && SemVer.Parse(fromTitle) is { IsPrerelease: true }) return fromTitle;
         return tag;
     }
 }
@@ -111,7 +112,6 @@ public class SemVer : IComparable<SemVer>
     public int[] Numbers { get; }
     public string Pre { get; }
     public bool IsPrerelease => Pre.Length > 0;
-    public bool SameNumbers(SemVer other) => Numbers.SequenceEqual(other.Numbers);
     private SemVer(int[] n, string pre) { Numbers = n; Pre = pre; }
 
     public static SemVer? Parse(string? s)

@@ -154,9 +154,15 @@ public class UpdateCheckerTests
         // the same tag as a real (not pre-release) release IS the final 3.0.0 and beats every test build
         var final = Releases2(("3.0.0.0", "Syn3 Updater 3.0.0", false));
         Assert.Equal("3.0.0.0", UpdateChecker.Pick(final, "3.0.0-test8")!.Version);
-        // a title that does not name the same version changes nothing
+        // a title that names no pre-release version changes nothing
         Assert.Equal("3.0.0.0", UpdateChecker.Pick(Releases2(("3.0.0.0", "Big v3 release", true)), "3.0.0-test8")!.Version);
-        Assert.Equal("3.0.0.0", UpdateChecker.Pick(Releases2(("3.0.0.0", "Syn3 Updater 3.1.0-test1", true)), "3.0.0-test8")!.Version);
+        Assert.Equal("3.0.0.0", UpdateChecker.Pick(Releases2(("3.0.0.0", "Syn3 Updater 3.1.0", true)), "3.0.0-test8")!.Version);       // a pre-release flag with a final-looking title: keep the tag
+        // test builds are tagged 2.9.9.N for the old Launcher: the number is only a label, the title carries the real version
+        var legacy = Releases2(("2.9.9.12", "Syn3 Updater 3.0.0-test12", true), ("2.9.9.2", "Syn3 Updater 3.0.0-test9", true), ("2.14.2.1", "2.14.2.1", false));
+        Assert.Equal("3.0.0-test12", UpdateChecker.Pick(legacy, "3.0.0-test9")!.Version);
+        Assert.Null(UpdateChecker.Pick(legacy, "3.0.0-test12"));
+        Assert.Null(UpdateChecker.Pick(legacy, "3.0.0-test13"));
+        Assert.Equal("3.0.0-test12", UpdateChecker.Pick(legacy, "3.0.0-test8")!.Version);
         // the real situation: test8 published as 3.0.0.0 and test9 as v3.0.0-test9. The newest TEST build is offered (test9), never the bare 3.0.0.0 label.
         var both = Releases2(("v3.0.0-test9", "Syn3 Updater 3.0.0-test9", true), ("3.0.0.0", "Syn3 Updater 3.0.0-test8", true), ("2.14.2.1", "2.14.2.1", false));
         Assert.Equal("3.0.0-test9", UpdateChecker.Pick(both, "3.0.0-test8")!.Version);
