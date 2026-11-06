@@ -96,6 +96,22 @@ public class HomeFlowTests
         Assert.False(home.StartEnabled);
     }
 
+    [AvaloniaTheory]
+    [InlineData(3300000, "reformat")]      // Option C in v2: an "only update maps" release is always autoinstall...
+    [InlineData(3420282, "downgrade")]     // ...and Option F: the same on 3.4.19274 or newer
+    public async Task AForcedMode_IsIgnoredForAnOnlyMapsRelease_AsInV2(int version, string forced)
+    {
+        using var env = new AppEnv(version: version, nav: true); Ctx.Profile.My20v2 = false; Ctx.Profile.InstallMode = forced;
+        var home = env.Main.Home; home.ReloadSummary();
+        await AppEnv.Until(() => home.Releases.Count == 2);
+        home.SelectedRelease = home.Releases[1]; await AppEnv.Until(() => home.MapVersions.Count == 3);
+        home.SelectedMap = home.MapVersions[1]; await AppEnv.Until(() => home.Packages.Count == 4);
+        Assert.Equal(forced, home.InstallMode);                                    // a normal release: the forced mode is used (v2 options A/D/G)
+        home.SelectedRelease = home.Releases[0]; await AppEnv.Until(() => home.MapVersions.Count == 2);
+        home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 2);
+        Assert.Equal("autoinstall", home.InstallMode);                             // only maps: v2 uses autoinstall whatever was forced
+    }
+
     [AvaloniaFact]
     public async Task ForcedInstallMode_IsKept_AndShownAsForced()
     {

@@ -472,8 +472,10 @@ public partial class HomeViewModel : PageViewModel
         var res = InstallModeResolver.Resolve(p.CurrentVersion ?? 0, p.My20v2, Ctx.ModeForced, SelectedMap.Kind,
             SelectedMap.Release?.Esn ?? false, SelectedRelease.OnlyMaps);
         _invalidSelection = res.Invalid;
+        // As in v2: the resolver returns null when a fixed mode should be kept (options A, B, D, E, G), and then the fixed mode is used. Options C and F (an "only maps"
+        // release, or MY20 protection on) and H always give autoinstall and ignore a fixed mode, so the fixed mode must not be applied over them.
         if (res.Mode != null) InstallMode = res.Mode;
-        if (Ctx.ModeForced) InstallMode = p.InstallMode;
+        else if (Ctx.ModeForced) InstallMode = p.InstallMode;
         InstallDocsUrl = ApiEndpoints.InstallDocsUrl(InstallMode);
         if (res.Invalid) _ = Dialogs.Error(Ctx.T("MessageBox.MY20InvalidConfiguration"));
         Ctx.Log.Debug($"Install mode option {res.Option}: {InstallMode}");
