@@ -38,6 +38,68 @@ public class UnsavedSettingsTests
         Assert.Equal("Nightly", Ctx.Main.UpdateChannel); Assert.Equal(UpdateChannel.Nightly, Ctx.UpdateChannel);
     }
 
+    private static string PrefsFile(string json) { var d = Path.Combine(Path.GetTempPath(), "s3u-prefs-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(d); var f = Path.Combine(d, "launcherPrefs.json"); File.WriteAllText(f, json); return f; }
+
+    [AvaloniaFact]
+    public async Task ChangingTheChannel_TellsTheLauncher_AndLeavesItsInstallRecordAlone()
+    {
+        using var env = new AppEnv(); var m = env.Main;
+        var f = PrefsFile("{\"ReleaseBranch\":0,\"ReleaseInstalled\":\"2.14.2.1\",\"ReleaseTypeInstalled\":0}"); Ctx.LauncherPrefsPath = f;
+        m.Current = m.Settings;
+        Assert.Equal("Stable", m.Settings.Channel!.Value);                                           // nothing saved in the app: the Launcher's channel shows
+        m.Settings.Channel = m.Settings.ChannelOptions.Single(o => o.Value == "Beta");
+        env.Dialogs.Choices.Enqueue(2); Assert.True(await m.GoToAsync(m.Home));
+        var o2 = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(f))!.AsObject();
+        Assert.Equal(1, (int)o2["ReleaseBranch"]!); Assert.Equal("2.14.2.1", (string)o2["ReleaseInstalled"]!); Assert.Equal(0, (int)o2["ReleaseTypeInstalled"]!);
+        Assert.Equal(UpdateChannel.Beta, Ctx.UpdateChannel);
+    }
+
+    [AvaloniaFact]
+    public async Task Nightly_IsWrittenAsBeta_ButStaysNightlyInTheApp()
+    {
+        using var env = new AppEnv(); var m = env.Main;
+        var f = PrefsFile("{\"ReleaseBranch\":0,\"ReleaseInstalled\":\"2.14.2.1\",\"ReleaseTypeInstalled\":0}"); Ctx.LauncherPrefsPath = f;
+        m.Current = m.Settings; m.Settings.Channel = m.Settings.ChannelOptions.Single(o => o.Value == "Nightly");
+        env.Dialogs.Choices.Enqueue(2); Assert.True(await m.GoToAsync(m.Home));
+        Assert.Equal(1, LauncherPrefs.ReadBranch(f)); Assert.Equal(UpdateChannel.Nightly, Ctx.UpdateChannel);
+    }
+
+    [AvaloniaFact]
+    public async Task WithoutALauncher_NothingIsWritten()
+    {
+        using var env = new AppEnv(); var m = env.Main;
+        var missing = Path.Combine(Path.GetTempPath(), "s3u-none-" + Guid.NewGuid().ToString("N"), "launcherPrefs.json"); Ctx.LauncherPrefsPath = missing;   // no file, no Launcher.exe beside the test app
+        m.Current = m.Settings; m.Settings.Channel = m.Settings.ChannelOptions.Single(o => o.Value == "Beta");
+        env.Dialogs.Choices.Enqueue(2); Assert.True(await m.GoToAsync(m.Home));
+        Assert.False(File.Exists(missing)); Assert.Equal(UpdateChannel.Beta, Ctx.UpdateChannel);
+        Ctx.LauncherPrefsPath = null;                                                                  // what every non-Windows system has
+        m.Current = m.Settings; m.Settings.Channel = m.Settings.ChannelOptions.Single(o => o.Value == "Stable");
+        env.Dialogs.Choices.Enqueue(2); Assert.True(await m.GoToAsync(m.Home)); Assert.Equal(UpdateChannel.Stable, Ctx.UpdateChannel);
+    }
+
+    [AvaloniaFact]
+    public void AChannelChosenInTheLauncherFile_BeatsADifferentOneSavedInTheApp()
+    {
+        using var env = new AppEnv(); Ctx.Main.UpdateChannel = "Stable";
+        Ctx.LauncherPrefsPath = PrefsFile("{\"ReleaseBranch\":1}");
+        Assert.Equal(UpdateChannel.Beta, Ctx.UpdateChannel);
+    }
+
+    [AvaloniaFact]
+    public void TheSwitchBanner_NamesTheChannel_ButAPlainUpdateDoesNot()
+    {
+        using var env = new AppEnv(); var m = env.Main; Ctx.LauncherPrefsPath = null;
+        Ctx.Main.UpdateChannel = "Beta";
+        m.Update = new UpdateInfo("3.0.0-test10", "https://example/x", true, Switch: true);
+        Assert.Equal($"Syn3 Updater 3.0.0-test10 is available on the Beta update channel (you have {Ctx.Version}).", m.UpdateText);
+        Ctx.Main.UpdateChannel = "Nightly"; m.Update = m.Update with { };                                  // a new value so the text is read again
+        Assert.Contains("on the Nightly update channel", m.UpdateText);
+        Ctx.Main.UpdateChannel = "Stable";
+        Assert.Contains("on the Stable update channel", m.UpdateText);
+        m.Update = new UpdateInfo("3.0.0-test10", "https://example/x", true);
+        Assert.Equal($"Syn3 Updater 3.0.0-test10 is available (you have {Ctx.Version}).", m.UpdateText);   // same channel as the running build: no channel named
+    }
+
     [AvaloniaFact]
     public async Task Discard_LeavesTheSavedSettingsAlone_AndRevertsThePage()
     {

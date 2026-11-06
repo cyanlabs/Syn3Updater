@@ -106,6 +106,9 @@ Settings > Update channel decides which builds the update notice offers. The cha
 - Nightlies are built by `release.yml` at 03:17 UTC, only when `main` changed since the last one and only in the Dev repo (it can also be run by hand with "nightly"). The version is `<Version in Directory.Build.props>-nightly.<date>.<run number>`,
   and the app reads it from the release title because the tag is always `nightly`. They are kept out of the production repo on purpose: the v2 Launcher treats that repo's newest pre-release as its Beta update.
 - The word sent to the API and written in logs as the "branch" is the channel of the running build (`Stable`, `Beta` or `Nightly`).
+- **Windows: the Launcher follows this setting.** Like v2's Settings page, choosing a channel writes `ReleaseBranch` into the Launcher's `C:\ProgramData\CyanLabs\Syn3Updater\launcherPrefs.json`
+  (0 Stable, 1 Beta; the install record next to it is never touched), so the next Launcher start installs that channel. Nightly is written as Beta (the Launcher only reads the production repo, which has no nightlies).
+  If the file says something different from the app (changed by v2 or the Launcher), the file wins, as in v2. It is only written when that file or a `Launcher.exe` beside the app exists, and never on Linux or macOS.
 
 ## Releasing for the v2 Launcher
 

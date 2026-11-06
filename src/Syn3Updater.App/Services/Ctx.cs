@@ -28,7 +28,9 @@ public static class Ctx
     /// <summary>The channel the running build came from (also what the API and logs call its "branch").</summary>
     public static string Branch => Channels.Of(Version).ToString();
     /// <summary>The channel chosen in Settings, which decides what the update notice offers.</summary>
-    public static UpdateChannel UpdateChannel => Channels.Parse(Main.UpdateChannel, Version);
+    /// <summary>Windows only: where the Launcher keeps the release channel it follows (v2's Settings page wrote it too). Null elsewhere, and when running with a custom data folder.</summary>
+    public static string? LauncherPrefsPath { get; set; }
+    public static UpdateChannel UpdateChannel => LauncherPrefs.Reconcile(Channels.Parse(Main.UpdateChannel, Version), LauncherPrefs.ReadBranch(LauncherPrefsPath));
 
     /// <summary>Watches for drives being plugged in or removed (started by the main window).</summary>
     public static DriveMonitor DriveMonitor { get; private set; } = null!;
@@ -36,6 +38,7 @@ public static class Ctx
     public static void Init(string? dataDirOverride = null, HttpMessageHandler? handler = null, IDriveService? drives = null, Func<string?>? driveFingerprint = null)
     {
         Paths = new AppPaths(dataDirOverride ?? Environment.GetEnvironmentVariable("SYN3_DATA_DIR"));
+        LauncherPrefsPath = dataDirOverride == null && Environment.GetEnvironmentVariable("SYN3_DATA_DIR") == null ? LauncherPrefs.DefaultPath() : null;       // Windows only (null elsewhere)
         Store = new SettingsStore(Paths);
         Store.Load();
         Store.Save();

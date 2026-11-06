@@ -91,7 +91,9 @@ public partial class MainWindowViewModel : ObservableObject
     // ---- new version notice ----
     [ObservableProperty] private UpdateInfo? _update;
     public bool UpdateAvailable => Update != null;
-    public string UpdateText => Update == null ? "" : Ctx.T(Update.Switch ? "App.UpdateSwitch" : "App.UpdateAvailable", Update.Version, Ctx.Version);
+    public string UpdateText => Update == null ? "" : Update.Switch ? Ctx.T("App.UpdateSwitch", Update.Version, Ctx.Version, ChannelName(Ctx.UpdateChannel)) : Ctx.T("App.UpdateAvailable", Update.Version, Ctx.Version);
+    /// <summary>The channel's short name in the current language ("Stable", "Beta", "Nightly").</summary>
+    public static string ChannelName(UpdateChannel channel) => channel switch { UpdateChannel.Beta => Ctx.T("Channel.Beta"), UpdateChannel.Nightly => Ctx.T("Channel.Nightly"), _ => Ctx.T("Channel.Stable") };
     partial void OnUpdateChanged(UpdateInfo? value) { OnPropertyChanged(nameof(UpdateAvailable)); OnPropertyChanged(nameof(UpdateText)); }
 
     /// <summary>Looks for a newer release and shows the banner if there is one. A failed check is silent: it is never worth interrupting anyone for.</summary>
