@@ -147,7 +147,11 @@ public partial class HomeViewModel : PageViewModel
         Drives.Add(Chooser());     // "Select A Directory..." is always available, even before the first refresh
     }
 
-    public override void OnShown() { ReloadSummary(); _ = RefreshDrivesAsync(); }
+    public override void OnShown()
+    {
+        ReloadSummary(); _ = RefreshDrivesAsync();
+        if (UrlIntents.Pending != null && !ConfigMissing) _ = UrlIntents.ApplyPendingAsync();          // a link that arrived before the car was configured
+    }
 
     public void ReloadSummary()
     {
@@ -179,6 +183,34 @@ public partial class HomeViewModel : PageViewModel
 
     private bool _regionPreselected;
 
+    // The dropdown cascade (region -> releases -> maps -> packages) loads in the background; these let a syn3updater:// link wait for each step.
+    private Task _releasesTask = Task.CompletedTask, _mapsTask = Task.CompletedTask, _packagesTask = Task.CompletedTask;
+
+    /// <summary>
+    /// Preselects what a syn3updater:// link asks for, in v2's order: region, then SYNC release ("Sync " + Release), then maps. Like v2 it needs the Region
+    /// to do anything. It only picks among the options the app offers (an unknown or disabled one is skipped) and never presses Start.
+    /// </summary>
+    public async Task ApplyIntentAsync(UrlIntent intent)
+    {
+        await _releasesTask;                                                      // let whatever is loading settle first so it cannot overwrite the choices below
+        if (intent.Region is not { } code) { Ctx.Log.Info("URL intent: no region given, nothing to preselect"); return; }
+        var region = Regions.FirstOrDefault(r => r.Code.Equals(code, StringComparison.OrdinalIgnoreCase));
+        if (region == null) { Ctx.Log.Info($"URL intent: unknown region '{code}', ignored"); return; }
+        if (SelectedRegion?.Code != region.Code) { SelectedRegion = region; await _releasesTask; }
+        if (intent.Release is not { } release) return;
+
+        var wanted = release.StartsWith("Sync ", StringComparison.OrdinalIgnoreCase) ? release : "Sync " + release;
+        var item = Releases.FirstOrDefault(r => string.Equals(r.Display, wanted, StringComparison.OrdinalIgnoreCase));
+        if (item == null) { Ctx.Log.Info($"URL intent: release '{wanted}' is not offered for {region.Code}, ignored"); return; }
+        if (!ReferenceEquals(SelectedRelease, item)) { await _mapsTask; SelectedRelease = item; await _mapsTask; }
+        if (intent.Maps is not { } maps) return;
+
+        var map = MapVersions.FirstOrDefault(m => (m.Release?.IsEnabled ?? true) &&
+            (string.Equals(m.Release?.Name, maps, StringComparison.OrdinalIgnoreCase) || string.Equals(m.Display, maps, StringComparison.OrdinalIgnoreCase)));
+        if (map == null) { Ctx.Log.Info($"URL intent: maps '{maps}' are not available for this release and configuration, ignored"); return; }
+        if (!ReferenceEquals(SelectedMap, map)) { SelectedMap = map; await _packagesTask; }
+    }
+
     /// <summary>
     /// Empties the release and map choices and the package list. With <paramref name="includeRegion"/> the region dropdown is
     /// emptied too (after Settings are applied or the profile changes). The USB drive selection is never touched.
@@ -191,7 +223,7 @@ public partial class HomeViewModel : PageViewModel
         Notes = ""; _suppress = false;
         ResetInstallMode();
         UpdateButtons();
-        if (SelectedRegion != null) _ = LoadReleasesAsync();
+        if (SelectedRegion != null) _releasesTask = LoadReleasesAsync();
     }
 
     // ---------- drives ----------
@@ -284,7 +316,7 @@ public partial class HomeViewModel : PageViewModel
     partial void OnSelectedRegionChanged(Region? value)
     {
         if (_suppress || value == null) return;
-        _ = LoadReleasesAsync();
+        _releasesTask = LoadReleasesAsync();
     }
 
     private async Task LoadReleasesAsync()
@@ -316,7 +348,7 @@ public partial class HomeViewModel : PageViewModel
     partial void OnSelectedReleaseChanged(ReleaseItem? value)
     {
         if (_suppress || value == null) return;
-        _ = LoadMapsAsync(value);
+        _mapsTask = LoadMapsAsync(value);
     }
 
     private async Task LoadMapsAsync(ReleaseItem rel)
@@ -357,7 +389,7 @@ public partial class HomeViewModel : PageViewModel
     partial void OnSelectedMapChanged(MapItem? value)
     {
         if (_suppress || value == null) return;
-        _ = LoadPackagesAsync(value);
+        _packagesTask = LoadPackagesAsync(value);
     }
 
     private async Task LoadPackagesAsync(MapItem map)

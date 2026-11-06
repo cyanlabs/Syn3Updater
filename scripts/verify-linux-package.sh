@@ -43,6 +43,12 @@ exec_path="${exec_line#\"}"; exec_path="${exec_path%\"*}"
 [[ -x "$exec_path" ]] || fail "Exec points at a file that does not exist or is not executable: $exec_path"
 try_exec="$(grep '^TryExec=' "$DESK" | cut -d= -f2-)"; [[ "$try_exec" == "$APP" ]] || fail "TryExec is '$try_exec'"
 grep -q '^Icon=syn3updater$' "$DESK" || fail "Icon is not 'syn3updater'"
+grep -q '^MimeType=.*x-scheme-handler/syn3updater;' "$DESK" || fail "the launcher entry does not claim syn3updater:// links"
+grep '^Exec=' "$DESK" | head -1 | grep -q ' %u$' || fail "Exec does not pass the link (%u)"
+if command -v xdg-mime >/dev/null 2>&1; then
+  [[ "$(xdg-mime query default x-scheme-handler/syn3updater)" == "syn3updater.desktop" ]] || fail "syn3updater:// links are not associated with syn3updater.desktop"
+  ok "syn3updater:// is associated with the launcher"
+fi
 if command -v desktop-file-validate >/dev/null 2>&1; then desktop-file-validate "$DESK" || fail "desktop-file-validate rejected the entry"; ok "desktop-file-validate"; fi
 ok "launcher entry points at $exec_path"
 
@@ -55,6 +61,7 @@ ok "reinstall"
 [[ ! -e "$HOME/.local/share/syn3updater/syn3updater" ]] || fail "unexpected lower-case program file"
 
 "$PKGDIR/uninstall.sh" >/dev/null 2>&1 || fail "uninstall.sh failed"
+if [[ -f "$HOME/.config/mimeapps.list" ]] && grep -q 'x-scheme-handler/syn3updater' "$HOME/.config/mimeapps.list"; then fail "uninstall left the syn3updater:// association behind"; fi
 for f in "$HOME/.local/share/syn3updater" "$HOME/.local/bin/syn3updater" "$DESK" "$HOME/.local/share/icons/hicolor/128x128/apps/syn3updater.png"; do
   [[ ! -e "$f" && ! -L "$f" ]] || fail "uninstall left $f behind"
 done

@@ -42,15 +42,18 @@ cat > "$data/applications/syn3updater.desktop" <<DESK
 Type=Application
 Name=Syn3 Updater
 Comment=Ford SYNC 3 update USB creator
-Exec="$dest/Syn3Updater"
+Exec="$dest/Syn3Updater" %u
 TryExec=$dest/Syn3Updater
 Icon=syn3updater
 Terminal=false
 Categories=Utility;
+MimeType=x-scheme-handler/syn3updater;
 DESK
 chmod 644 "$data/applications/syn3updater.desktop"
 command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$data/applications" >/dev/null 2>&1 || true
 command -v gtk-update-icon-cache >/dev/null 2>&1 && gtk-update-icon-cache -q -t "$data/icons/hicolor" >/dev/null 2>&1 || true
+# make syn3updater:// links (from the CyanLabs website and forum) open this app
+command -v xdg-mime >/dev/null 2>&1 && xdg-mime default syn3updater.desktop x-scheme-handler/syn3updater >/dev/null 2>&1 || true
 
 echo "Installed to $dest"
 echo "Start it from your application menu (Syn3 Updater) or run: $dest/Syn3Updater"
@@ -82,6 +85,7 @@ data="${XDG_DATA_HOME:-$HOME/.local/share}"
 rm -rf "$data/syn3updater"
 rm -f "$HOME/.local/bin/syn3updater" "$data/applications/syn3updater.desktop" "$data/icons/hicolor/128x128/apps/syn3updater.png"
 command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$data/applications" >/dev/null 2>&1 || true
+[[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/mimeapps.list" ]] && sed -i '/^x-scheme-handler\/syn3updater=/d' "${XDG_CONFIG_HOME:-$HOME/.config}/mimeapps.list" || true
 echo "Syn3 Updater was removed."
 UNINST
 
@@ -99,6 +103,9 @@ Run without installing:
 
 Making your own launcher entry: use the full path to the program file, for example
     Exec="/home/you/apps/Syn3Updater-$VERSION-$RID/Syn3Updater"
+
+Links that start with syn3updater:// (on the CyanLabs website and forum) open Syn3 Updater and preselect the region, release and maps,
+once it has been installed with ./install.sh.
 
 Preparing a USB drive needs: lsblk, sfdisk, wipefs (util-linux), udisksctl (udisks2), pkexec (polkit), mkfs.exfat (exfatprogs).
   Fedora / Nobara:   sudo dnf install exfatprogs udisks2 polkit util-linux

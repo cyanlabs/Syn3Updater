@@ -9,10 +9,14 @@ public class AppPaths
     public string DefaultLogDir => Path.Combine(DataDir, "Logs");
     public string AppLogFile => Path.Combine(DataDir, "applog.txt");
 
+    /// <summary>The data folder the app uses when nothing overrides it (the SYN3_DATA_DIR environment variable wins).</summary>
+    public static string DefaultDataDir() =>
+        Environment.GetEnvironmentVariable("SYN3_DATA_DIR") is { Length: > 0 } d ? d : Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CyanLabs", "Syn3Updater");
+
     public AppPaths(string? overrideDir = null)
     {
-        DataDir = overrideDir ?? Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CyanLabs", "Syn3Updater");
+        DataDir = overrideDir ?? DefaultDataDir();
         Directory.CreateDirectory(DataDir);
         Directory.CreateDirectory(ProfileDir);
     }
