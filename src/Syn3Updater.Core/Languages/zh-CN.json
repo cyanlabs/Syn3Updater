@@ -13,6 +13,7 @@
   "Home.RecommendedUSBFlashDriveNA": "包含导航文件请使用大于16GB设备",
   "Home.RecommendedUSBFlashDriveEU": "欧洲地区的主机需要大于32GB",
   "Home.SelectPackages": "选择安装包",
+  "Home.PackageInfo": "在 CyanLabs 软件数据库中打开此软件包",
   "Home.InstallMode": "安装模式：",
   "Home.StartButton": "开始",
   "Download.Log": "Log",

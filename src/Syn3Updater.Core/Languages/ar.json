@@ -13,6 +13,7 @@
   "Home.RecommendedUSBFlashDriveNA": "امريكا الشمالية، استراليا ونيوزيلاندا، وباقي دول العالم. APIM تتطلب سعة تخزين 16GB على الاقل",
   "Home.RecommendedUSBFlashDriveEU": "دول اوروبا، APIM تتطلب سعة تخزين 32GB على الاقل",
   "Home.SelectPackages": "اختر الباقات",
+  "Home.PackageInfo": "افتح هذه الحزمة في قاعدة بيانات برامج CyanLabs",
   "Home.InstallMode": "نوع التثبيت",
   "Home.StartButton": "ابدأ",
   "Download.Log": "السجل",

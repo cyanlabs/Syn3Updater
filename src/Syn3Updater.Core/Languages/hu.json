@@ -13,6 +13,7 @@
   "Home.RecommendedUSBFlashDriveNA": "NA, ROW, ANZ APIM-ekhez legalább 16 GB-ra lesz szükség",
   "Home.RecommendedUSBFlashDriveEU": "Az EU APIM-ekhez legalább 32 GB szükséges",
   "Home.SelectPackages": "Csomagok választása",
+  "Home.PackageInfo": "A csomag megnyitása a CyanLabs szoftveradatbázisában",
   "Home.InstallMode": "Telepítési mód:",
   "Home.StartButton": "Rajt",
   "Download.Log": "Napló",

@@ -13,6 +13,7 @@
   "Home.RecommendedUSBFlashDriveNA": "NA, ROW and ANZ Sync3 richiedono almeno 16GB",
   "Home.RecommendedUSBFlashDriveEU": "Sync3 Europei richiedono almeno 32GB",
   "Home.SelectPackages": "Pacchetti selezionati",
+  "Home.PackageInfo": "Apri questo pacchetto nel database software di CyanLabs",
   "Home.InstallMode": "Modalità di installazione",
   "Home.StartButton": "Inizia",
   "Download.Log": "Registro",

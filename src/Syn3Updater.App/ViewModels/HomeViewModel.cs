@@ -65,6 +65,11 @@ public partial class PackageRow : ObservableObject
     public Avalonia.Media.IBrush IconBackground { get; }
     public string Display => $"{Ivsu.Type} - {Ivsu.Name}{(string.IsNullOrEmpty(Ivsu.Version) ? "" : " " + Ivsu.Version)}";
     public string Title => Ivsu.Name;
+    /// <summary>The package's page in the CyanLabs software database (the same address that site links to from its own list).</summary>
+    public const string InfoBase = "https://cyanlabs.net/fhub/sync3/sw-db/?ivsu=";
+    public string InfoUrl => InfoBase + Uri.EscapeDataString(Ivsu.Name);
+    public bool HasInfo => !string.IsNullOrWhiteSpace(Ivsu.Name);
+    [RelayCommand] private Task OpenInfo() => Dialogs.OpenUrl(InfoUrl);
     public string Subtitle => string.IsNullOrEmpty(Ivsu.Version) ? TypeLabel : $"{TypeLabel}  ·  {Ivsu.Version}";
     public string SizeText => Format.Bytes(Ivsu.FileSize);
 }

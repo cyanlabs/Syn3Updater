@@ -13,6 +13,7 @@
   "Home.RecommendedUSBFlashDriveNA": "NA, ROW, ANZ APIM's exigirão pelo menos 16 GB",
   "Home.RecommendedUSBFlashDriveEU": "O APIM da UE exigirá pelo menos 32 GB",
   "Home.SelectPackages": "Selecione os pacotes",
+  "Home.PackageInfo": "Abrir este pacote na base de dados de software da CyanLabs",
   "Home.InstallMode": "Modo de instalação",
   "Home.StartButton": "Começar",
   "Download.Log": "Registo",

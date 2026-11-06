@@ -13,6 +13,7 @@
   "Home.RecommendedUSBFlashDriveNA": "NA, ROW, ANZ - APIMs jednotky - minimum 16GB paměť",
   "Home.RecommendedUSBFlashDriveEU": "EU - APIMs jednotky - minimum 32GB paměť",
   "Home.SelectPackages": "Vyber balíček",
+  "Home.PackageInfo": "Otevřít tento balíček v databázi softwaru CyanLabs",
   "Home.InstallMode": "Instalační režim",
   "Home.StartButton": "Spustit",
   "Download.Log": "Log",

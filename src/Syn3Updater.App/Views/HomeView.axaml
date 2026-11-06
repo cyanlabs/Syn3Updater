@@ -132,7 +132,7 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:PackageRow">
                   <Button Classes="tile" Classes.selected="{Binding Selected}" Command="{Binding ToggleCommand}" Margin="0,0,0,8">
-                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="14">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="14">
                       <Border Width="44" Height="44" CornerRadius="12" Background="{Binding IconBackground}">
                         <PathIcon Data="{Binding IconData}" Foreground="{Binding IconBrush}" Width="22" Height="22" />
                       </Border>
@@ -140,8 +140,11 @@
                         <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                         <TextBlock Text="{Binding Subtitle}" Classes="label" TextTrimming="CharacterEllipsis" />
                       </StackPanel>
-                      <TextBlock Grid.Column="2" Text="{Binding SizeText}" Classes="label" VerticalAlignment="Center" />
-                      <CheckBox Grid.Column="3" IsChecked="{Binding Selected}" IsHitTestVisible="False" MinWidth="0" Padding="0" />
+                      <Button Grid.Column="2" Classes="help" Command="{Binding OpenInfoCommand}" IsVisible="{Binding HasInfo}" ToolTip.Tip="{svc:T Home.PackageInfo}" AutomationProperties.Name="{svc:T Home.PackageInfo}">
+                        <PathIcon Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z" />
+                      </Button>
+                      <TextBlock Grid.Column="3" Text="{Binding SizeText}" Classes="label" VerticalAlignment="Center" MinWidth="64" TextAlignment="Right" />
+                      <CheckBox Grid.Column="4" IsChecked="{Binding Selected}" IsHitTestVisible="False" MinWidth="0" Padding="0" />
                     </Grid>
                   </Button>
                 </DataTemplate>

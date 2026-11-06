@@ -13,6 +13,7 @@
   "Home.RecommendedUSBFlashDriveNA": "NA, ROW, ANZ APIM's hebben ten minste 16 GB nodig",
   "Home.RecommendedUSBFlashDriveEU": "Voor EU APIM's is minimaal 32GB vereist",
   "Home.SelectPackages": "Selecteer Pakketten",
+  "Home.PackageInfo": "Dit pakket openen in de softwaredatabase van CyanLabs",
   "Home.InstallMode": "Installatiemodus",
   "Home.StartButton": "Begin",
   "Download.Log": "Logboek",
