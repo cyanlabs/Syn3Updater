@@ -12,6 +12,7 @@
     <DataTemplate DataType="vm:LogsViewModel"><views:LogsView /></DataTemplate>
     <DataTemplate DataType="vm:SettingsViewModel"><views:SettingsView /></DataTemplate>
     <DataTemplate DataType="vm:AboutViewModel"><views:AboutView /></DataTemplate>
+    <DataTemplate DataType="vm:DiagnosticsViewModel"><views:DiagnosticsView /></DataTemplate>
   </Application.DataTemplates>
 
   <Application.Resources>

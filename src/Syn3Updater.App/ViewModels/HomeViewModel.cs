@@ -310,7 +310,7 @@ public partial class HomeViewModel : PageViewModel
     private static Task ShowApiError(ApiException e)
     {
         Ctx.Log.Error(e.Message);
-        return Dialogs.Error("Syn3 Updater requires a connection to the backend to function.\n\n" + e.Message);
+        return Dialogs.Error(Ctx.T("Home.BackendRequired", e.Message));
     }
 
     partial void OnSelectedReleaseChanged(ReleaseItem? value)
@@ -346,7 +346,7 @@ public partial class HomeViewModel : PageViewModel
                 {
                     bool esnBlocked = (rel.OnlyMaps || p.My20v2 == true) && m.Esn;
                     m.IsEnabled = !esnBlocked;
-                    MapVersions.Add(new MapItem { Kind = MapChoice.MapPackage, Release = m, Display = m.Name + (esnBlocked ? " (not compatible with MY20)" : "") });
+                    MapVersions.Add(new MapItem { Kind = MapChoice.MapPackage, Release = m, Display = m.Name + (esnBlocked ? " " + Ctx.T("Home.MapNotCompatibleMy20") : "") });
                 }
             }
             catch (ApiException e) { await ShowApiError(e); }
@@ -409,7 +409,7 @@ public partial class HomeViewModel : PageViewModel
     private void UpdateSelectionSummary()
     {
         var chosen = Packages.Where(r => r.Selected).ToList();
-        SelectionSummary = Packages.Count == 0 ? "" : $"{chosen.Count} of {Packages.Count} selected  ·  {Format.Bytes(chosen.Sum(r => r.Ivsu.FileSize))}";
+        SelectionSummary = Packages.Count == 0 ? "" : $"{Ctx.T("App.SelectedSummary", chosen.Count, Packages.Count)}  ·  {Format.Bytes(chosen.Sum(r => r.Ivsu.FileSize))}";
     }
 
     /// <summary>Title, one-line explanation, colour and icon for the install mode shown in the action bar.</summary>

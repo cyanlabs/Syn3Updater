@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Runtime.InteropServices;
 using Cyanlabs.Syn3Updater.Core.Drives;
 using Cyanlabs.Syn3Updater.Core.Models;
 using Cyanlabs.Syn3Updater.Core.Services;
@@ -18,6 +17,8 @@ public static class Ctx
     public static FileService Files { get; private set; } = null!;
     public static IDriveService Drives { get; private set; } = null!;
     public static UpdateRunner Runner { get; private set; } = null!;
+    public static DiagnosticsService Diagnostics { get; private set; } = null!;
+    public static UpdateChecker Updates { get; private set; } = null!;
 
     public static MainSettings Main => Store.Main;
     public static ProfileSettings Profile => Store.Profile;
@@ -44,12 +45,20 @@ public static class Ctx
         Files = new FileService(Http);
         Drives = drives ?? DriveServiceFactory.Create();
         Runner = new UpdateRunner(Drives, Files, Log);
+        Diagnostics = new DiagnosticsService(Drives, Http, Paths.DataDir, () => Main.DownloadPath, () => Main.LogPath, ApiClient.HasToken);
+        Updates = new UpdateChecker(Http);
         DriveMonitor = new DriveMonitor(Drives, driveFingerprint ?? DriveFingerprint.Current, () => !Workflow.Busy && DialogHostViewModel.Instance?.HasDialog != true);
 
+        DriveInfoModel.Label = key => Loc[key switch { "free" => "Home.DriveFreeSpace", "size" => "Home.DriveSize", _ => "Home.DriveFileSystem" }];
         Loc.SetLanguage(Main.Lang);
         Main.Lang = Loc.Code;
-        Log.Debug($"Syn3 Updater {Version} ({Branch}) is starting on {OsName()}");
+        Log.Info($"Syn3 Updater {Version} ({Branch}) is starting on {OsName()}");
+        foreach (var fact in SystemFacts()) Log.Debug($"System - {fact.Key}: {fact.Value}");
     }
+
+    /// <summary>Machine and environment facts for the app log, log.txt and the Diagnostics page.</summary>
+    public static IReadOnlyList<KeyValuePair<string, string>> SystemFacts() =>
+        SystemInfo.Collect(Version, Branch, Paths.DataDir, Main.DownloadPath);
 
     /// <summary>Swaps in a random browser User-Agent from the API, as the original does (best effort).</summary>
     public static async Task RandomizeUserAgentAsync()
@@ -59,19 +68,7 @@ public static class Ctx
         Http.DefaultRequestHeaders.UserAgent.TryParseAdd(ua);
     }
 
-    public static string OsName()
-    {
-        try
-        {
-            if (OperatingSystem.IsLinux() && File.Exists("/etc/os-release"))
-            {
-                var line = File.ReadAllLines("/etc/os-release").FirstOrDefault(l => l.StartsWith("PRETTY_NAME="));
-                if (line != null) return line["PRETTY_NAME=".Length..].Trim('"') + " (" + RuntimeInformation.OSArchitecture + ")";
-            }
-        }
-        catch (IOException) { }
-        return RuntimeInformation.OSDescription + " (" + RuntimeInformation.OSArchitecture + ")";
-    }
+    public static string OsName() => SystemInfo.OsName();
 
     public static string T(string key) => Loc[key];
     public static string T(string key, params object[] args) => Loc.Format(key, args);

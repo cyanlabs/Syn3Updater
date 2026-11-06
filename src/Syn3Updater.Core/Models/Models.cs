@@ -158,6 +158,8 @@ public class MainSettings
     public string? AdLinkUrl { get; set; }
     /// <summary>Parallel connections per download (1-8). Application-wide.</summary>
     public int DownloadConnections { get; set; } = 8;
+    /// <summary>Look for a newer Syn3 Updater release on start-up (a single request to GitHub; it only shows a notice).</summary>
+    public bool CheckForUpdates { get; set; } = true;
 }
 
 public class ProfileSettings

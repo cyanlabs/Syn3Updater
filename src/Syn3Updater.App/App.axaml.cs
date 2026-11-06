@@ -26,6 +26,7 @@ public class App : Application
                 Ctx.Log.Save(Ctx.Paths.AppLogFile);
             };
             _ = vm.LoadAdAsync();
+            _ = vm.CheckForUpdateAsync();
             vm.Home.OnShown();
             // first start (or not accepted yet): the disclaimer pops up over the app until it is accepted
             desktop.MainWindow.Opened += async (_, _) =>

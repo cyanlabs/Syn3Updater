@@ -50,6 +50,8 @@ public partial class LogsViewModel : PageViewModel
     [ObservableProperty] private string _search = "";
     [ObservableProperty] private int _errorCount;
     [ObservableProperty] private int _warningCount;
+    public string ErrorsText => Ctx.T("Logs.ErrorsN", ErrorCount);
+    public string WarningsText => Ctx.T("Logs.WarningsN", WarningCount);
     [ObservableProperty] private string _fileCountText = "";
     public bool HasSavedLogs => Files.Any(f => !f.IsSession);
     public bool CanDelete => Selected is { IsSession: false };
@@ -62,7 +64,7 @@ public partial class LogsViewModel : PageViewModel
         var keep = Selected?.Path;
         Path = Ctx.Main.LogPath ?? "";
         Files.Clear();
-        Files.Add(new LogFile { IsSession = true, Kind = LogKind.Session, Title = "Current session", Subtitle = $"{Ctx.Log.Lines.Count} entries - live" });
+        Files.Add(new LogFile { IsSession = true, Kind = LogKind.Session, Title = Ctx.T("Logs.CurrentSession"), Subtitle = Ctx.T("Logs.EntriesLive", Ctx.Log.Lines.Count) });
         try
         {
             if (Directory.Exists(Path))
@@ -91,7 +93,7 @@ public partial class LogsViewModel : PageViewModel
             _raw = Selected.IsSession ? Ctx.Log.Lines.TakeLast(2000).ToArray()
                 : File.ReadAllText(Selected.Path).Replace("\r\n", "\n").Split('\n');
             ViewTitle = Selected.Title;
-            ViewMeta = Selected.IsSession ? "Everything logged since the app started" : Selected.Subtitle;
+            ViewMeta = Selected.IsSession ? Ctx.T("Logs.SessionMeta") : Selected.Subtitle;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { _raw = new[] { e.Message }; }
         Rebuild();
@@ -110,6 +112,7 @@ public partial class LogsViewModel : PageViewModel
             Lines.Add(new LogLine { Text = l, Level = level });
         }
         ErrorCount = errors; WarningCount = warns;
+        OnPropertyChanged(nameof(ErrorsText)); OnPropertyChanged(nameof(WarningsText));
     }
 
     [RelayCommand] private void Refresh() => Reload();
@@ -121,7 +124,7 @@ public partial class LogsViewModel : PageViewModel
     private async Task DeleteAsync()
     {
         if (Selected is not { IsSession: false } sel) return;
-        if (!await Dialogs.Confirm($"Delete {sel.Title}?", Ctx.T("String.Warning") + "!", warning: true)) return;
+        if (!await Dialogs.Confirm(Ctx.T("Logs.DeleteConfirm", sel.Title), Ctx.T("String.Warning") + "!", warning: true)) return;
         try { File.Delete(sel.Path); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { await Dialogs.Error(e.Message); }
         Selected = null; Reload();
     }
@@ -149,7 +152,7 @@ public partial class NewsViewModel : PageViewModel
     [RelayCommand]
     private async Task LoadAsync()
     {
-        Status = "Loading...";
+        Status = Ctx.T("App.Loading");
         try
         {
             var notices = await Ctx.Api.GetNotices();
@@ -187,18 +190,18 @@ public partial class AboutViewModel : PageViewModel
         OnPropertyChanged(nameof(ProfileName)); OnPropertyChanged(nameof(DataFolder));
     }
 
-    /// <summary>Plain-text summary users can paste into a support thread.</summary>
-    public string Diagnostics =>
-        $"Syn3 Updater {VersionText}{Environment.NewLine}Platform: {Platform}{Environment.NewLine}Runtime: {Runtime}{Environment.NewLine}" +
-        $"Profile: {ProfileName} (version {Ctx.Profile.VersionString}, region {Ctx.Profile.CurrentRegion ?? "-"}, nav {Ctx.Profile.CurrentNav}){Environment.NewLine}" +
-        $"Data folder: {DataFolder}{Environment.NewLine}Download folder: {Ctx.Main.DownloadPath}{Environment.NewLine}Language: {Ctx.Loc.Code}";
+    [RelayCommand]
+    private async Task CheckUpdateAsync()
+    {
+        await MainWindowViewModel.Instance.CheckForUpdateAsync(force: true);
+        if (!MainWindowViewModel.Instance.UpdateAvailable) await Dialogs.Info(Ctx.T("App.UpToDate", Ctx.Version));
+    }
 
+    [RelayCommand] private Task OpenDiagnosticsAsync() => MainWindowViewModel.Instance.GoToAsync(MainWindowViewModel.Instance.Diagnostics);
     [RelayCommand] private Task OpenForumAsync() => Dialogs.OpenUrl("https://community.cyanlabs.net");
     [RelayCommand] private Task OpenDocsAsync() => Dialogs.OpenUrl("https://cyanlabs.net/docs/syn3updater/");
     [RelayCommand] private Task OpenDonateAsync() => Dialogs.OpenUrl("https://cyanlabs.net/support-us/");
     [RelayCommand] private Task OpenFHubAsync() => Dialogs.OpenUrl("https://cyanlabs.net/fhub");
-    [RelayCommand] private Task OpenGithubAsync() => Dialogs.OpenUrl(NewsViewModel.GithubRepo);
     [RelayCommand] private Task OpenLicenseAsync() => Dialogs.OpenUrl("https://www.gnu.org/licenses/gpl-3.0.html");
     [RelayCommand] private Task OpenDataFolderAsync() => Dialogs.OpenUrl(DataFolder);
-    [RelayCommand] private Task CopyDiagnosticsAsync() => Dialogs.SetClipboard(Diagnostics);
 }

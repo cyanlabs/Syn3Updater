@@ -28,7 +28,7 @@
             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
               <Border Classes="badge"><TextBlock Text="{Binding Version}" /></Border>
               <TextBlock Grid.Column="1" Text="{Binding Date}" Classes="label" VerticalAlignment="Center" />
-              <Button Grid.Column="2" Classes="link" Content="GitHub" ToolTip.Tip="Open this release on GitHub"
+              <Button Grid.Column="2" Classes="link" Content="GitHub" ToolTip.Tip="{svc:T App.OpenOnGithub}"
                       Command="{Binding $parent[ItemsControl].DataContext.VisitGithubCommand}" CommandParameter="{Binding Version}" />
             </Grid>
             <ctl:MarkdownText Text="{Binding ReleaseNotes}" FontSize="13.5" />

@@ -78,14 +78,32 @@ public partial class MainWindowViewModel : ObservableObject
     public LogsViewModel Logs { get; } = new();
     public SettingsViewModel Settings { get; } = new();
     public AboutViewModel About { get; } = new();
+    public DiagnosticsViewModel Diagnostics { get; } = new();
 
     public ObservableCollection<PageViewModel> Pages { get; }
     /// <summary>Sidebar pages above the divider; Settings sits at the bottom like the original.</summary>
     public ObservableCollection<PageViewModel> TopPages { get; }
     public ObservableCollection<PageViewModel> BottomPages { get; }
 
-    public string WindowTitle => $"Syn3 Updater {Ctx.Version} ({Ctx.Branch}) - Current Profile {Ctx.Main.Profile}";
+    public string WindowTitle => Ctx.T("Main.WindowTitle", Ctx.Version, Ctx.Branch, Ctx.Main.Profile);
     public void RefreshTitle() => OnPropertyChanged(nameof(WindowTitle));
+
+    // ---- new version notice ----
+    [ObservableProperty] private UpdateInfo? _update;
+    public bool UpdateAvailable => Update != null;
+    public string UpdateText => Update == null ? "" : Ctx.T("App.UpdateAvailable", Update.Version, Ctx.Version);
+    partial void OnUpdateChanged(UpdateInfo? value) { OnPropertyChanged(nameof(UpdateAvailable)); OnPropertyChanged(nameof(UpdateText)); }
+
+    /// <summary>Looks for a newer release and shows the banner if there is one. A failed check is silent: it is never worth interrupting anyone for.</summary>
+    public async Task CheckForUpdateAsync(bool force = false)
+    {
+        if (!force && !Ctx.Main.CheckForUpdates) return;
+        Update = await Ctx.Updates.CheckAsync(Ctx.Version);
+        Ctx.Log.Info(Update == null ? $"No newer version than {Ctx.Version} found" : $"A newer version is available: {Update.Version}");
+    }
+
+    [RelayCommand] private Task OpenUpdate() => Update == null ? Task.CompletedTask : Dialogs.OpenUrl(Update.Url);
+    [RelayCommand] private void DismissUpdate() => Update = null;
 
     // ---- ad slot ----
     [ObservableProperty] private bool _adVisible;
@@ -118,8 +136,9 @@ public partial class MainWindowViewModel : ObservableObject
     public MainWindowViewModel()
     {
         Instance = this;
-        Pages = new() { About, Home, Utility, Downloads, Logs, News, Settings };
-        TopPages = new() { Home, Utility, Logs, News, About };
+        Ctx.Loc.LanguageChanged += () => { OnPropertyChanged(nameof(UpdateText)); OnPropertyChanged(nameof(WindowTitle)); };
+        Pages = new() { About, Home, Utility, Downloads, Logs, News, Diagnostics, Settings };
+        TopPages = new() { Home, Utility, Logs, News, About };      // Diagnostics is reached from a button on About, not the sidebar
         BottomPages = new() { Downloads, Settings };          // Downloads sits just above Settings: appearing/disappearing never shifts the tabs above it
         ReloadProfiles();
         _current = ProfileReady ? Home : Settings;       // a fresh profile starts on Settings, because Home cannot work without a version and region

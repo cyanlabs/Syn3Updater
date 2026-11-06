@@ -77,6 +77,16 @@ Repository **secrets** (Settings > Secrets and variables > Actions):
 Without the macOS secrets the app is ad-hoc signed: it runs, but users must right-click > Open the first time.
 A token compiled into a public download can be extracted by anyone, so keep it read-only and revocable.
 
+## Diagnostics, logs and updates
+
+- **Diagnostics** (sidebar): checks the tools and permissions the current OS needs (Linux: `lsblk`, `sfdisk`, `mkfs.exfat`, `pkexec`, `udisks2`; Windows: Administrator, PowerShell, `diskpart`;
+  macOS: `diskutil`, app location), the data/download/log folders, the API key, the Syn3 Updater and Ford servers and the clock. Each failed check says how to fix it. "Copy report" puts it on the clipboard.
+- **Logs** now start with a system section (OS, architecture, runtime, desktop/session, install location, which tools are present, free space). The home folder is replaced by `~` so logs are safe to share.
+- **Update notice**: on start-up the app asks GitHub for newer releases of `CyanLabs/Syn3Updater` and shows a banner with a link. It never downloads or installs anything. Turn it off in Settings.
+  Pre-releases are only offered to people already on a pre-release.
+- **Drive verification**: after copying and flushing, every file on the stick is read back and checked against the download (Linux and macOS bypass the OS cache for this read).
+- **Languages** live in `src/Syn3Updater.Core/Languages/*.json`. A test keeps every language complete and in step with `en-US`, and fails on keys nothing uses or text hardcoded in XAML.
+
 ## UI previews (no window)
 
 `dotnet run --project tools/Shots -- out 1100 800 Home Settings --demo [--light]` renders pages to PNG with Avalonia's
