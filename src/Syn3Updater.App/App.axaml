@@ -3,7 +3,7 @@
              xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels"
              xmlns:views="using:Cyanlabs.Syn3Updater.App.Views"
              x:Class="Cyanlabs.Syn3Updater.App.App"
-             RequestedThemeVariant="Dark">
+             RequestedThemeVariant="Default">
   <Application.DataTemplates>
     <DataTemplate DataType="vm:HomeViewModel"><views:HomeView /></DataTemplate>
     <DataTemplate DataType="vm:DownloadViewModel"><views:DownloadView /></DataTemplate>

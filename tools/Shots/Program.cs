@@ -29,7 +29,7 @@ var cts = new CancellationTokenSource();
 var work = Dispatcher.UIThread.InvokeAsync(async () =>
 {
   try {
-    if (light) Application.Current!.RequestedThemeVariant = ThemeVariant.Light;
+    Application.Current!.RequestedThemeVariant = light ? ThemeVariant.Light : ThemeVariant.Dark;      // a headless run has no OS theme, so say which one the screenshots use
     var vm = new MainWindowViewModel();
     _ = vm.LoadAdAsync(); vm.Home.OnShown();
     var win = new MainWindow { DataContext = vm, Width = w, Height = h };

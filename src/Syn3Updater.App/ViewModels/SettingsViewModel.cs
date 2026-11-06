@@ -146,7 +146,7 @@ public partial class SettingsViewModel : PageViewModel
         Nav = p.CurrentNav;
         My20 = My20Options[p.My20v2 switch { null => 0, true => 1, false => 2 }];
         Mode = ModeOptions.FirstOrDefault(o => o.Value == p.InstallMode) ?? ModeOptions[0];
-        Theme = ThemeOptions.FirstOrDefault(o => o.Value == (m.Theme ?? "Dark")) ?? ThemeOptions[0];
+        Theme = ThemeOption(m.Theme);
         Connections = Math.Clamp(m.DownloadConnections, 1, 8);
         Channel = ChannelOptions.FirstOrDefault(o => o.Value == Ctx.UpdateChannel.ToString()) ?? ChannelOptions[0];
         DownloadPath = m.DownloadPath ?? ""; LogPath = m.LogPath ?? "";
@@ -173,17 +173,22 @@ public partial class SettingsViewModel : PageViewModel
         OnPropertyChanged(nameof(My20Options)); OnPropertyChanged(nameof(ModeOptions)); OnPropertyChanged(nameof(ThemeOptions)); OnPropertyChanged(nameof(ChannelOptions));
         My20 = My20Options.FirstOrDefault(o => o.Value == my) ?? My20Options[0];
         Mode = ModeOptions.FirstOrDefault(o => o.Value == mode) ?? ModeOptions[0];
-        Theme = ThemeOptions.FirstOrDefault(o => o.Value == theme) ?? ThemeOptions[0];
+        Theme = ThemeOption(theme);
         Channel = ChannelOptions.FirstOrDefault(o => o.Value == channel) ?? ChannelOptions[0];
         _loading = wasLoading;
     }
 
     partial void OnThemeChanged(ChoiceOption? value) { if (!_loading && value != null) ApplyTheme(value.Value); }
 
+    /// <summary>The dropdown entry for a saved theme: Dark and Light as saved (v2 saved those two words), anything else, including nothing saved yet, is System (follow the OS).</summary>
+    private ChoiceOption ThemeOption(string? saved) =>
+        ThemeOptions.FirstOrDefault(o => o.Value != "Default" && string.Equals(o.Value, saved, StringComparison.OrdinalIgnoreCase)) ?? ThemeOptions.First(o => o.Value == "Default");
+
+    /// <summary>Dark and Light are fixed; everything else (System, nothing saved, an unknown value) follows the operating system's light/dark setting.</summary>
     public static void ApplyTheme(string? name)
     {
         if (Application.Current != null)
-            Application.Current.RequestedThemeVariant = name switch { "Light" => ThemeVariant.Light, "Dark" => ThemeVariant.Dark, _ => ThemeVariant.Dark };
+            Application.Current.RequestedThemeVariant = name?.ToLowerInvariant() switch { "light" => ThemeVariant.Light, "dark" => ThemeVariant.Dark, _ => ThemeVariant.Default };
     }
 
     [RelayCommand]
