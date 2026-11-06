@@ -1,15 +1,29 @@
 #!/usr/bin/env bash
-# Installs the .deb and .rpm in real distro containers (apt / dnf resolve the declared dependencies for real), runs
+# Installs the .deb, .rpm and Arch package in real distro containers (apt / dnf / pacman resolve the declared dependencies for real), runs
 # verify-installed-linux-package.sh inside, then removes the package and checks nothing is left. Needs docker; x86_64 packages only.
-# usage: scripts/verify-linux-distro-packages.sh <dir with Syn3Updater-*-linux-x64.deb/.rpm> [image ...]
+# usage: scripts/verify-linux-distro-packages.sh <dir with Syn3Updater-*-linux-x64.deb/.rpm/.pkg.tar.zst> [image ...]
 set -euo pipefail
 DIR="$(readlink -f "${1:?directory with the packages}")"; shift || true
 HERE="$(cd "$(dirname "$0")" && pwd)"
 DEB="$(ls "$DIR"/Syn3Updater-*-linux-x64.deb 2>/dev/null | head -1 || true)"; RPM="$(ls "$DIR"/Syn3Updater-*-linux-x64.rpm 2>/dev/null | head -1 || true)"
-IMAGES=("$@"); ((${#IMAGES[@]})) || IMAGES=(debian:12-slim ubuntu:24.04 fedora:latest)
+ARCHPKG="$(ls "$DIR"/Syn3Updater-*-linux-x64.pkg.tar.zst 2>/dev/null | head -1 || true)"
+IMAGES=("$@"); ((${#IMAGES[@]})) || IMAGES=(debian:12-slim ubuntu:24.04 fedora:latest archlinux:latest)
 
 for image in "${IMAGES[@]}"; do
   case "$image" in
+    archlinux*)
+      [[ -n "$ARCHPKG" ]] || { echo "no Arch package found, skipping $image"; continue; }
+      echo "=== $image: $(basename "$ARCHPKG")"
+      # pacman -U is exactly what a user types; it pulls the declared dependencies from the repositories
+      docker run --rm -v "$ARCHPKG":"/pkg/$(basename "$ARCHPKG")":ro -v "$HERE":/scripts:ro "$image" bash -ec "
+        pacman -Sy --noconfirm --needed desktop-file-utils >/dev/null
+        pacman -U --noconfirm /pkg/$(basename "$ARCHPKG") >/dev/null
+        /scripts/verify-installed-linux-package.sh
+        pacman -Qi syn3updater-bin | grep -E '^(Name|Version|Depends On)'
+        pacman -Qkk syn3updater-bin && echo 'ok: pacman -Qkk clean'
+        pacman -R --noconfirm syn3updater-bin >/dev/null
+        [[ ! -e /opt/syn3updater && ! -e /usr/bin/syn3updater && ! -e /usr/share/applications/syn3updater.desktop ]] || { echo 'FAIL: removal left files behind' >&2; exit 1; }
+        echo 'ok: removed cleanly'" ;;
     fedora*|rockylinux*|almalinux*|opensuse*)
       [[ -n "$RPM" ]] || { echo "no .rpm found, skipping $image"; continue; }
       docker run --rm -v "$RPM":"/pkg/$(basename "$RPM")":ro -v "$HERE":/scripts:ro "$image" bash -ec "
