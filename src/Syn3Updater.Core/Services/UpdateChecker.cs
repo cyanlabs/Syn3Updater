@@ -72,7 +72,7 @@ public class UpdateChecker
             var pre = rel.TryGetProperty("prerelease", out var p) && p.GetBoolean();
             var tag = rel.TryGetProperty("tag_name", out var t) ? t.GetString() : null;
             var title = rel.TryGetProperty("name", out var n) ? n.GetString() : null;
-            var version = VersionOf(tag, title);                    // nightlies sit under a rolling "nightly" tag, so their version is in the title
+            var version = VersionOf(tag, title, pre);               // nightlies sit under a rolling "nightly" tag, so their version is in the title
             var v = SemVer.Parse(version);
             if (v == null) continue;
             var kind = Channels.Of(version);
@@ -89,8 +89,20 @@ public class UpdateChecker
     }
 
     private static readonly Regex VersionInTitle = new(@"\d+\.\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z.\-]+)?", RegexOptions.Compiled);
-    private static string? VersionOf(string? tag, string? title) =>
-        SemVer.Parse(tag) != null ? tag : title != null && VersionInTitle.Match(title) is { Success: true } m ? m.Value : null;
+    /// <summary>
+    /// The version a release really is. Normally its tag. Two cases use the title instead: nightlies (the tag is just "nightly"), and a release flagged
+    /// pre-release that sits under a bare numeric tag (2.99.99.5, 3.0.0.0: the v2 Launcher only accepts those) while its title names the real pre-release,
+    /// "Syn3 Updater 3.0.0-test9". Without that, the bare tag would look like a different (and for 3.0.0.0 a newer) version than the build it contains.
+    /// A release that is NOT flagged pre-release always keeps its tag, so the final 3.0.0.0 still beats every test build.
+    /// </summary>
+    private static string? VersionOf(string? tag, string? title, bool prerelease)
+    {
+        var fromTitle = title != null && VersionInTitle.Match(title) is { Success: true } m ? m.Value : null;
+        var t = SemVer.Parse(tag);
+        if (t == null) return fromTitle;
+        if (prerelease && !t.IsPrerelease && SemVer.Parse(fromTitle) is { IsPrerelease: true }) return fromTitle;
+        return tag;
+    }
 }
 
 /// <summary>Just enough of semantic versioning to order "3.0.0", "v3.0.0-test6" and "3.1.0-rc.2".</summary>
