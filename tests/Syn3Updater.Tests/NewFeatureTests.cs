@@ -322,14 +322,14 @@ public class UpdateCheckerTests
     }
 
     [Fact]
-    public async Task Check_AsksTheDevRepoForNightlies_AndTheProductionRepoForTheRest()
+    public async Task Check_AsksTheProductionRepo_ForEveryChannel()
     {
         var urls = new List<string>();
         var http = new HttpClient(new RecordingStub(r => { urls.Add(r.RequestUri!.ToString()); return new(HttpStatusCode.OK) { Content = new StringContent("[]") }; }));
         var checker = new UpdateChecker(http);
         await checker.CheckAsync("3.0.0", UpdateChannel.Stable); await checker.CheckAsync("3.0.0", UpdateChannel.Beta); await checker.CheckAsync("3.0.0", UpdateChannel.Nightly);
-        Assert.Contains("/repos/CyanLabs/Syn3Updater/releases", urls[0]); Assert.Contains("/repos/CyanLabs/Syn3Updater/releases", urls[1]);
-        Assert.Contains("/repos/CyanLabs/Syn3UpdaterDev/releases", urls[2]);        // never the production repo: the v2 Launcher reads its newest pre-release as the Beta update
+        Assert.All(urls, u => Assert.Contains("/repos/CyanLabs/Syn3Updater/releases", u));          // one repo, one list: nightlies are told apart by the version in their title
+        Assert.Equal(3, urls.Count);
     }
 
     private sealed class RecordingStub(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler

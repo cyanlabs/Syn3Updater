@@ -4,7 +4,7 @@ on:
   push:
     tags: ["v*"]
   schedule:
-    - cron: "17 3 * * *"          # nightly build of main (only publishes in the Dev repo, and only when main changed)
+    - cron: "17 3 * * *"          # nightly build of main: does nothing until the repository variable NIGHTLY_ENABLED is "true", and only when main changed
   workflow_dispatch:
     inputs:
       version:
@@ -16,7 +16,7 @@ on:
         type: boolean
         default: false
       nightly:
-        description: "Build and publish the rolling 'nightly' pre-release instead (Dev repo only; ignores the version above)"
+        description: "Build and publish the rolling 'nightly' pre-release instead (production repo only; ignores the version above). Its tag is not a version, so only do this once the v2 Launcher is retired"
         type: boolean
         default: false
       legacy_tag:
@@ -50,13 +50,19 @@ jobs:
           INPUT_PUBLISH: ${{ inputs.publish }}
           INPUT_NIGHTLY: ${{ inputs.nightly }}
           INPUT_LEGACY_TAG: ${{ inputs.legacy_tag }}
+          NIGHTLY_ENABLED: ${{ vars.NIGHTLY_ENABLED }}
         run: |
           nightly=false; skip=false; legacy=""
           if [[ "$GITHUB_EVENT_NAME" == "schedule" || "$INPUT_NIGHTLY" == "true" ]]; then
             nightly=true; publish=true
-            # Nightlies are published only by the Dev repo: the production repo's release list is what the v2 Launcher reads for its Beta channel.
-            if [[ "${GITHUB_REPOSITORY,,}" != "cyanlabs/syn3updaterdev" ]]; then
-              echo "::notice::Nightly builds are only published from cyanlabs/Syn3UpdaterDev"; skip=true
+            # Nightlies are published only from the production repo (forks skip). The rolling release is tagged "nightly", which is not a version: the v2 Launcher
+            # takes the newest release as its Beta update and crashes on that, so scheduled runs stay off until the repository variable NIGHTLY_ENABLED is "true"
+            # (set it once the v2 Launcher is retired; the 2.14.2.1+ Launcher ignores tags that are not versions). A manual run with "nightly" ticked always goes ahead.
+            if [[ "${GITHUB_REPOSITORY,,}" != "cyanlabs/syn3updater" ]]; then
+              echo "::notice::Nightly builds are only published from CyanLabs/Syn3Updater"; skip=true
+            fi
+            if [[ "$GITHUB_EVENT_NAME" == "schedule" && "$NIGHTLY_ENABLED" != "true" ]]; then
+              echo "::notice::Scheduled nightlies are off (set the repository variable NIGHTLY_ENABLED to true to turn them on)"; skip=true
             fi
             # a scheduled run does nothing when main has not changed since the last nightly
             last="$(gh release view nightly --repo "$GITHUB_REPOSITORY" --json targetCommitish -q .targetCommitish 2>/dev/null || true)"
