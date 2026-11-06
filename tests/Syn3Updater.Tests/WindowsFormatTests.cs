@@ -22,7 +22,7 @@ public class WindowsFormatTests
     {
         if (!OperatingSystem.IsWindows()) return;
         var file = Path.Combine(Path.GetTempPath(), "syn3-format-" + Guid.NewGuid().ToString("N") + ".ps1");
-        File.WriteAllText(file, WindowsDriveService.FormatScript.Replace("{0}", "2").Replace("{1}", "E"));
+        File.WriteAllText(file, WindowsDriveService.FormatScript.Replace("{0}", "2").Replace("{1}", "E").Replace("{2}", "32000000000").Replace("{3}", "SanDisk"));
         try
         {
             var check = "$e=$null;$t=$null;[void][System.Management.Automation.Language.Parser]::ParseFile('" + file + "',[ref]$t,[ref]$e);if($e.Count){$e|ForEach-Object{[Console]::Error.WriteLine($_.Message)};exit 1}";
@@ -55,7 +55,8 @@ public class WindowsFormatTests
         var (svc, cmd) = Make((_, _) => ScriptedCommands.Ok("LETTER=G"));
         var path = await svc.FormatAsync(Disk(mount: ""), Log);
         Assert.Contains("$keep = ''", cmd.Calls.Single(c => c.Contains("Clear-Disk")));
-        Assert.Equal(@"E:\", path);                       // the post-format drive list wins when it shows the drive
+        Assert.Equal(@"G:\", path);                       // the letter the script reports is used: no second listing is needed to find it
+        Assert.Single(cmd.Calls);                          // and nothing else ran: no listing before the format, none after
     }
 
     [Theory]
@@ -99,11 +100,50 @@ public class WindowsFormatTests
     }
 
     [Fact]
-    public async Task Format_RefusesADiskThatIsNoLongerListedAsUsb()
+    public async Task Format_RunsNoListingFirst_TheScriptChecksTheDiskItselfAtTheMomentOfTheFormat()
     {
-        var cmd = new ScriptedCommands { Handler = (f, a) => ScriptedCommands.Ok("[]") };
-        var svc = new WindowsDriveService(cmd.Runner, _ => true, (_, _) => Task.CompletedTask);
-        await Assert.ThrowsAsync<Cyanlabs.Syn3Updater.Core.Drives.FormatException>(() => svc.FormatAsync(Disk(), Log));
-        Assert.DoesNotContain(cmd.Calls, c => c.Contains("Clear-Disk"));
+        // Before: a separate PowerShell listing ran first, and one odd answer made it refuse a good drive ("Disk 1 is no longer a USB drive").
+        var (svc, cmd) = Make((_, _) => ScriptedCommands.Ok("LETTER=E"));
+        await svc.FormatAsync(new DriveInfoModel { DeviceId = "2", MountPath = @"E:\", Name = "SanDisk", SizeBytes = 32000000000 }, Log);
+        Assert.Contains("Clear-Disk", cmd.Calls[0]);                                              // the very first thing that ran is the format script
+        Assert.DoesNotContain(cmd.Calls, c => c.Contains("Get-Disk | Where-Object"));            // no listing of the USB drives at all
+        var script = cmd.Calls[0];
+        Assert.Contains("$size = 32000000000;", script); Assert.Contains("$name = 'SanDisk'", script);
+        Assert.Contains("[int64]$d.Size -ne $size", script); Assert.Contains("$d.FriendlyName -ne $name", script); Assert.Contains("refusing to format it", script);
+        Assert.True(script.IndexOf("$d.FriendlyName -ne $name", StringComparison.Ordinal) < script.IndexOf("Clear-Disk -Number", StringComparison.Ordinal));   // checked before anything is wiped
+    }
+
+    [Fact]
+    public async Task Format_ASwappedDisk_IsRefusedByTheScript_AndTheMessageSaysSo()
+    {
+        var (svc, _) = Make((_, _) => new ProcessResult(1, "", "Disk 2 is no longer the drive you selected (it is now Samsung SSD); refusing to format it."));
+        var e = await Assert.ThrowsAsync<Cyanlabs.Syn3Updater.Core.Drives.FormatException>(() => svc.FormatAsync(new DriveInfoModel { DeviceId = "2", Name = "SanDisk", SizeBytes = 32000000000 }, Log));
+        Assert.Contains("no longer the drive you selected", e.Message); Assert.Contains("Samsung SSD", e.Message);
+    }
+
+    [Theory]
+    [InlineData("SanDisk Ultra", "SanDisk Ultra")]
+    [InlineData("O'Brien Stick", "O''Brien Stick")]            // a quote is doubled, the PowerShell way
+    [InlineData("Odd \"name\"", "")]                            // a double quote would break the command line: skip the name check
+    [InlineData("Line\nBreak", "")]
+    [InlineData("", "")]
+    public async Task Format_PutsOnlyASafeNameIntoTheScript(string name, string inScript)
+    {
+        var (svc, cmd) = Make((_, _) => ScriptedCommands.Ok("LETTER=E"));
+        await svc.FormatAsync(new DriveInfoModel { DeviceId = "2", MountPath = @"E:\", Name = name, SizeBytes = 1 }, Log);
+        var script = cmd.Calls[0];
+        Assert.Contains($"$name = '{inScript}'", script); Assert.DoesNotContain('"', script);
+    }
+
+    [Fact]
+    public async Task Format_WaitsForTheNewLetterToBeReady_ButNotForever()
+    {
+        var checks = 0; var waits = 0;
+        var cmd = new ScriptedCommands { Handler = (_, _) => ScriptedCommands.Ok("LETTER=E") };
+        var svc = new WindowsDriveService(cmd.Runner, _ => true, (ms, _) => { if (ms == 500) waits++; return Task.CompletedTask; }, root => ++checks > 3);   // ready on the 4th look
+        Assert.Equal(@"E:\", await svc.FormatAsync(Disk(), Log));
+        Assert.Equal(4, checks); Assert.Equal(3, waits);
+        var never = new WindowsDriveService(cmd.Runner, _ => true, (_, _) => Task.CompletedTask, _ => false);
+        Assert.Equal(@"E:\", await never.FormatAsync(Disk(), Log));                                  // never ready: still returns the letter after a bounded wait
     }
 }

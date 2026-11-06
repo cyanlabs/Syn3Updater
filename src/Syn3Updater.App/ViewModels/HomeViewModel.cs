@@ -269,7 +269,9 @@ public partial class HomeViewModel : PageViewModel
         {
             var previous = _lastSelection;
             var folder = Drives.FirstOrDefault(d => d.IsFolder);
+            var timer = System.Diagnostics.Stopwatch.StartNew();
             var found = await Ctx.Drives.ListAsync();
+            Ctx.Log.Info($"Drive refresh: {found.Count} found in {timer.ElapsedMilliseconds} ms");
             SetDrives(found, folder);
             NoDrives = found.Count == 0 && folder == null;
             SelectedDrive = Drives.FirstOrDefault(d => !d.IsChooser && d.DeviceId == previous?.DeviceId && d.IsFolder == previous?.IsFolder && previous != null);

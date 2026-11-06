@@ -40,8 +40,11 @@ public sealed class DriveMonitor
         _polling = true;
         try
         {
-            if (!_detector.Poll()) return;
+            // The fingerprint asks Windows about every drive (DriveInfo), which can block for seconds on a stick that is still spinning up or mounting:
+            // never do that on the UI thread, or the whole window stalls and the list looks like it is not refreshing.
+            if (!await Task.Run(() => _detector.Poll())) return;
             IReadOnlyList<DriveInfoModel> found;
+            var timer = System.Diagnostics.Stopwatch.StartNew();
             try { found = await _drives.ListAsync(); }
             catch (Exception e)
             {
@@ -49,6 +52,7 @@ public sealed class DriveMonitor
                 _detector.Retry();                                  // try again on the next settled poll
                 return;
             }
+            Ctx.Log.Info($"Drives changed: {found.Count} found in {timer.ElapsedMilliseconds} ms");
             Changed?.Invoke(found);
         }
         catch (Exception e) { Ctx.Log.Debug("Drive auto-refresh failed: " + e.Message); }
