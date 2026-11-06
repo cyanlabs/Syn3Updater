@@ -13,6 +13,7 @@
   "Home.RecommendedUSBFlashDriveNA": "中国地区地图主机至少需要 16GB",
   "Home.RecommendedUSBFlashDriveEU": "欧洲地区的主机需要大于32GB",
   "Home.SelectPackages": "选择安装包",
+  "Home.PackageInfo": "在 CyanLabs 软件数据库中打开此软件包",
   "Home.InstallMode": "安装模式",
   "Home.StartButton": "开始",
   "Download.Log": "日志",

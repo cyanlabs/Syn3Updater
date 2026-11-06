@@ -13,6 +13,7 @@
   "Home.RecommendedUSBFlashDriveNA": "NA, ROW 及 ANZ APIM's 至少需要16GB的隨身碟",
   "Home.RecommendedUSBFlashDriveEU": "EU APIM's 至少需要32GB容量的隨身碟",
   "Home.SelectPackages": "選擇套件",
+  "Home.PackageInfo": "在 CyanLabs 軟體資料庫中開啟此套件",
   "Home.InstallMode": "安裝模式",
   "Home.StartButton": "開始",
   "Download.Log": "紀錄",

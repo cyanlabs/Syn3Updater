@@ -13,6 +13,7 @@
   "Home.RecommendedUSBFlashDriveNA": "NA (Sjeverna Amerika), ROW (ostatak svijeta), ANZ (Australiji i Novom Zelandu) APIM-ovi trebat će najmanje 16 GB",
   "Home.RecommendedUSBFlashDriveEU": "EU APIM-ovi trebat će najmanje 32 GB",
   "Home.SelectPackages": "Odaberite Paketi",
+  "Home.PackageInfo": "Otvori ovaj paket u CyanLabsovoj bazi podataka softvera",
   "Home.InstallMode": "Način instalacije",
   "Home.StartButton": "Započeti",
   "Download.Log": "Dnevnik",

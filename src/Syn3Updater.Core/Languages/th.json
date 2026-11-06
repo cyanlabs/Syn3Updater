@@ -13,6 +13,7 @@
   "Home.RecommendedUSBFlashDriveNA": "APIM ของอเมริการเหนือ ออสเตรเลีย นิวซีแลนด์และส่วนอื่น ๆ ไดรฟ์ควรมีความจุอย่างน้อย 16 กิกะไบต์",
   "Home.RecommendedUSBFlashDriveEU": "APIM ของยุโรป ไดรฟ์ควรมีความจุอย่างน้อย 32 กิกะไบต์",
   "Home.SelectPackages": "เลือกแพ็คเกจ",
+  "Home.PackageInfo": "เปิดแพ็กเกจนี้ในฐานข้อมูลซอฟต์แวร์ของ CyanLabs",
   "Home.InstallMode": "รูปแบบการติดตั้ง",
   "Home.StartButton": "เริ่ม",
   "Download.Log": "log",

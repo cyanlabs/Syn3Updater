@@ -13,6 +13,7 @@
   "Home.RecommendedUSBFlashDriveNA": "Для APIM в странах NA, ROW and ANZ\nпотребуется не менее 16 ГБ",
   "Home.RecommendedUSBFlashDriveEU": "Для APIM Европа потребуется не менее 32 ГБ",
   "Home.SelectPackages": "Выберите пакеты",
+  "Home.PackageInfo": "Открыть этот пакет в базе данных ПО CyanLabs",
   "Home.InstallMode": "Режим установки",
   "Home.StartButton": "Старт",
   "Download.Log": "Журнал",

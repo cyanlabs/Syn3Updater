@@ -13,6 +13,7 @@
   "Home.RecommendedUSBFlashDriveNA": "APIM-urile NA, ROW si ANZ au nevoide de minim 16 GB",
   "Home.RecommendedUSBFlashDriveEU": "APIM-urile UE au nevoie de minim 32 GB",
   "Home.SelectPackages": "Selectați Pachetele",
+  "Home.PackageInfo": "Deschide acest pachet în baza de date de software CyanLabs",
   "Home.InstallMode": "Mod de instalare:",
   "Home.StartButton": "Start",
   "Download.Log": "Jurnal",

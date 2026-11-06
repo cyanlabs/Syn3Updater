@@ -36,6 +36,27 @@ public class HomeDropdownTests
     }
 
     [AvaloniaFact]
+    public async Task EachPackageHasAnInfoLink_ToItsPageInTheCyanLabsDatabase()
+    {
+        using var env = new AppEnv(); var home = env.Main.Home; await PickEverything(env);
+        foreach (var row in home.Packages)
+        {
+            Assert.True(row.HasInfo);
+            Assert.Equal("https://cyanlabs.net/fhub/sync3/sw-db/?ivsu=" + Uri.EscapeDataString(row.Ivsu.Name), row.InfoUrl);
+        }
+        await home.Packages[0].OpenInfoCommand.ExecuteAsync(null);
+        Assert.Equal(new[] { home.Packages[0].InfoUrl }, env.Dialogs.Opened);
+        Assert.True(home.Packages[0].Selected);                                           // opening the page is not a click on the package
+    }
+
+    [AvaloniaFact]
+    public void TheInfoLink_EscapesTheName_AndIsHiddenWithoutOne()
+    {
+        Assert.Equal("https://cyanlabs.net/fhub/sync3/sw-db/?ivsu=A%20B%26C%231", new PackageRow(new Cyanlabs.Syn3Updater.Core.Models.Ivsu { Name = "A B&C#1" }).InfoUrl);
+        Assert.False(new PackageRow(new Cyanlabs.Syn3Updater.Core.Models.Ivsu { Name = "  " }).HasInfo);
+    }
+
+    [AvaloniaFact]
     public async Task ThePlaceholdersAskYouToSelect()
     {
         using var env = new AppEnv(); var home = env.Main.Home;
