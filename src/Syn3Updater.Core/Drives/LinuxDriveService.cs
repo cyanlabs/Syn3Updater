@@ -134,7 +134,7 @@ public class LinuxDriveService : IDriveService
         if (!current.Any(d => d.DeviceId == drive.DeviceId))
             throw new Drives.FormatException($"{drive.DeviceId} is no longer a removable USB drive; refusing to format it.");
         if (!_exists("mkfs.exfat"))
-            throw new Drives.FormatException("mkfs.exfat was not found. Install exFAT tools (Arch: sudo pacman -S exfatprogs).");
+            throw new Drives.FormatException("mkfs.exfat was not found. Install the exFAT tools (Fedora/Nobara: sudo dnf install exfatprogs, Debian/Ubuntu: sudo apt install exfatprogs, Arch: sudo pacman -S exfatprogs).");
         if (!_exists("pkexec"))
             throw new Drives.FormatException("pkexec (polkit) was not found; run the app as root or install polkit to format drives.");
 

@@ -1,0 +1,33 @@
+name: Package check
+
+# The Linux package's installer and launcher entry are easy to break without any test failing, so build one and install it for real
+# whenever the packaging scripts change.
+on:
+  pull_request:
+    paths: ["scripts/package-linux.sh", "scripts/verify-linux-package.sh", ".github/workflows/package-check.yml"]
+  push:
+    branches: [main]
+    paths: ["scripts/package-linux.sh", "scripts/verify-linux-package.sh", ".github/workflows/package-check.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+
+jobs:
+  linux-package:
+    name: Build and install the Linux package
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: scripts/package-linux.sh linux-x64 0.0.0-check artifacts
+        env:
+          SYN3_API_TOKEN: ${{ secrets.SYN3_API_TOKEN }}
+      - run: scripts/verify-linux-package.sh artifacts/*.tar.gz
