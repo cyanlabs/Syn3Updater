@@ -29,8 +29,8 @@
 	<ItemGroup>
 		<PackageReference Include="FluentWPF" Version="0.10.2" />
 		<PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.3.326103" />
-		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-		<PackageReference Include="Octokit" Version="0.50.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<ProjectReference Include="..\Launcher.Core\Launcher.Core.csproj" />
 	</ItemGroup>
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
 		<PackageReference Include="System.Net.Http" Version="4.3.4" />

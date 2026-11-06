@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace Cyanlabs.Launcher.Core.Tests
+namespace Cyanlabs.Launcher.Updating.Tests
 {
     public class VersionTests
     {

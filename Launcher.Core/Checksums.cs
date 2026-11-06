@@ -4,7 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Cyanlabs.Launcher.Core
+namespace Cyanlabs.Launcher.Updating
 {
     public static class Checksums
     {

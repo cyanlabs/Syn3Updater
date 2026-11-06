@@ -5,9 +5,9 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Cyanlabs.Launcher.Core;
+using Cyanlabs.Launcher.Updating;
 
-namespace Cyanlabs.Launcher.Core.Tests
+namespace Cyanlabs.Launcher.Updating.Tests
 {
     public sealed class TempDir : IDisposable
     {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Cyanlabs.Launcher.Core
+namespace Cyanlabs.Launcher.Updating
 {
     public static class ReleasePicker
     {

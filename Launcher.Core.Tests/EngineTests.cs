@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Cyanlabs.Launcher.Core.Tests
+namespace Cyanlabs.Launcher.Updating.Tests
 {
     public class EngineTests
     {

@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace Cyanlabs.Launcher.Core
+namespace Cyanlabs.Launcher.Updating
 {
     /// <summary>
     ///     A release tag parsed leniently: "2.14.2.0", "v3.0.0", "3.0.0-beta.1" and "3.0" are all understood.

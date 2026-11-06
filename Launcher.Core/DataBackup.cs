@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Cyanlabs.Launcher.Core
+namespace Cyanlabs.Launcher.Updating
 {
     /// <summary>Copies the user's settings and profiles aside before a major-version jump (v2 to v3), so a bad upgrade can be undone by hand.</summary>
     public static class DataBackup

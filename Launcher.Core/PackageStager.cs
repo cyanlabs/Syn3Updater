@@ -4,7 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 
-namespace Cyanlabs.Launcher.Core
+namespace Cyanlabs.Launcher.Updating
 {
     public sealed class PackageException : Exception
     {

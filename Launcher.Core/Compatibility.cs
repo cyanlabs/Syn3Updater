@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Cyanlabs.Launcher.Core
+namespace Cyanlabs.Launcher.Updating
 {
     /// <summary>Decides which releases a machine can actually run. v3 is .NET 10 and needs Windows 10 1607 or newer; v2 ran on much older systems.</summary>
     public static class Compatibility

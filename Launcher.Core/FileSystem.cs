@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace Cyanlabs.Launcher.Core
+namespace Cyanlabs.Launcher.Updating
 {
     /// <summary>The file operations the installer performs, behind an interface so tests can make any of them fail.</summary>
     public interface IFileSystem

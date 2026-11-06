@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Cyanlabs.Launcher.Core
+namespace Cyanlabs.Launcher.Updating
 {
     /// <summary>A small append-only log so a failed update leaves something to look at. Never throws.</summary>
     public sealed class LauncherLog

@@ -1,0 +1,37 @@
+name: Launcher
+
+on:
+  push:
+    paths: ["Launcher/**", "Launcher.Core/**", "Launcher.Core.Tests/**", "SharedCode/**", ".github/workflows/launcher.yml"]
+  pull_request:
+    paths: ["Launcher/**", "Launcher.Core/**", "Launcher.Core.Tests/**", "SharedCode/**", ".github/workflows/launcher.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+
+jobs:
+  test:
+    name: Update engine tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet test Launcher.Core.Tests -c Release
+
+  build:
+    name: Build the launcher (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet build Launcher -c Release -f net472
+      - run: dotnet build Launcher -c Release -f net6.0-windows10.0.18362

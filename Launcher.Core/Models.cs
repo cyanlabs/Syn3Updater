@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Cyanlabs.Launcher.Core
+namespace Cyanlabs.Launcher.Updating
 {
     /// <summary>Which releases a user follows. Same names the v2 launcher used, so saved preferences keep working.</summary>
     public enum ReleaseChannel

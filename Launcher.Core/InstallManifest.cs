@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace Cyanlabs.Launcher.Core
+namespace Cyanlabs.Launcher.Updating
 {
     /// <summary>Remembers which files the launcher installed, so the next update can remove exactly the ones the new version no longer ships.</summary>
     public sealed class InstallManifest
