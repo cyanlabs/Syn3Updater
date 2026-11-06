@@ -8,52 +8,87 @@ Words used below: **MY20 protection** is the setting `My20v2`: *Enabled* (true),
 
 ## 1. Which mode is chosen
 
-This runs on Home each time the release or maps selection changes (`InstallModeResolver.Resolve`, called from `HomeViewModel.ResolveInstallMode`).
+This runs on Home each time the release or maps selection changes (`InstallModeResolver.Resolve`, called from `HomeViewModel.ResolveInstallMode`). The chart is the intended flow, and `InstallModeFlowTests` writes it out node by node and compares it with v3 for every combination of inputs.
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#ffffff', 'edgeLabelBackground':'#fff' } } }%%
 flowchart TD
-    start(["Region, release and maps are chosen"]) --> ver{"Installed Sync version<br/>below 3.2 (3200000)?"}
+    Start(( )) --> Version{Current Version?}
 
-    ver -- yes --> my1{"MY20 protection<br/>Enabled?"}
-    my1 -- yes --> H["<b>Option H</b><br/>AutoInstall<br/>INVALID: error shown, Start disabled"]
-    my1 -- "no (Auto-Detect or Disabled)" --> A["<b>Option A</b><br/>Reformat"]
+    %% ===== BELOW 3.2 PATH (ORANGE) =====
+    Version -->|Below 3.2| Mode30{My20 Protection?}
+    Mode30 -->|🔑 MY20 Protected| NotPossible30[[⛔ Not Possible]]
+    Mode30 -->|❌ Not MY20 Protected| Reformat30[[♻️ Reformat]]
 
-    ver -- no --> maps{"Maps choice is<br/>No maps, Non-nav APIM<br/>or Keep existing maps?"}
-    maps -- yes --> BE["<b>Option B</b> (below 3.4.19274)<br/><b>Option E</b> (3.4.19274 or newer)<br/>AutoInstall"]
+    %% ===== 3.2 AND NEWER PATH (BLUE) =====
+    Version -->|3.2 or newer| Maps{Update Maps?}
 
-    maps -- "no: a map package" --> esn{"MY20 Enabled and<br/>the map release is ESN-locked?"}
-    esn -- yes --> CE["<b>Option C-ESN / F-ESN</b><br/>INVALID: error shown, Start disabled<br/>mode left as it was"]
-    esn -- no --> cf{"MY20 Enabled, or the release is<br/>'Only update maps'?"}
-    cf -- yes --> CF["<b>Option C</b> (below 3.4.19274)<br/><b>Option F</b> (3.4.19274 or newer)<br/>AutoInstall"]
-    cf -- no --> newer{"Version 3.4.19274<br/>or newer?"}
-    newer -- no --> D["<b>Option D</b><br/>Reformat"]
-    newer -- yes --> G["<b>Option G</b><br/>Downgrade"]
+    Maps -->|⬆️ Update Maps| Mode34{My20 Protection?}
+    Maps -->|☑️ Keep Maps / Non Nav| Autoinstall34[[⚡ Autoinstall]]
 
-    A -.-> fixed
-    BE -.-> fixed
-    D -.-> fixed
-    G -.-> fixed
-    fixed["A fixed mode (diagram 2), if there is one,<br/>replaces the mode above for A, B, D, E and G.<br/>C, F and H ignore it: always AutoInstall."]
+    %% ----- Protected Branch (GREEN) -----
+    Mode34 -->|🔑 MY20 Protected| ESNAE{ESN Locked?}
+    ESNAE -->|🔓 ESN Unlocked| Autoinstall34[[⚡ Autoinstall]]
+    ESNAE -->|🔒 ESN Locked| NotPossible34[[⛔ Not Possible]]
 
-    classDef bad fill:#fdd,stroke:#c33,color:#000
-    classDef note fill:#eef,stroke:#88a,color:#000,stroke-dasharray: 4 3
-    class H,CE bad
-    class fixed note
+    %% ----- Not Protected Branch (PURPLE) -----
+    Mode34 -->|❌ Not MY20 Protected| CheckApps{Update Apps?}
+
+    %% Path when keeping existing apps ("Only update maps" release)
+    CheckApps -->|✅ Keep Existing| ESNKeep{ESN Locked?}
+    ESNKeep -->|🔓 ESN Unlocked| Autoinstall[[⚡ Autoinstall]]
+    ESNKeep -->|🔒 ESN Locked| NotPossibleLocked[[⛔ Not Possible]]
+
+    %% Path when updating apps
+    CheckApps -->|⬆️ Update App Version| VerCheck{Version?}
+
+    %% Version check outcomes
+    VerCheck -->|3.2 up to 3.4.19273| Reformat[[♻️ Reformat]]
+    VerCheck -->|3.4.19274 or newer| Downgrade[[⬇️ Downgrade]]
+
+    %% ========== STYLES ==========
+    classDef start fill:#4CAF50,stroke:#388E3C,color:white,stroke-width:3px
+    classDef question fill:#E3F2FD,stroke:#2196F3,color:#0d47a1,stroke-width:2px
+    classDef notPossible fill:#616161,stroke:#424242,color:white,stroke-width:2px
+    classDef reformat fill:#FFE0B2,stroke:#FB8C00,color:#000,stroke-width:2px
+    classDef autoinstall fill:#C8E6C9,stroke:#388E3C,color:#000,stroke-width:2px
+    classDef downgrade fill:#FFCDD2,stroke:#D32F2F,color:#000,stroke-width:2px
+
+    %% Apply classes
+    class Start start
+    class Version,Mode30,Maps,Mode34,ESNAE,CheckApps,ESNKeep,VerCheck question
+    class NotPossible30,NotPossible34,NotPossibleLocked notPossible
+    class Reformat30,Reformat reformat
+    class Autoinstall34,Autoinstall autoinstall
+    class Downgrade downgrade
+
+    %% ===== PATH COLOR CODING =====
+    linkStyle default stroke:#666,stroke-width:2px,font-size:14px
+    linkStyle 0 stroke:#4CAF50,stroke-width:3px %% Start
+    linkStyle 1,2,3 stroke:#FF9800,stroke-width:3px %% below 3.2 path
+    linkStyle 4,6 stroke:#2196F3,stroke-width:3px %% 3.2 and newer path
+    linkStyle 5,7,8,9 stroke:#4CAF50,stroke-width:3px %% Protected Branch
+    linkStyle 10,11,12,13,14 stroke:#7E57C2,stroke-width:3px %% Not Protected Branch
+    linkStyle 15,16 stroke:#FB1C00,stroke-width:3px %% Reformat Actions
 ```
 
-| Option | Installed version | MY20 protection | Maps / release | Mode | Fixed mode used? |
-|---|---|---|---|---|---|
-| A | below 3.2 | Auto-Detect or Disabled | anything | Reformat | yes |
-| H | below 3.2 | Enabled | anything | AutoInstall, **invalid** | no |
-| B | 3.2 up to 3.4.19273 | anything | no map package | AutoInstall | yes |
-| E | 3.4.19274 or newer | anything | no map package | AutoInstall | yes |
-| C-ESN, F-ESN | 3.2 or newer | Enabled | ESN-locked map | **invalid** (mode unchanged) | n/a |
-| C | 3.2 up to 3.4.19273 | Enabled, or "Only update maps" | map package | AutoInstall | no |
-| F | 3.4.19274 or newer | Enabled, or "Only update maps" | map package | AutoInstall | no |
-| D | 3.2 up to 3.4.19273 | Auto-Detect or Disabled | map package, normal release | Reformat | yes |
-| G | 3.4.19274 or newer | Auto-Detect or Disabled | map package, normal release | Downgrade | yes |
+How the chart's boxes map to the app (v2 called the outcomes options A to H):
 
-ESN-locked maps are also greyed out in the maps list whenever MY20 protection is Enabled or the release is "Only update maps".
+| Chart | In the app | v2 option |
+|---|---|---|
+| Below 3.2, not protected: Reformat | installed version under 3200000 | A |
+| Below 3.2, protected: Not possible | error shown, Start and Download only disabled | H |
+| Keep Maps / Non Nav: Autoinstall | the maps choice is "No maps", "Non-nav APIM" or "Keep existing maps" | B (below 3.4.19274), E (3.4.19274 or newer) |
+| Protected, ESN locked: Not possible | the ESN-locked map is greyed out ("not compatible with MY20"); if one is already selected, error shown | C-ESN, F-ESN |
+| Protected, ESN unlocked: Autoinstall | | C, F |
+| Not protected, Keep Existing (apps): Autoinstall / Not possible | the **"Only update maps"** release; ESN-locked maps are greyed out for it too | C, F |
+| Not protected, Update App Version: Reformat / Downgrade | a normal release with a map package; Downgrade from 3.4.19274 | D, G |
+
+Notes:
+- **MY20 Auto-Detect** (nothing known yet) follows the "Not MY20 Protected" arrows. Because that can be wrong, pressing Start with a Reformat or Downgrade while MY20 is Auto-Detect asks first (diagram 3).
+- **Version boundaries** are exact: 3.2 is `3200000` and 3.4.19274 is `3419274`; there is no gap between the two Reformat/Downgrade ranges.
+- **A fixed mode** (diagram 2) replaces the mode for the *Reformat*, *Downgrade* and *Keep Maps / Non Nav: Autoinstall* outcomes. The other Autoinstall outcomes (protected, or "Only update maps") and *Not possible* ignore it.
+- ESN-locked maps are greyed out whenever MY20 protection is Enabled or the release is "Only update maps" (`InstallModeResolver.EsnBlocked`).
 
 ## 2. When a fixed mode exists
 
