@@ -34,11 +34,9 @@ public sealed class SingleInstance : IDisposable
         try
         {
             var path = Path.Combine(Path.GetTempPath(), name + ".lock");
-            lockFile = new FileStream(path, new FileStreamOptions
-            {
-                Mode = FileMode.OpenOrCreate, Access = FileAccess.ReadWrite, Share = FileShare.None,
-                UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite
-            });
+            var options = new FileStreamOptions { Mode = FileMode.OpenOrCreate, Access = FileAccess.ReadWrite, Share = FileShare.None };
+            if (!OperatingSystem.IsWindows()) options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;   // owner only (Windows has no such mode)
+            lockFile = new FileStream(path, options);
             return new SingleInstance(new NamedPipeServerStream(name, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly), lockFile);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
