@@ -91,7 +91,7 @@ public class UpdateChecker
     private static readonly Regex VersionInTitle = new(@"\d+\.\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z.\-]+)?", RegexOptions.Compiled);
     /// <summary>
     /// The version a release really is. Normally its tag. Two cases use the title instead: nightlies (the tag is just "nightly"), and a release flagged
-    /// pre-release that sits under a bare numeric tag (2.9.9.5, 3.0.0.0: the v2 Launcher only accepts those) while its title names the real pre-release,
+    /// pre-release that sits under a bare numeric tag (2.99.99.5, 3.0.0.0: the v2 Launcher only accepts those) while its title names the real pre-release,
     /// "Syn3 Updater 3.0.0-test9". Without that, the bare tag would look like a different (and for 3.0.0.0 a newer) version than the build it contains.
     /// A release that is NOT flagged pre-release always keeps its tag, so the final 3.0.0.0 still beats every test build.
     /// </summary>

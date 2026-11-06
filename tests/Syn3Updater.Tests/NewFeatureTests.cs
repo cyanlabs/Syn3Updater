@@ -157,8 +157,8 @@ public class UpdateCheckerTests
         // a title that names no pre-release version changes nothing
         Assert.Equal("3.0.0.0", UpdateChecker.Pick(Releases2(("3.0.0.0", "Big v3 release", true)), "3.0.0-test8")!.Version);
         Assert.Equal("3.0.0.0", UpdateChecker.Pick(Releases2(("3.0.0.0", "Syn3 Updater 3.1.0", true)), "3.0.0-test8")!.Version);       // a pre-release flag with a final-looking title: keep the tag
-        // test builds are tagged 2.9.9.N for the old Launcher: the number is only a label, the title carries the real version
-        var legacy = Releases2(("2.9.9.12", "Syn3 Updater 3.0.0-test12", true), ("2.9.9.2", "Syn3 Updater 3.0.0-test9", true), ("2.14.2.1", "2.14.2.1", false));
+        // test builds are tagged 2.99.99.N for the old Launcher: the number is only a label, the title carries the real version
+        var legacy = Releases2(("2.99.99.12", "Syn3 Updater 3.0.0-test12", true), ("2.99.99.2", "Syn3 Updater 3.0.0-test9", true), ("2.14.2.1", "2.14.2.1", false));
         Assert.Equal("3.0.0-test12", UpdateChecker.Pick(legacy, "3.0.0-test9")!.Version);
         Assert.Null(UpdateChecker.Pick(legacy, "3.0.0-test12"));
         Assert.Null(UpdateChecker.Pick(legacy, "3.0.0-test13"));
