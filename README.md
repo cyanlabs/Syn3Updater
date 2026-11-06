@@ -47,7 +47,7 @@ drive code is covered by parser unit tests but untested against real devices.
 ## Differences from the original
 
 - Redesigned UI: labelled sidebar that collapses on narrow windows, a guided 1-2-3 Home flow with a sticky action bar, live download queue, light/dark themes, settings that save when you leave the tab.
-- Cross-platform UI (Avalonia) instead of WPF; no Windows launcher/updater or `syn3updater://` registry handler.
+- Cross-platform UI (Avalonia) instead of WPF. On Windows the real v2 "hybrid" Launcher (`packaging/windows/launcher/`) is shipped next to `Syn3Updater.exe` and keeps the app up to date; `syn3updater://` links are registered by the app itself at start-up.
 - Settings live in `~/.local/share/CyanLabs/Syn3Updater` (Linux), `%LOCALAPPDATA%` (Windows); macOS uses .NET LocalApplicationData (`~/.local/share`).
 - GraphQL via plain HTTP + System.Text.Json (no GraphQL client dependency); downloads write to `*.part` and rename on success.
 - `autoinstall.lst`/`reformat.lst` are always written with CRLF line endings.
@@ -67,7 +67,7 @@ drive code is covered by parser unit tests but untested against real devices.
 | `Syn3Updater-<v>-linux-x64.rpm`, `-linux-arm64` | `scripts/package-rpm.sh` | same layout for Fedora / Nobara / RHEL-family; pre-releases get `Release: 0.<pre>.1` so the final release upgrades them |
 | `Syn3Updater-<v>-linux-x64.pkg.tar.zst`, `-linux-arm64` | `scripts/package-arch.sh` | native Arch package: `sudo pacman -U <file>` (also Manjaro, Omarchy, CachyOS...). Built from the AUR recipe in an Arch container; named `syn3updater-bin`, so installing from the AUR later is a normal upgrade. A pre-release `3.0.0-test7` is versioned `3.0.0test7`, which pacman sorts before `3.0.0`. Not in a repository, so pacman never offers updates |
 | AUR `syn3updater-bin` (not published yet) | `packaging/aur/PKGBUILD`, `scripts/update-aur-package.sh` | uses the release tarballs; see `packaging/aur/README.md` |
-| `Syn3Updater-<v>-win-x64.zip`, `-win-arm64` | `scripts/package-windows.sh` | single `Syn3Updater.exe` (asks for administrator rights to format drives) |
+| `Syn3Updater-<v>-win-x64.zip`, `-win-arm64` | `scripts/package-windows.sh` | `Syn3Updater.exe` (asks for administrator rights to format drives) plus the hybrid Launcher (`Launcher.exe` and its four support files, hash-pinned in `packaging/windows/launcher/`); the Launcher must be in every package, see that folder's README |
 | `Syn3Updater-<v>-macos-arm64.dmg`, `-macos-x64` | `scripts/package-macos.sh` (macOS only) | `.app` bundle in a DMG |
 
 CI installs the `.deb`, `.rpm` and Arch package in real Debian, Ubuntu, Fedora and Arch containers (and builds the AUR package in Arch Linux) before a release is published, so wrong dependency names or a broken launcher stop it.
@@ -122,7 +122,7 @@ The v2 Launcher (2.14.2.0 and older) cannot read a tag like `v3.0.0-test9`: it r
 | `auto` | the next free `2.99.99.N` (numbered 1 to 999, compared as numbers: 2.99.99.2 is lower than 2.99.99.12), for test builds |
 | an exact tag such as `3.0.0.0` | that tag, for the real release (it fails at once if the tag or release already exists) |
 
-With a legacy tag the workflow also builds `<tag>.zip`: a flat zip with `Syn3Updater.exe` and a copy of it as `Launcher.exe` (plus LICENSE and README.txt), uploaded as `application/x-zip-compressed`
+With a legacy tag the workflow also builds `<tag>.zip`: a flat zip (no folder) holding the same files as the Windows package: `Syn3Updater.exe`, the real hybrid Launcher (`Launcher.exe` plus `Launcher.exe.config`, `Launcher.Core.dll`, `FluentWPF.dll`, `Newtonsoft.Json.dll`), LICENSE and README.txt, uploaded as `application/x-zip-compressed`
 (the old Launcher's download picks the first asset of that exact type). The release is created as a **draft**, the zip is attached and its content type checked, and only then is it published,
 so an old Launcher never sees a release without its zip. The release title stays `Syn3 Updater <version>`: the in-app update check reads the real version (`3.0.0-test9`) from the title of a pre-release
 under a bare numeric tag. The release is flagged pre-release when the version has a suffix, and only Launchers on the Beta channel see pre-releases.
