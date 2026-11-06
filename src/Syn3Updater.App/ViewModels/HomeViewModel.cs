@@ -142,6 +142,7 @@ public partial class HomeViewModel : PageViewModel
     public HomeViewModel()
     {
         Ctx.Loc.LanguageChanged += () => ReloadSummary();
+        Ctx.DriveMonitor.Changed += OnDrivesChanged;
         Packages.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasPackages));
         Drives.Add(Chooser());     // "Select A Directory..." is always available, even before the first refresh
     }
@@ -222,6 +223,20 @@ public partial class HomeViewModel : PageViewModel
         {
             Ctx.Log.Error(e.Message);
             await Dialogs.Error(e.Message);
+        }
+    }
+
+    /// <summary>The drives changed by themselves (plugged in or removed): update the list in place and keep the selection on the same stick.</summary>
+    private void OnDrivesChanged(IReadOnlyList<DriveInfoModel> found)
+    {
+        var before = SelectedDrive;
+        var result = DriveListMerger.Merge(Drives, found);
+        NoDrives = !Drives.Any(d => !d.IsChooser);
+        if (before is { IsFolder: false, IsChooser: false })
+        {
+            var now = result.Current(before);
+            if (!ReferenceEquals(now, before)) SelectedDrive = now;
+            if (now == null) DriveInfo = Ctx.T("App.DriveRemoved");
         }
     }
 

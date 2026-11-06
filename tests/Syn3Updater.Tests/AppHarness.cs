@@ -155,11 +155,11 @@ public sealed class AppEnv : IDisposable
     public string DownloadDir => Path.Combine(Dir, "downloads");
     public string UsbDir => Path.Combine(Dir, "usb");
 
-    public AppEnv(string region = "NA", int version = 3420282, bool nav = false, bool disclaimer = true, IDriveService? drives = null)
+    public AppEnv(string region = "NA", int version = 3420282, bool nav = false, bool disclaimer = true, IDriveService? drives = null, Func<string?>? fingerprint = null)
     {
         Api = new FakeCyanLabs(Files.Url);
         Cyanlabs.Syn3Updater.App.Services.Dialogs.Backend = Dialogs;
-        Ctx.Init(Path.Combine(Dir, "data"), Api, drives ?? new InertDrives());      // tests never talk to the host OS's real drives (CI runners have none)
+        Ctx.Init(Path.Combine(Dir, "data"), Api, drives ?? new InertDrives(), fingerprint ?? (() => "none"));      // tests never talk to the host OS's real drives (CI runners have none)
         Ctx.Main.DownloadPath = DownloadDir; Ctx.Main.LogPath = Path.Combine(Dir, "logs"); Directory.CreateDirectory(Ctx.Main.LogPath);
         Ctx.Main.DisclaimerAccepted = disclaimer;
         Ctx.Profile.CurrentRegion = region; Ctx.Profile.CurrentVersion = version; Ctx.Profile.CurrentNav = nav; Ctx.Main.DownloadConnections = 2;

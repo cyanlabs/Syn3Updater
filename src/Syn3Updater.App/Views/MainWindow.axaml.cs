@@ -25,11 +25,13 @@ public partial class MainWindow : Window
     protected override void OnOpened(EventArgs e)
     {
         DialogHostViewModel.Instance.IsAttached = true;       // dialogs can now be drawn inside this window
+        Ctx.DriveMonitor.Start(TimeSpan.FromSeconds(2));       // plugging a stick in or pulling it out updates the drive lists by itself
         base.OnOpened(e);
     }
 
     protected override void OnClosed(EventArgs e)
     {
+        Ctx.DriveMonitor.Stop();
         DialogHostViewModel.Instance.IsAttached = false;
         base.OnClosed(e);
     }

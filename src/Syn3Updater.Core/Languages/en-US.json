@@ -187,6 +187,7 @@
   "App.OpenSettings": "Open Settings",
   "App.ConfigRequiredTitle": "Region and version needed",
   "App.ConfigRequiredBox": "Enter your SYNC 3 region and version in Settings before you continue.\nYou will find the version on the car under Settings > General > About",
+  "App.DriveRemoved": "The selected drive was removed.",
   "App.ConfigRequired": "Choose your SYNC 3 region and version to get started.\nYou will find the version on the car under Settings > General > About",
   "App.LearnMore": "Instructions",
   "App.ReleaseNotes": "Release notes",
