@@ -81,6 +81,15 @@ jobs:
       # a package that cannot install cleanly (wrong launcher entry, missing files) must not be published
       - name: Verify the package installs
         run: scripts/verify-linux-package.sh artifacts/*.tar.gz
+      - name: Build the .deb and .rpm
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq rpm
+          scripts/package-deb.sh "${{ matrix.rid }}" "${{ needs.prepare.outputs.version }}" artifacts
+          scripts/package-rpm.sh "${{ matrix.rid }}" "${{ needs.prepare.outputs.version }}" artifacts
+      # apt and dnf install them in real Debian, Ubuntu and Fedora containers, so wrong dependency names or a broken launcher stop the release
+      - name: Verify the .deb and .rpm install
+        if: matrix.rid == 'linux-x64'
+        run: scripts/verify-linux-distro-packages.sh artifacts
       - uses: actions/upload-artifact@v6
         with:
           name: pkg-${{ matrix.rid }}

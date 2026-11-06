@@ -1,0 +1,43 @@
+# Maintainer: CyanLabs <https://cyanlabs.net>
+# Prebuilt-binary package of Syn3 Updater (the release tarballs from GitHub). Not published yet: see README.md in this folder.
+pkgname=syn3updater-bin
+pkgver=3.0.0
+pkgrel=1
+pkgdesc='Ford SYNC 3 update USB creator (CyanLabs Syn3 Updater), prebuilt binary'
+arch=('x86_64' 'aarch64')
+url='https://github.com/CyanLabs/Syn3Updater'
+license=('GPL-3.0-only')
+# util-linux, udisks2, polkit, exfatprogs: what preparing a USB drive needs. The rest are the libraries the self-contained .NET/Avalonia program loads.
+depends=('util-linux' 'udisks2' 'polkit' 'exfatprogs' 'icu' 'openssl' 'fontconfig' 'libx11' 'libice' 'libsm' 'libxcursor' 'libxi' 'libxrandr' 'libxext')
+provides=('syn3updater')
+conflicts=('syn3updater')
+options=('!strip' '!debug')       # stripping corrupts a single-file .NET bundle
+_rel="https://github.com/CyanLabs/Syn3Updater/releases/download/v${pkgver}"
+source_x86_64=("Syn3Updater-${pkgver}-linux-x64.tar.gz::${_rel}/Syn3Updater-${pkgver}-linux-x64.tar.gz")
+source_aarch64=("Syn3Updater-${pkgver}-linux-arm64.tar.gz::${_rel}/Syn3Updater-${pkgver}-linux-arm64.tar.gz")
+sha256sums_x86_64=('SKIP')
+sha256sums_aarch64=('SKIP')
+
+package() {
+  case "$CARCH" in x86_64) _rid=linux-x64 ;; aarch64) _rid=linux-arm64 ;; esac
+  cd "$srcdir/Syn3Updater-${pkgver}-${_rid}"
+
+  install -Dm755 Syn3Updater "$pkgdir/opt/syn3updater/Syn3Updater"
+  install -d "$pkgdir/usr/bin"
+  ln -s /opt/syn3updater/Syn3Updater "$pkgdir/usr/bin/syn3updater"
+  install -Dm644 syn3updater.png "$pkgdir/usr/share/icons/hicolor/128x128/apps/syn3updater.png"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  # keep in step with packaging/linux/syn3updater.desktop (scripts/verify-aur-package.sh compares them)
+  install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/syn3updater.desktop" <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Syn3 Updater
+Comment=Ford SYNC 3 update USB creator
+Exec=/opt/syn3updater/Syn3Updater
+TryExec=/opt/syn3updater/Syn3Updater
+Icon=syn3updater
+Terminal=false
+Categories=Utility;
+Keywords=Ford;SYNC;SYNC3;USB;update;
+DESKTOP
+}
