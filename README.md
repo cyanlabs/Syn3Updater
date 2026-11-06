@@ -1,158 +1,89 @@
-# Syn3 Updater (cross-platform)
+# Syn3 Updater
 
-A cross-platform (Linux, Windows, macOS) port of CyanLabs' Syn3 Updater, rebuilt on
-.NET 10 + [Avalonia](https://avaloniaui.net). It prepares USB drives with the Ford SYNC 3
-update packages: pick region / release / maps, and it downloads, checksum-verifies, copies and
-writes `autoinstall.lst` / `reformat.lst` for the head unit.
+Prepare a USB drive to update the Ford SYNC 3 system in your car. Pick your region, SYNC release and maps, and Syn3 Updater
+downloads the packages, checks them, copies them to the drive and writes the `autoinstall.lst` / `reformat.lst` the head unit needs.
 
-## Run
+This is v3 of CyanLabs' Syn3 Updater: a cross-platform rewrite (Windows, macOS, Linux) on .NET 10 and [Avalonia](https://avaloniaui.net).
 
-```sh
-scripts/run.sh                 # from source (needs the .NET 10 SDK; ~/.dotnet is used if present)
-scripts/install-linux.sh       # build + install a launcher entry (Linux)
-scripts/publish.sh             # self-contained builds for all platforms -> artifacts/<rid>/
-```
+## Install
 
-## API token (build-time, never committed)
+Download the file for your system from the [Releases page](https://github.com/cyanlabs/Syn3Updater/releases). To check a download,
+compare its checksum with `SHA256SUMS`: `sha256sum -c --ignore-missing SHA256SUMS`. Replace `<v>` below with the version (for example `3.0.0`).
 
-The CyanLabs backend needs a bearer token. It is compiled into the app at build time from the git-ignored file
-`secrets/api-token.txt` (one line), or from the `SYN3_API_TOKEN` environment variable (wins, handy for CI).
-See `secrets/README.md`. It is not a user setting and never appears in the UI or in git.
-Without a token the app still builds, but API calls are rejected.
+### Windows
 
-## Platform notes
+Download `Syn3Updater-<v>-win-x64.zip` (`win-arm64` on ARM PCs), extract it and run `Syn3Updater.exe`. It asks for Administrator rights,
+which it needs to format USB drives. There is no installer: delete the folder to remove it. The app is not code-signed, so SmartScreen may
+warn: click *More info*, then *Run anyway*.
 
-| | Drive listing | Formatting (exFAT, MBR, label `CYANLABS`) |
+### macOS
+
+Download `Syn3Updater-<v>-macos-arm64.dmg` (Apple Silicon) or `-macos-x64` (Intel), open it and drag *Syn3 Updater* onto *Applications*.
+The first time, right-click the app and choose *Open*, then *Open* again (the app is only ad-hoc signed).
+
+### Linux
+
+The `.deb`, `.rpm` and Arch packages install the USB tools the app needs (`util-linux`, `udisks2`, `polkit`, `exfatprogs`). Use the `linux-arm64` files on ARM.
+
+| Distribution | Install | Remove |
 |---|---|---|
-| Linux | `lsblk` (USB/hotplug disks only; never a disk holding `/`, `/home`, `/boot`) | `sfdisk` + `mkfs.exfat` via `pkexec` (needs `exfatprogs`, `polkit`, `udisks2` to mount) |
-| macOS | `diskutil` (external only) | `diskutil eraseDisk` |
-| Windows | PowerShell storage cmdlets | PowerShell storage cmdlets (`Clear-Disk`, `Initialize-Disk`, `New-Partition`, `Format-Volume`); `diskpart` only if the cmdlets are missing (app requests Administrator) |
+| Debian, Ubuntu, Mint, Pop!_OS (`.deb`) | `sudo apt install ./Syn3Updater-<v>-linux-x64.deb` | `sudo apt remove syn3updater` |
+| Fedora, Nobara, RHEL family (`.rpm`) | `sudo dnf install ./Syn3Updater-<v>-linux-x64.rpm` | `sudo dnf remove syn3updater` |
+| Arch, Manjaro, CachyOS, Omarchy (`.pkg.tar.zst`) | download the file, then `sudo pacman -U ./Syn3Updater-<v>-linux-x64.pkg.tar.zst` | `sudo pacman -R syn3updater-bin` |
+| Anything else (`.tar.gz`) | `tar xzf Syn3Updater-<v>-linux-x64.tar.gz && cd Syn3Updater-<v>-linux-x64 && ./install.sh` | `./uninstall.sh` |
 
-**Safe eject** (button beside Refresh on Home and Utilities, on the Downloads page, and offered when a run finishes):
+- **Arch:** download the package first and install the local file. Installing straight from the URL fails because releases carry no signature file.
+  The package is not in a repository, so pacman never offers updates: repeat the steps for a new version. An AUR package (`syn3updater-bin`) is planned.
+- **`.tar.gz`:** installs for your user only (no `sudo`) and adds a launcher entry. `./Syn3Updater` also runs straight from the folder,
+  but that does not register the `syn3updater://` link handler.
 
-| | Eject |
+Start the app from the application menu (on Linux also with `syn3updater` in a terminal).
+
+## Using it
+
+1. **Home:** choose your region, SYNC release and maps, and the USB drive. Start the run; the app downloads, verifies, copies and
+   writes the install files. Only USB / external drives are offered, never a system disk, and the confirmation names the exact device before anything is formatted.
+2. **Eject** the drive from the app when it finishes, then plug it into the car.
+3. **Utilities** has the APIM checks (for example whether a unit is MY20) and log tools. **Settings** holds the install mode, language, theme and update channel.
+
+The install mode (AutoInstall, Reformat, Downgrade) is chosen automatically and protects MY20 units. The rules are in [docs/install-mode-logic.md](docs/install-mode-logic.md).
+
+**Diagnostics** (sidebar) checks the tools and permissions your OS needs, the data / download / log folders, the API key, the Syn3 Updater and Ford servers and the clock.
+Each failed check says how to fix it, and *Copy report* puts the result on the clipboard.
+
+> Linux is the only platform the author has run on real hardware. The Windows and macOS drive code is covered by tests but has not been tried against real devices,
+> so please report problems.
+
+### Logs
+
+Logs start with a system section (OS, architecture, runtime, desktop, install location, available tools, free space). The home folder is replaced by `~`, so logs are safe to share.
+
+### Updates
+
+On start-up the app asks GitHub for a newer build on your update channel and shows a banner with a link. It never downloads or installs anything.
+Choose the channel in *Settings > Update channel*:
+
+| Channel | Gets |
 |---|---|
-| Linux | `sync`, then `udisksctl unmount` for every partition and `udisksctl power-off` (needs `udisks2`; falls back to `umount`) |
-| macOS | `diskutil eject` |
-| Windows | flush the volume cache, then the shell "Eject" verb; confirms the drive has disappeared |
+| **Stable** (default for releases) | tested releases, e.g. `3.0.0` |
+| **Beta** (default for test builds) | the newest release or pre-release, e.g. `3.0.0-test8` |
+| **Nightly** | not available yet |
 
-Only drives the app itself would list (USB / external, never a system disk) can be ejected, and the command sequences for all
-three platforms are covered by tests that script the OS commands. Before any run the app also checks there is enough free space in
-the download folder and on the drive (accounting for files already downloaded or already on the stick).
+Choosing a different channel offers that channel's newest build even if its number is lower, for example a Beta tester who picks Stable is offered the latest stable release.
 
-Before any format the target device is re-validated and the confirmation dialog names the exact device.
-Only the Linux path has been run on real hardware by the author of this port; the Windows and macOS
-drive code is covered by parser unit tests but untested against real devices.
+### `syn3updater://` links
 
-## Differences from the original
+Links such as `syn3updater://Region=EU;Release=3.4.19274;Maps=Navigation_Map_Name` (used on the CyanLabs website and forum) open the app and preselect the
+region, release and maps. A link only chooses options: it never starts a run, never formats a drive and cannot name a file or path.
 
-- Redesigned UI: labelled sidebar that collapses on narrow windows, a guided 1-2-3 Home flow with a sticky action bar, live download queue, light/dark themes, settings that save when you leave the tab.
-- Cross-platform UI (Avalonia) instead of WPF. On Windows the real v2 "hybrid" Launcher (`packaging/windows/launcher/`) is shipped next to `Syn3Updater.exe` and keeps the app up to date; `syn3updater://` links are registered by the app itself at start-up.
-- Settings live in `~/.local/share/CyanLabs/Syn3Updater` (Linux), `%LOCALAPPDATA%` (Windows); macOS uses .NET LocalApplicationData (`~/.local/share`).
-- GraphQL via plain HTTP + System.Text.Json (no GraphQL client dependency); downloads write to `*.part` and rename on success.
-- `autoinstall.lst`/`reformat.lst` are always written with CRLF line endings.
-- v2 settings files are read as they are. The install mode must be `autoinstall`, `reformat` or `downgrade` (any case); anything else, including the text v2's Settings page saved for "Auto-Detect" in any language, falls back to auto-detect. `My20v2` keeps its meaning (null auto, true on, false off) and a wrongly typed value counts as auto-detect instead of discarding the profile. As in v2, a fixed install mode only exists while MY20 protection is explicitly off: turning it on (or back to auto-detect), closing Advanced options, or the Interrogator log finding an MY20 unit resets the mode to auto-detect, and a profile that has a fixed mode without protection being off is read as auto-detect. The download connections v2 kept in the profile file move once into the application settings (`settings.json`) and are no longer written to profiles.
-- The interrogator tool choice covers the version gaps the original left unmatched (it would have used a null package).
-- "Create 2.2 Upgrade USB" (an empty stub in the source) is implemented against the `upgrade22` package.
+## Documentation
 
-## CI/CD (GitHub Actions)
+- [Building and testing](docs/BUILDING.md): build from source, the API token, tests, UI previews
+- [Releasing](docs/RELEASING.md): CI, the package formats, secrets, update channels, the v2 Launcher
+- [Platform behaviour](docs/PLATFORMS.md): how drives are listed, formatted and ejected on each OS, and how `syn3updater://` is registered
+- [Differences from v2](docs/V2-DIFFERENCES.md)
+- [Install mode logic](docs/install-mode-logic.md)
 
-- **CI** (`.github/workflows/ci.yml`): every push and pull request to `main` builds and tests on Linux, Windows and macOS.
-- **Release** (`.github/workflows/release.yml`): pushing a tag like `v3.0.0` runs the tests, builds every package and publishes a GitHub Release
-  with checksums. It can also be started by hand (Actions > Release > Run workflow) to build packages without publishing. It also builds the Nightly channel (see *Update channels*).
+## License
 
-| Package | Built by | Notes |
-|---|---|---|
-| `Syn3Updater-<v>-linux-x64.tar.gz`, `-linux-arm64` | `scripts/package-linux.sh` | single file + `install.sh` / `uninstall.sh` (user-level install; the launcher entry is generated with the real path; checks for the tools USB preparation needs) |
-| `Syn3Updater-<v>-linux-x64.deb`, `-linux-arm64` | `scripts/package-deb.sh` | installs to `/opt/syn3updater` with a `/usr/bin/syn3updater` command and an application-menu entry; depends on the USB tools and runtime libraries (Debian 11+, Ubuntu 20.04+) |
-| `Syn3Updater-<v>-linux-x64.rpm`, `-linux-arm64` | `scripts/package-rpm.sh` | same layout for Fedora / Nobara / RHEL-family; pre-releases get `Release: 0.<pre>.1` so the final release upgrades them |
-| `Syn3Updater-<v>-linux-x64.pkg.tar.zst`, `-linux-arm64` | `scripts/package-arch.sh` | native Arch package: `sudo pacman -U <file>` (also Manjaro, Omarchy, CachyOS...). Built from the AUR recipe in an Arch container; named `syn3updater-bin`, so installing from the AUR later is a normal upgrade. A pre-release `3.0.0-test7` is versioned `3.0.0test7`, which pacman sorts before `3.0.0`. Not in a repository, so pacman never offers updates |
-| AUR `syn3updater-bin` (not published yet) | `packaging/aur/PKGBUILD`, `scripts/update-aur-package.sh` | uses the release tarballs; see `packaging/aur/README.md` |
-| `Syn3Updater-<v>-win-x64.zip`, `-win-arm64` | `scripts/package-windows.sh` | `Syn3Updater.exe` (asks for administrator rights to format drives) plus the hybrid Launcher (`Launcher.exe` and its four support files, hash-pinned in `packaging/windows/launcher/`); the Launcher must be in every package, see that folder's README |
-| `Syn3Updater-<v>-macos-arm64.dmg`, `-macos-x64` | `scripts/package-macos.sh` (macOS only) | `.app` bundle in a DMG |
-
-CI installs the `.deb`, `.rpm` and Arch package in real Debian, Ubuntu, Fedora and Arch containers (and builds the AUR package in Arch Linux) before a release is published, so wrong dependency names or a broken launcher stop it.
-
-Repository **secrets** (Settings > Secrets and variables > Actions):
-
-| Secret | Needed for |
-|---|---|
-| `SYN3_API_TOKEN` | the CyanLabs API token compiled into every build (without it the app builds but cannot reach the API) |
-| `MACOS_CERTIFICATE`, `MACOS_CERTIFICATE_PASSWORD`, `MACOS_CODESIGN_IDENTITY` | optional: sign the macOS app with a Developer ID (base64 `.p12`, its password, and the identity name) |
-| `NOTARY_APPLE_ID`, `NOTARY_TEAM_ID`, `NOTARY_PASSWORD` | optional: notarize the signed app (an app-specific password) |
-
-Without the macOS secrets the app is ad-hoc signed: it runs, but users must right-click > Open the first time.
-A token compiled into a public download can be extracted by anyone, so keep it read-only and revocable.
-
-## Diagnostics, logs and updates
-
-- **Diagnostics** (sidebar): checks the tools and permissions the current OS needs (Linux: `lsblk`, `sfdisk`, `mkfs.exfat`, `pkexec`, `udisks2`; Windows: Administrator, PowerShell, `diskpart`;
-  macOS: `diskutil`, app location), the data/download/log folders, the API key, the Syn3 Updater and Ford servers and the clock. Each failed check says how to fix it. "Copy report" puts it on the clipboard.
-- **Logs** now start with a system section (OS, architecture, runtime, desktop/session, install location, which tools are present, free space). The home folder is replaced by `~` so logs are safe to share.
-- **Update notice**: on start-up the app asks GitHub for a newer build on your update channel (below) and shows a banner with a link. It never downloads or installs anything. The check is a single request to GitHub and is always on.
-- **Drive verification**: after copying and flushing, every file on the stick is read back and checked against the download (Linux and macOS bypass the OS cache for this read).
-- **Languages** live in `src/Syn3Updater.Core/Languages/*.json`. A test keeps every language complete and in step with `en-US`, and fails on keys nothing uses or text hardcoded in XAML.
-
-## Update channels
-
-Settings > Update channel decides which builds the update notice offers. The channel a build came from is read from its version, so nothing else has to be stored:
-
-| Channel | Gets | Version looks like | Published as |
-|---|---|---|---|
-| **Stable** (default for releases) | tested releases | `3.0.0` | a normal GitHub release on `CyanLabs/Syn3Updater` |
-| **Beta** (default for test builds) | the newest release *or* pre-release | `3.1.0-beta.2`, `3.0.0-test8` | a pre-release on `CyanLabs/Syn3Updater` |
-| **Nightly** (off for now) | automatic, untested builds of the latest code | `3.1.0-nightly.20261108.5` | one rolling pre-release named `nightly` on `CyanLabs/Syn3Updater` |
-
-- A newer build in your own channel is a normal update. Choosing a *different* channel offers that channel's newest build even if its number is lower (as in v2): for example a Beta tester who picks Stable is offered the latest stable release.
-- **Nightlies are switched off.** `release.yml` has a scheduled run at 03:17 UTC, but it does nothing until the repository variable `NIGHTLY_ENABLED` is set to `true` (Settings > Secrets and variables > Actions > Variables). When enabled it builds only when `main` changed since the last nightly, and only in `CyanLabs/Syn3Updater` (forks skip). A manual run with "nightly" ticked always goes ahead, so do not do that yet either.
-  The version is `<Version in Directory.Build.props>-nightly.<date>.<run number>`, the release tag is always `nightly` and the app reads the version from the release title.
-  **Do not enable it until every user has moved off the v2 Launcher:** that Launcher takes the newest release as its Beta update and crashes on a tag that is not a version number (the 2.14.2.1+ Launcher ignores such tags). Until then the Nightly choice in Settings simply finds nothing to offer.
-- The word sent to the API and written in logs as the "branch" is the channel of the running build (`Stable`, `Beta` or `Nightly`).
-- **Windows: the Launcher follows this setting.** Like v2's Settings page, choosing a channel writes `ReleaseBranch` into the Launcher's `C:\ProgramData\CyanLabs\Syn3Updater\launcherPrefs.json`
-  (0 Stable, 1 Beta, 2 Alpha = Nightly: v2's unfinished third slot is v3's Nightly; the install record next to it is never touched), so the next Launcher start installs that channel.
-  Be aware the Launchers only read the production repo, which has no nightlies: the 2.14.2.1+ Launcher treats Alpha like Beta, and the older 2.14.2.0 Launcher treats anything but Beta as Stable.
-  If the file says something different from the app (changed by v2 or the Launcher), the file wins, as in v2. It is only written when that file or a `Launcher.exe` beside the app exists, and never on Linux or macOS.
-
-## Releasing for the v2 Launcher
-
-The v2 Launcher (2.14.2.0 and older) cannot read a tag like `v3.0.0-test9`: it runs `Version.Parse(tag)` unguarded and crashes. It also wants one flat zip. Run **Actions > Release > Run workflow** with `publish` ticked and `legacy_tag` set:
-
-| `legacy_tag` | Result |
-|---|---|
-| empty | the normal release: tag `v<version>`, no flat zip. **do not use it on `CyanLabs/Syn3Updater`** while v2 Launchers exist |
-| `auto` | the next free `2.99.99.N` (numbered 1 to 999, compared as numbers: 2.99.99.2 is lower than 2.99.99.12), for test builds |
-| an exact tag such as `3.0.0.0` | that tag, for the real release (it fails at once if the tag or release already exists) |
-
-With a legacy tag the workflow also builds `<tag>.zip`: a flat zip (no folder) holding the same files as the Windows package: `Syn3Updater.exe`, the real hybrid Launcher (`Launcher.exe` plus `Launcher.exe.config`, `Launcher.Core.dll`, `FluentWPF.dll`, `Newtonsoft.Json.dll`), LICENSE and README.txt, uploaded as `application/x-zip-compressed`
-(the old Launcher's download picks the first asset of that exact type). The release is created as a **draft**, the zip is attached and its content type checked, and only then is it published,
-so an old Launcher never sees a release without its zip. The release title stays `Syn3 Updater <version>`: the in-app update check reads the real version (`3.0.0-test9`) from the title of a pre-release
-under a bare numeric tag. The release is flagged pre-release when the version has a suffix, and only Launchers on the Beta channel see pre-releases.
-
-Why `2.99.99.N`: the old Launcher installs any release whose tag merely *differs* from what it has, while the 2.14.2.1+ Launcher offers the **highest version number**. `2.99.99.N` is higher than every v2 release (2.14.2.1)
-so both see test builds, and lower than the real `3.0.0.0`, so that release is still the newest. Keep real releases above `2.99.99.999`.
-
-## syn3updater:// links
-
-Links such as `syn3updater://Region=EU;Release=3.4.19274;Maps=Navigation_Map_Name` (on the CyanLabs website and forum, as in v2) open the app and
-preselect the region, SYNC release (`Sync <Release>`) and maps (underscores stand for spaces) on Home. Like v2, a link needs `Region` to do anything.
-A link can only choose among the options the app already offers: it never presses Start, never formats a drive and cannot name a file or path.
-If a link arrives while an update is running it is refused with the usual "another operation is running" message.
-
-- **One copy at a time:** a second launch (for example clicking a link while the app is open) hands the link to the running copy and exits.
-- **Windows:** the app registers itself for the current user (`HKCU\Software\Classes\syn3updater`, no administrator rights) each time it starts, pointing at the running `Syn3Updater.exe`, as v2 did.
-- **Linux:** `install.sh` and the packages declare `x-scheme-handler/syn3updater` in the launcher entry; running `./Syn3Updater` straight from the archive does not register anything.
-- **macOS:** declared in the app bundle's `Info.plist`.
-
-## UI previews (no window)
-
-`dotnet run --project tools/Shots -- out 1100 800 Home Settings --demo [--light]` renders pages to PNG with Avalonia's
-headless backend (nothing is shown on screen). Useful for checking layouts at different widths and themes.
-
-## Tests
-
-`dotnet test` runs ~150 tests: core logic, view-models driven through the real workflow with a fake API/dialogs, an end-to-end
-download/copy run against a local HTTP server, and a live-API check (runs when a token is compiled in).
-`scripts/coverage.sh` prints per-class line coverage (about 95% excluding the third-party partition algorithm, XAML-generated
-code, the OS window dialogs and macOS `diskutil` calls).
-
-Licensed GPL-3.0 (see `LICENSE`).
+GPL-3.0, see [LICENSE](LICENSE).
