@@ -115,6 +115,98 @@ public class UpdateCheckerTests
         Assert.Equal("https://github.com/CyanLabs/Syn3Updater/releases/tag/3.1.0", UpdateChecker.Pick(Releases(("3.1.0", false, false)), "3.0.0")!.Url);
     }
 
+    [Theory]
+    [InlineData("3.0.0", UpdateChannel.Stable)]
+    [InlineData("v3.0.0", UpdateChannel.Stable)]
+    [InlineData("3.0.0-test7", UpdateChannel.Beta)]
+    [InlineData("3.1.0-beta.2", UpdateChannel.Beta)]
+    [InlineData("3.1.0-rc.1", UpdateChannel.Beta)]
+    [InlineData("3.1.0-nightly.20261108.5", UpdateChannel.Nightly)]
+    [InlineData("3.1.0-Nightly.1", UpdateChannel.Nightly)]
+    [InlineData("rubbish", UpdateChannel.Stable)]
+    public void ABuildKnowsItsOwnChannel_FromItsVersion(string version, UpdateChannel expected) => Assert.Equal(expected, Channels.Of(version));
+
+    [Fact]
+    public void TheSavedChannel_FallsBackToTheRunningBuild_WhenMissingOrUnknown()
+    {
+        Assert.Equal(UpdateChannel.Beta, Channels.Parse(null, "3.0.0-test7"));
+        Assert.Equal(UpdateChannel.Stable, Channels.Parse("", "3.0.0"));
+        Assert.Equal(UpdateChannel.Stable, Channels.Parse("Gamma", "3.0.0"));
+        Assert.Equal(UpdateChannel.Stable, Channels.Parse("42", "3.0.0"));          // a number is not a channel
+        Assert.Equal(UpdateChannel.Nightly, Channels.Parse("nightly", "3.0.0"));
+    }
+
+    [Fact]
+    public void AnOldSettingsFile_StillLoads_AfterTheOptOutWasRemoved()
+    {
+        var m = JsonSerializer.Deserialize<Cyanlabs.Syn3Updater.Core.Models.MainSettings>("{\"CheckForUpdates\": false, \"UpdateChannel\": \"Beta\"}")!;
+        Assert.Equal("Beta", m.UpdateChannel);               // the unknown old key is ignored, the rest is read
+    }
+
+    private static string Releases2(params (string tag, string? name, bool pre)[] r) =>
+        JsonSerializer.Serialize(r.Select(x => new { tag_name = x.tag, name = x.name, prerelease = x.pre, draft = false, html_url = "https://example/" + x.tag }));
+
+    [Fact]
+    public void Stable_NeverOffersBetasOrNightlies_EvenToAStableUserWhoAsksForStable()
+    {
+        var json = Releases2(("3.2.0-beta.1", "Syn3 Updater 3.2.0-beta.1", true), ("3.1.0", "Syn3 Updater 3.1.0", false), ("nightly", "Syn3 Updater 3.3.0-nightly.20261108.1", true));
+        Assert.Equal("3.1.0", UpdateChecker.Pick(json, "3.0.0", UpdateChannel.Stable)!.Version);
+    }
+
+    [Fact]
+    public void Beta_OffersTheNewestReleaseOrPrerelease_ButNotNightlies()
+    {
+        var json = Releases2(("nightly", "Syn3 Updater 3.5.0-nightly.20261108.1", true), ("3.2.0-beta.1", null, true), ("3.1.0", null, false));
+        Assert.Equal("3.2.0-beta.1", UpdateChecker.Pick(json, "3.0.0", UpdateChannel.Beta)!.Version);
+        Assert.Equal("3.2.0-beta.1", UpdateChecker.Pick(json, "3.1.0-beta.1", UpdateChannel.Beta)!.Version);
+        var stableNewest = Releases2(("3.2.0", null, false), ("3.2.0-beta.1", null, true));
+        Assert.Equal("3.2.0", UpdateChecker.Pick(stableNewest, "3.2.0-beta.1", UpdateChannel.Beta)!.Version);            // the final release beats its own betas
+    }
+
+    [Fact]
+    public void Nightly_ReadsItsVersionFromTheReleaseTitle_BecauseTheTagIsAlwaysJustNightly()
+    {
+        var json = Releases2(("nightly", "Syn3 Updater 3.1.0-nightly.20261108.5", true));
+        var pick = UpdateChecker.Pick(json, "3.1.0-nightly.20261107.4", UpdateChannel.Nightly)!;
+        Assert.Equal("3.1.0-nightly.20261108.5", pick.Version); Assert.False(pick.Switch); Assert.Equal("https://example/nightly", pick.Url);
+        Assert.Null(UpdateChecker.Pick(json, "3.1.0-nightly.20261108.5", UpdateChannel.Nightly));                         // already on it
+        Assert.Null(UpdateChecker.Pick(json, "3.1.0-nightly.20261109.1", UpdateChannel.Nightly));                         // newer than the published one
+        Assert.Equal("3.1.0-nightly.20261108.10", UpdateChecker.Pick(Releases2(("nightly", "Syn3 Updater 3.1.0-nightly.20261108.10", true)), "3.1.0-nightly.20261108.9", UpdateChannel.Nightly)!.Version);   // run 10 > run 9
+    }
+
+    [Fact]
+    public void ChoosingAnotherChannel_OffersItsNewestBuild_EvenWhenOlder_UntilYouAreOnIt()
+    {
+        var stable = Releases2(("3.0.5", null, false));
+        // a beta tester picks Stable: the stable build is older than the beta, but it is what they asked for
+        var back = UpdateChecker.Pick(stable, "3.1.0-beta.2", UpdateChannel.Stable)!;
+        Assert.Equal("3.0.5", back.Version); Assert.True(back.Switch);
+        Assert.Null(UpdateChecker.Pick(stable, "3.0.5", UpdateChannel.Stable));                                        // now on it: nothing more to offer
+        // a stable user picks Nightly whose number is lower than their release
+        var night = Releases2(("nightly", "Syn3 Updater 3.0.0-nightly.20261108.1", true));
+        var sw = UpdateChecker.Pick(night, "3.0.0", UpdateChannel.Nightly)!;
+        Assert.True(sw.Switch); Assert.Equal("3.0.0-nightly.20261108.1", sw.Version);
+        Assert.Null(UpdateChecker.Pick(night, "3.0.0-nightly.20261108.1", UpdateChannel.Nightly));
+        // nothing published on the chosen channel: nothing to offer
+        Assert.Null(UpdateChecker.Pick(stable, "3.0.5", UpdateChannel.Nightly));
+    }
+
+    [Fact]
+    public async Task Check_AsksTheDevRepoForNightlies_AndTheProductionRepoForTheRest()
+    {
+        var urls = new List<string>();
+        var http = new HttpClient(new RecordingStub(r => { urls.Add(r.RequestUri!.ToString()); return new(HttpStatusCode.OK) { Content = new StringContent("[]") }; }));
+        var checker = new UpdateChecker(http);
+        await checker.CheckAsync("3.0.0", UpdateChannel.Stable); await checker.CheckAsync("3.0.0", UpdateChannel.Beta); await checker.CheckAsync("3.0.0", UpdateChannel.Nightly);
+        Assert.Contains("/repos/CyanLabs/Syn3Updater/releases", urls[0]); Assert.Contains("/repos/CyanLabs/Syn3Updater/releases", urls[1]);
+        Assert.Contains("/repos/CyanLabs/Syn3UpdaterDev/releases", urls[2]);        // never the production repo: the v2 Launcher reads its newest pre-release as the Beta update
+    }
+
+    private sealed class RecordingStub(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct) => Task.FromResult(respond(request));
+    }
+
     private sealed class Stub(Func<HttpResponseMessage> respond) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct) => Task.FromResult(respond());

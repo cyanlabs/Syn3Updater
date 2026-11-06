@@ -25,7 +25,10 @@ public static class Ctx
     public static bool ModeForced => Profile.InstallMode != "autodetect" && !string.IsNullOrEmpty(Profile.InstallMode);
     public static string Version { get; } =
         Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0] ?? "3.0.0";
-    public static string Branch => "Stable";
+    /// <summary>The channel the running build came from (also what the API and logs call its "branch").</summary>
+    public static string Branch => Channels.Of(Version).ToString();
+    /// <summary>The channel chosen in Settings, which decides what the update notice offers.</summary>
+    public static UpdateChannel UpdateChannel => Channels.Parse(Main.UpdateChannel, Version);
 
     /// <summary>Watches for drives being plugged in or removed (started by the main window).</summary>
     public static DriveMonitor DriveMonitor { get; private set; } = null!;

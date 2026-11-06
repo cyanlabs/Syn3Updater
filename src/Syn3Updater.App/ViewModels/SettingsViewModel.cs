@@ -30,6 +30,12 @@ public partial class SettingsViewModel : PageViewModel
     public IReadOnlyList<ChoiceOption> My20Options { get; private set; } = BuildMy20();
     public IReadOnlyList<ChoiceOption> ModeOptions { get; private set; } = BuildMode();
     public IReadOnlyList<ChoiceOption> ThemeOptions { get; private set; } = BuildTheme();
+    public IReadOnlyList<ChoiceOption> ChannelOptions { get; private set; } = BuildChannels();
+    private static ChoiceOption[] BuildChannels() => new[]
+    {
+        new ChoiceOption(nameof(UpdateChannel.Stable), Ctx.T("Settings.ChannelStable")), new ChoiceOption(nameof(UpdateChannel.Beta), Ctx.T("Settings.ChannelBeta")),
+        new ChoiceOption(nameof(UpdateChannel.Nightly), Ctx.T("Settings.ChannelNightly")),
+    };
     private static ChoiceOption[] BuildMy20() => new[]
     {
         new ChoiceOption("auto", Ctx.T("Settings.OptAuto")), new ChoiceOption("on", Ctx.T("Settings.OptMy20On")), new ChoiceOption("off", Ctx.T("Settings.OptMy20Off")),
@@ -52,11 +58,11 @@ public partial class SettingsViewModel : PageViewModel
     [ObservableProperty] private Region? _region;
     [ObservableProperty] private string _version = "";
     [ObservableProperty] private bool _nav;
+    [ObservableProperty] private ChoiceOption? _channel;
     [ObservableProperty] private ChoiceOption? _my20;
     [ObservableProperty] private ChoiceOption? _mode;
     [ObservableProperty] private ChoiceOption? _theme;
     [ObservableProperty] private int _connections = 1;
-    [ObservableProperty] private bool _checkUpdates = true;
     [ObservableProperty] private string _downloadPath = "";
     [ObservableProperty] private string _logPath = "";
     [ObservableProperty] private string _licenseKey = "";
@@ -131,8 +137,8 @@ public partial class SettingsViewModel : PageViewModel
     private void Load()
     {
         _loading = true;
-        My20Options = BuildMy20(); ModeOptions = BuildMode(); ThemeOptions = BuildTheme();          // labels in the current language
-        OnPropertyChanged(nameof(My20Options)); OnPropertyChanged(nameof(ModeOptions)); OnPropertyChanged(nameof(ThemeOptions));
+        My20Options = BuildMy20(); ModeOptions = BuildMode(); ThemeOptions = BuildTheme(); ChannelOptions = BuildChannels();          // labels in the current language
+        OnPropertyChanged(nameof(My20Options)); OnPropertyChanged(nameof(ModeOptions)); OnPropertyChanged(nameof(ThemeOptions)); OnPropertyChanged(nameof(ChannelOptions));
         var m = Ctx.Main; var p = Ctx.Profile;
         Language = Languages.FirstOrDefault(l => l.Code == Ctx.Loc.Code) ?? Languages.FirstOrDefault();
         Region = Regions.FirstOrDefault(r => r.Code == p.CurrentRegion);
@@ -142,7 +148,7 @@ public partial class SettingsViewModel : PageViewModel
         Mode = ModeOptions.FirstOrDefault(o => o.Value == p.InstallMode) ?? ModeOptions[0];
         Theme = ThemeOptions.FirstOrDefault(o => o.Value == (m.Theme ?? "Dark")) ?? ThemeOptions[0];
         Connections = Math.Clamp(m.DownloadConnections, 1, 8);
-        CheckUpdates = m.CheckForUpdates;
+        Channel = ChannelOptions.FirstOrDefault(o => o.Value == Ctx.UpdateChannel.ToString()) ?? ChannelOptions[0];
         DownloadPath = m.DownloadPath ?? ""; LogPath = m.LogPath ?? "";
         LicenseKey = m.LicenseKey ?? "";
         Advanced = false; Message = "";
@@ -161,13 +167,14 @@ public partial class SettingsViewModel : PageViewModel
     /// <summary>The dropdown labels are text, so they are rebuilt (keeping the selection) when the language changes.</summary>
     private void RebuildOptions()
     {
-        var (my, mode, theme) = (My20?.Value, Mode?.Value, Theme?.Value);
+        var (my, mode, theme, channel) = (My20?.Value, Mode?.Value, Theme?.Value, Channel?.Value);
         var wasLoading = _loading; _loading = true;
-        My20Options = BuildMy20(); ModeOptions = BuildMode(); ThemeOptions = BuildTheme();
-        OnPropertyChanged(nameof(My20Options)); OnPropertyChanged(nameof(ModeOptions)); OnPropertyChanged(nameof(ThemeOptions));
+        My20Options = BuildMy20(); ModeOptions = BuildMode(); ThemeOptions = BuildTheme(); ChannelOptions = BuildChannels();
+        OnPropertyChanged(nameof(My20Options)); OnPropertyChanged(nameof(ModeOptions)); OnPropertyChanged(nameof(ThemeOptions)); OnPropertyChanged(nameof(ChannelOptions));
         My20 = My20Options.FirstOrDefault(o => o.Value == my) ?? My20Options[0];
         Mode = ModeOptions.FirstOrDefault(o => o.Value == mode) ?? ModeOptions[0];
         Theme = ThemeOptions.FirstOrDefault(o => o.Value == theme) ?? ThemeOptions[0];
+        Channel = ChannelOptions.FirstOrDefault(o => o.Value == channel) ?? ChannelOptions[0];
         _loading = wasLoading;
     }
 
@@ -235,7 +242,9 @@ public partial class SettingsViewModel : PageViewModel
         }
 
         m.DownloadConnections = Connections;
-        m.CheckForUpdates = CheckUpdates;
+        var channelBefore = Ctx.UpdateChannel;
+        m.UpdateChannel = Channel?.Value ?? m.UpdateChannel;
+        if (Ctx.UpdateChannel != channelBefore) _ = MainWindowViewModel.Instance.CheckForUpdateAsync();       // the notice should follow the new channel straight away
         m.Lang = Language?.Code ?? m.Lang;
         m.Theme = Theme?.Value ?? "Default";
         m.LicenseKey = LicenseKey.Trim();

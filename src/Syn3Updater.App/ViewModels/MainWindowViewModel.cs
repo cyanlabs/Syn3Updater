@@ -91,15 +91,14 @@ public partial class MainWindowViewModel : ObservableObject
     // ---- new version notice ----
     [ObservableProperty] private UpdateInfo? _update;
     public bool UpdateAvailable => Update != null;
-    public string UpdateText => Update == null ? "" : Ctx.T("App.UpdateAvailable", Update.Version, Ctx.Version);
+    public string UpdateText => Update == null ? "" : Ctx.T(Update.Switch ? "App.UpdateSwitch" : "App.UpdateAvailable", Update.Version, Ctx.Version);
     partial void OnUpdateChanged(UpdateInfo? value) { OnPropertyChanged(nameof(UpdateAvailable)); OnPropertyChanged(nameof(UpdateText)); }
 
     /// <summary>Looks for a newer release and shows the banner if there is one. A failed check is silent: it is never worth interrupting anyone for.</summary>
-    public async Task CheckForUpdateAsync(bool force = false)
+    public async Task CheckForUpdateAsync()
     {
-        if (!force && !Ctx.Main.CheckForUpdates) return;
-        Update = await Ctx.Updates.CheckAsync(Ctx.Version);
-        Ctx.Log.Info(Update == null ? $"No newer version than {Ctx.Version} found" : $"A newer version is available: {Update.Version}");
+        Update = await Ctx.Updates.CheckAsync(Ctx.Version, Ctx.UpdateChannel);
+        Ctx.Log.Info(Update == null ? $"No newer version than {Ctx.Version} found on the {Ctx.UpdateChannel} channel" : $"{(Update.Switch ? "A build is available on the " + Ctx.UpdateChannel + " channel" : "A newer version is available")}: {Update.Version}");
     }
 
     [RelayCommand] private Task OpenUpdate() => Update == null ? Task.CompletedTask : Dialogs.OpenUrl(Update.Url);

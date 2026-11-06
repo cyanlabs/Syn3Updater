@@ -64,7 +64,7 @@
             <StackPanel Spacing="6"><TextBlock Text="{svc:T Settings.DownloadConnections}" Classes="label" /><ComboBox ItemsSource="{Binding ConnectionOptions}" SelectedItem="{Binding Connections}" /></StackPanel>
             <StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="{svc:T Settings.MapKey}" Classes="label" /><TextBox Text="{Binding LicenseKey}" /></StackPanel>
           </Grid>
-          <CheckBox IsChecked="{Binding CheckUpdates}" Content="{svc:T Settings.CheckForUpdates}" />
+          <StackPanel Spacing="6"><TextBlock Text="{svc:T Settings.UpdateChannel}" Classes="label" /><ComboBox ItemsSource="{Binding ChannelOptions}" SelectedItem="{Binding Channel}" HorizontalAlignment="Stretch" /></StackPanel>
         </StackPanel>
       </Border>
 
