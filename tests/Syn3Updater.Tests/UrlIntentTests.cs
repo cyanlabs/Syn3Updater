@@ -89,11 +89,14 @@ public class SingleInstanceTests
     [Fact]
     public async Task SeveralMessagesInARow_AreAllDelivered()
     {
+        // Links can arrive back to back (several clicks, or a browser retrying). Each one must get through: on Windows the server end has to be
+        // disconnected after every message or the next sender waits out its timeout, so a dozen in a row is what shows it up reliably.
         var name = Name(); using var first = SingleInstance.TryBecomePrimary(name)!;
         var received = new System.Collections.Concurrent.ConcurrentQueue<string>(); first.Listen(received.Enqueue);
-        foreach (var m in new[] { "activate", "syn3updater://Region=NA", "syn3updater://Region=EU" }) Assert.True(await SingleInstance.TrySendAsync(name, m));
-        await AppEnv.Until(() => received.Count == 3, 10000);
-        Assert.Equal(new[] { "activate", "syn3updater://Region=NA", "syn3updater://Region=EU" }, received.ToArray());
+        var sent = Enumerable.Range(0, 12).Select(i => i == 0 ? "activate" : "syn3updater://Region=" + (i % 2 == 0 ? "EU" : "NA") + ";Release=3.4." + i).ToArray();
+        foreach (var m in sent) Assert.True(await SingleInstance.TrySendAsync(name, m, timeoutMs: 3000), "could not deliver: " + m);
+        await AppEnv.Until(() => received.Count == sent.Length, 10000);
+        Assert.Equal(sent, received.ToArray());
     }
 
     [Fact]
