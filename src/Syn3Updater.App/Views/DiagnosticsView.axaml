@@ -1,0 +1,64 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels"
+             x:Class="Cyanlabs.Syn3Updater.App.Views.DiagnosticsView">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+    <StackPanel MaxWidth="820" Spacing="16" Margin="28,28,28,24">
+
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+        <StackPanel Spacing="4">
+          <TextBlock Text="{svc:T Main.Diagnostics}" Classes="title" />
+          <TextBlock Text="{svc:T Diag.Intro}" Classes="muted" TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+          <Button Command="{Binding BackCommand}" Content="{svc:T Main.About}" />
+          <Button Command="{Binding RunCommand}" IsEnabled="{Binding !Running}" Content="{svc:T Diag.RunAgain}" />
+          <Button Command="{Binding CopyReportCommand}" Content="{svc:T Diag.CopyReport}" />
+        </StackPanel>
+      </Grid>
+
+      <Border Classes="card" Padding="16">
+        <StackPanel Spacing="10">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <ProgressBar IsIndeterminate="True" Width="80" IsVisible="{Binding Running}" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" VerticalAlignment="Center" />
+          </StackPanel>
+          <ItemsControl ItemsSource="{Binding Rows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:DiagRow">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Margin="0,5">
+                  <Border Width="34" Height="34" CornerRadius="9" Background="{Binding IconBackground}" VerticalAlignment="Top">
+                    <PathIcon Data="{Binding IconData}" Foreground="{Binding IconBrush}" Width="16" Height="16" />
+                  </Border>
+                  <StackPanel Grid.Column="1" Spacing="2">
+                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Detail}" IsVisible="{Binding HasDetail}" Classes="muted mono" FontSize="12" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Hint}" IsVisible="{Binding HasHint}" Classes="warning" />
+                  </StackPanel>
+                  <TextBlock Grid.Column="2" Text="{Binding StatusText}" Classes="label" VerticalAlignment="Top" Margin="0,8,0,0" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card" Padding="16">
+        <StackPanel Spacing="10">
+          <TextBlock Text="{svc:T Diag.SystemInfo}" Classes="section" />
+          <ItemsControl ItemsSource="{Binding Facts}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid ColumnDefinitions="190,*" Margin="0,2">
+                  <TextBlock Text="{Binding Key}" Classes="label" />
+                  <SelectableTextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap" FontSize="12.5" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <WrapPanel ItemSpacing="8" LineSpacing="8">
+            <Button Command="{Binding OpenDataFolderCommand}" Content="{svc:T App.OpenDataFolder}" />
+          </WrapPanel>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

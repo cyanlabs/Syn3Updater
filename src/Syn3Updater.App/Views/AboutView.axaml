@@ -71,9 +71,9 @@
             <TextBlock Grid.Row="3" Text="{svc:T App.DataFolder}" Classes="label" /><TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding DataFolder}" Classes="mono" FontSize="12" TextWrapping="Wrap" />
           </Grid>
           <WrapPanel ItemSpacing="8" LineSpacing="8">
-            <Button Command="{Binding CopyDiagnosticsCommand}" Content="{svc:T App.CopyDiagnostics}" />
             <Button Command="{Binding OpenDataFolderCommand}" Content="{svc:T App.OpenDataFolder}" />
-            <Button Command="{Binding OpenGithubCommand}" Content="{svc:T App.Source}" />
+            <Button Command="{Binding OpenDiagnosticsCommand}" Content="{svc:T Main.Diagnostics}" />
+            <Button Command="{Binding CheckUpdateCommand}" Content="{svc:T App.CheckUpdates}" />
             <Button Command="{Binding OpenLicenseCommand}" Content="{svc:T App.AboutLicense}" />
           </WrapPanel>
         </StackPanel>

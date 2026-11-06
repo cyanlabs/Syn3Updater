@@ -64,13 +64,14 @@
             <StackPanel Spacing="6"><TextBlock Text="{svc:T Settings.DownloadConnections}" Classes="label" /><ComboBox ItemsSource="{Binding ConnectionOptions}" SelectedItem="{Binding Connections}" /></StackPanel>
             <StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="{svc:T Settings.MapKey}" Classes="label" /><TextBox Text="{Binding LicenseKey}" /></StackPanel>
           </Grid>
+          <CheckBox IsChecked="{Binding CheckUpdates}" Content="{svc:T Settings.CheckForUpdates}" />
         </StackPanel>
       </Border>
 
       <!-- actions, bottom right -->
       <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" Margin="0,6,0,0">
         <TextBlock Text="{Binding Message}" VerticalAlignment="Center" TextWrapping="Wrap" Classes="muted" />
-        <Button Grid.Column="1" Content="Reset" Command="{Binding ResetCommand}" />
+        <Button Grid.Column="1" Content="{svc:T App.Reset}" Command="{Binding ResetCommand}" />
         <Button Grid.Column="2" Content="{svc:T Settings.Apply}" Classes="accent" Command="{Binding ApplyClickCommand}" MinWidth="130" />
       </Grid>
     </StackPanel>

@@ -64,14 +64,22 @@
       </DockPanel>
     </Border>
 
-    <Grid Grid.Column="1" RowDefinitions="*,Auto">
-      <ContentControl Grid.Row="0" Content="{Binding Current}" />
+    <Grid Grid.Column="1" RowDefinitions="Auto,*,Auto">
+      <!-- a newer release exists: a notice only, nothing is downloaded or installed -->
+      <Border Grid.Row="0" IsVisible="{Binding UpdateAvailable}" Classes="banner" Margin="24,12,24,0">
+        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+          <TextBlock Text="{Binding UpdateText}" VerticalAlignment="Center" TextWrapping="Wrap" />
+          <Button Grid.Column="1" Classes="accent" Content="{svc:T App.UpdateView}" Command="{Binding OpenUpdateCommand}" />
+          <Button Grid.Column="2" Content="{svc:T App.UpdateDismiss}" Command="{Binding DismissUpdateCommand}" />
+        </Grid>
+      </Border>
+      <ContentControl Grid.Row="1" Content="{Binding Current}" />
 
       <!-- Ad space: sponsor banner image + link (Settings > Sponsor banner), or a placeholder -->
-      <Border Grid.Row="1" IsVisible="{Binding AdVisible}" Margin="32,0,32,12" Height="64" MaxWidth="728" HorizontalAlignment="Stretch"
+      <Border Grid.Row="2" IsVisible="{Binding AdVisible}" Margin="32,0,32,12" Height="64" MaxWidth="728" HorizontalAlignment="Stretch"
               Classes="card" Padding="0" CornerRadius="8">
         <Panel>
-          <TextBlock Text="Advertisement" Classes="label" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !AdHasImage}" />
+          <TextBlock Text="{svc:T App.Advertisement}" Classes="label" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !AdHasImage}" />
           <Button Padding="0" Background="Transparent" BorderThickness="0" Command="{Binding OpenAdCommand}" IsVisible="{Binding AdHasImage}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
             <Image Source="{Binding AdImage}" Stretch="Uniform" MaxHeight="62" />
           </Button>

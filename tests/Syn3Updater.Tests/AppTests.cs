@@ -431,10 +431,10 @@ public class PageViewModelTests
         Assert.False(about.Accepted); about.Accepted = true; Assert.True(Ctx.Main.DisclaimerAccepted);
         await about.OpenDocsCommand.ExecuteAsync(null); await about.OpenForumCommand.ExecuteAsync(null); await about.OpenFHubCommand.ExecuteAsync(null); await about.OpenDonateCommand.ExecuteAsync(null);
         Assert.Equal(4, env.Dialogs.Opened.Count); Assert.Contains("https://cyanlabs.net/support-us/", env.Dialogs.Opened);
-        await about.OpenGithubCommand.ExecuteAsync(null); await about.OpenLicenseCommand.ExecuteAsync(null); await about.OpenDataFolderCommand.ExecuteAsync(null);
-        Assert.Contains(NewsViewModel.GithubRepo, env.Dialogs.Opened); Assert.Contains("https://www.gnu.org/licenses/gpl-3.0.html", env.Dialogs.Opened); Assert.Contains(about.DataFolder, env.Dialogs.Opened);
-        await about.CopyDiagnosticsCommand.ExecuteAsync(null);
-        Assert.Contains("Platform:", env.Dialogs.Clipboard[0]); Assert.Contains("Profile: default", env.Dialogs.Clipboard[0]); Assert.Contains(about.VersionText, env.Dialogs.Clipboard[0]);
+        await about.OpenLicenseCommand.ExecuteAsync(null); await about.OpenDataFolderCommand.ExecuteAsync(null);
+        Assert.Contains("https://www.gnu.org/licenses/gpl-3.0.html", env.Dialogs.Opened); Assert.Contains(about.DataFolder, env.Dialogs.Opened);
+        var diag = env.Main.Diagnostics; await diag.RunAsync(); await diag.CopyReportCommand.ExecuteAsync(null);
+        Assert.Contains("Operating system:", env.Dialogs.Clipboard[0]); Assert.Contains(".NET runtime:", env.Dialogs.Clipboard[0]); Assert.Contains("Profile: default", env.Dialogs.Clipboard[0]); Assert.Contains("Language:", env.Dialogs.Clipboard[0]);
         Assert.NotEmpty(about.Runtime); Assert.NotEmpty(about.Platform);
         Assert.False(about.NotAccepted); about.Accepted = false; Assert.True(about.NotAccepted); Assert.False(Ctx.Main.DisclaimerAccepted);
         Ctx.Main.DisclaimerAccepted = true; about.OnShown(); Assert.True(about.Accepted);
@@ -499,7 +499,7 @@ public class PageViewModelTests
     public void MainWindow_Navigation_Sidebar_Title()
     {
         using var env = new AppEnv(); var m = env.Main;
-        Assert.Equal(5, m.TopPages.Count); Assert.Equal(new PageViewModel[] { m.Downloads, m.Settings }, m.BottomPages); Assert.True(m.Home.IsActive);
+        Assert.Equal(5, m.TopPages.Count); Assert.DoesNotContain(m.Diagnostics, m.TopPages); Assert.Contains(m.Diagnostics, m.Pages); Assert.False(m.Diagnostics.IsNavVisible); Assert.Equal(new PageViewModel[] { m.Downloads, m.Settings }, m.BottomPages); Assert.True(m.Home.IsActive);
         m.NavigateCommand.Execute(m.Logs); Assert.Same(m.Logs, m.Current); Assert.True(m.Logs.IsActive); Assert.False(m.Home.IsActive);
         m.ShowDownloads(); m.ShowUtility(); m.ShowSettings(); m.ShowHome(); Assert.Same(m.Home, m.Current);
         m.SidebarExpanded = false; Assert.Equal(64, m.SidebarWidth); m.SidebarExpanded = true; Assert.Equal(200, m.SidebarWidth);
@@ -512,7 +512,7 @@ public class PageViewModelTests
     {
         using var env = new AppEnv(); var m = env.Main;
         Assert.False(m.Downloads.IsNavVisible);
-        Assert.All(m.Pages.Where(p => p != m.Downloads), p => Assert.True(p.IsNavVisible));            // every other tab is always listed
+        Assert.All(m.Pages.Where(p => p != m.Downloads && p != m.Diagnostics), p => Assert.True(p.IsNavVisible));            // every other tab is always listed
         var raised = new List<string?>(); m.Downloads.PropertyChanged += (_, e) => raised.Add(e.PropertyName);
 
         var usb = new DriveInfoModel { IsFolder = true, MountPath = env.UsbDir, Name = "f" };

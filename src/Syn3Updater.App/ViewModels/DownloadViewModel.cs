@@ -127,7 +127,7 @@ public partial class DownloadViewModel : PageViewModel
     }
 
     [RelayCommand]
-    private void Cancel() { _cts?.Cancel(); Status = "Cancelling..."; }
+    private void Cancel() { _cts?.Cancel(); Status = Ctx.T("App.Cancelling"); }
 
     public async Task RunAsync(UpdateRequest req, JobSpec spec)
     {
@@ -152,7 +152,7 @@ public partial class DownloadViewModel : PageViewModel
             if (p.Phase.Length > 0 && p.Phase != _phase)
             {
                 _phase = p.Phase; _activeIndex = -1; ResetQueue();            // downloading -> copying: every file is to do again
-                PhaseLabel = Ctx.T(_phase == "copy" ? "App.PhaseCopy" : "App.PhaseDownload");
+                PhaseLabel = Ctx.T(_phase switch { "copy" => "App.PhaseCopy", "verify" => "App.PhaseVerify", _ => "App.PhaseDownload" });
             }
             if (p.CurrentFile != null)
             {
@@ -238,7 +238,7 @@ public partial class DownloadViewModel : PageViewModel
     private async Task WriteLogAsync(UpdateRequest req, string root, bool upload)
     {
         var text = LogReport.Build(Ctx.Version, Ctx.Branch, Ctx.OsName(), Ctx.Profile, req.InstallMode, req.ModeForced,
-            req.Drive, root, string.Join(Environment.NewLine, _runLog));
+            req.Drive, root, string.Join(Environment.NewLine, _runLog), Ctx.SystemFacts());
         try
         {
             Directory.CreateDirectory(Ctx.Main.LogPath!);

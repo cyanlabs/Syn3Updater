@@ -22,7 +22,7 @@ public static class LogParser
             || line.Contains("Unable", StringComparison.OrdinalIgnoreCase) || line.Contains("attempt #", StringComparison.OrdinalIgnoreCase)) return LogLevel.Warning;
         if (line.Contains("SUCCESSFULLY", StringComparison.Ordinal) || line.Contains("Completed", StringComparison.Ordinal)
             || line.Contains("Validated:", StringComparison.Ordinal) || line.Contains("Downloaded:", StringComparison.Ordinal)
-            || line.Contains("Copied:", StringComparison.Ordinal)) return LogLevel.Success;
+            || line.Contains("Copied:", StringComparison.Ordinal) || line.Contains("Verified:", StringComparison.Ordinal)) return LogLevel.Success;
         if (line.Contains(" DEBUG:", StringComparison.Ordinal)) return LogLevel.Debug;
         return LogLevel.Info;
     }

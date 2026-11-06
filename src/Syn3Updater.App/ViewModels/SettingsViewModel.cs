@@ -27,19 +27,25 @@ public partial class SettingsViewModel : PageViewModel
     public IReadOnlyList<Region> Regions => Region.All;
     public IReadOnlyList<LanguageOption> Languages { get; } =
         Localizer.AvailableCodes.Select(c => new LanguageOption(c, $"{Localizer.NativeName(c)} ({c})")).ToList();
-    public IReadOnlyList<ChoiceOption> My20Options { get; } = new[]
+    public IReadOnlyList<ChoiceOption> My20Options { get; private set; } = BuildMy20();
+    public IReadOnlyList<ChoiceOption> ModeOptions { get; private set; } = BuildMode();
+    public IReadOnlyList<ChoiceOption> ThemeOptions { get; private set; } = BuildTheme();
+    private static ChoiceOption[] BuildMy20() => new[]
     {
-        new ChoiceOption("auto", "Auto-Detect"), new ChoiceOption("on", "Enabled (MY20)"), new ChoiceOption("off", "Disabled / Not MY20"),
+        new ChoiceOption("auto", Ctx.T("Settings.OptAuto")), new ChoiceOption("on", Ctx.T("Settings.OptMy20On")), new ChoiceOption("off", Ctx.T("Settings.OptMy20Off")),
     };
-    public IReadOnlyList<ChoiceOption> ModeOptions { get; } = new[]
+
+    private static ChoiceOption[] BuildMode() => new[]
     {
-        new ChoiceOption("autodetect", "Auto-Detect"), new ChoiceOption(InstallModes.Autoinstall, "autoinstall"),
-        new ChoiceOption(InstallModes.Reformat, "reformat"), new ChoiceOption(InstallModes.Downgrade, "downgrade"),
+        new ChoiceOption("autodetect", Ctx.T("Settings.OptAuto")), new ChoiceOption(InstallModes.Autoinstall, Ctx.T("Settings.ModeAutoinstall")),
+        new ChoiceOption(InstallModes.Reformat, Ctx.T("Settings.ModeReformat")), new ChoiceOption(InstallModes.Downgrade, Ctx.T("Settings.ModeDowngrade")),
     };
-    public IReadOnlyList<ChoiceOption> ThemeOptions { get; } = new[]
+
+    private static ChoiceOption[] BuildTheme() => new[]
     {
-        new ChoiceOption("Dark", "Dark"), new ChoiceOption("Light", "Light"), new ChoiceOption("Default", "System"),
+        new ChoiceOption("Dark", Ctx.T("Settings.ThemeDark")), new ChoiceOption("Light", Ctx.T("Settings.ThemeLight")), new ChoiceOption("Default", Ctx.T("Settings.ThemeSystem")),
     };
+
     public IReadOnlyList<int> ConnectionOptions { get; } = new[] { 1, 2, 3, 4, 5, 6, 7, 8 };
 
     [ObservableProperty] private LanguageOption? _language;
@@ -50,6 +56,7 @@ public partial class SettingsViewModel : PageViewModel
     [ObservableProperty] private ChoiceOption? _mode;
     [ObservableProperty] private ChoiceOption? _theme;
     [ObservableProperty] private int _connections = 1;
+    [ObservableProperty] private bool _checkUpdates = true;
     [ObservableProperty] private string _downloadPath = "";
     [ObservableProperty] private string _logPath = "";
     [ObservableProperty] private string _licenseKey = "";
@@ -102,8 +109,8 @@ public partial class SettingsViewModel : PageViewModel
     public async Task<bool> ConfirmLeaveAsync()
     {
         if (!_dirty) return true;
-        var pick = await Dialogs.Show("You have unsaved changes on this page. What would you like to do?", "Unsaved changes",
-            new[] { "Keep editing", "Discard changes", "Save changes" }, defaultIndex: 2);
+        var pick = await Dialogs.Show(Ctx.T("Settings.UnsavedMessage"), Ctx.T("Settings.UnsavedTitle"),
+            new[] { Ctx.T("Settings.KeepEditing"), Ctx.T("Settings.Discard"), Ctx.T("Settings.SaveChanges") }, defaultIndex: 2);
         switch (pick)
         {
             case 2: return await ApplyAsync(quiet: true);          // invalid input stays on the page with the reason shown
@@ -124,6 +131,8 @@ public partial class SettingsViewModel : PageViewModel
     private void Load()
     {
         _loading = true;
+        My20Options = BuildMy20(); ModeOptions = BuildMode(); ThemeOptions = BuildTheme();          // labels in the current language
+        OnPropertyChanged(nameof(My20Options)); OnPropertyChanged(nameof(ModeOptions)); OnPropertyChanged(nameof(ThemeOptions));
         var m = Ctx.Main; var p = Ctx.Profile;
         Language = Languages.FirstOrDefault(l => l.Code == Ctx.Loc.Code) ?? Languages.FirstOrDefault();
         Region = Regions.FirstOrDefault(r => r.Code == p.CurrentRegion);
@@ -133,6 +142,7 @@ public partial class SettingsViewModel : PageViewModel
         Mode = ModeOptions.FirstOrDefault(o => o.Value == p.InstallMode) ?? ModeOptions[0];
         Theme = ThemeOptions.FirstOrDefault(o => o.Value == (m.Theme ?? "Dark")) ?? ThemeOptions[0];
         Connections = Math.Clamp(m.DownloadConnections, 1, 8);
+        CheckUpdates = m.CheckForUpdates;
         DownloadPath = m.DownloadPath ?? ""; LogPath = m.LogPath ?? "";
         LicenseKey = m.LicenseKey ?? "";
         Advanced = false; Message = "";
@@ -145,6 +155,20 @@ public partial class SettingsViewModel : PageViewModel
         OnPropertyChanged(nameof(WarningText));
         Ctx.Loc.SetLanguage(value.Code);   // preview immediately; persisted on Apply
         Loc.Instance.Refresh();
+        RebuildOptions();
+    }
+
+    /// <summary>The dropdown labels are text, so they are rebuilt (keeping the selection) when the language changes.</summary>
+    private void RebuildOptions()
+    {
+        var (my, mode, theme) = (My20?.Value, Mode?.Value, Theme?.Value);
+        var wasLoading = _loading; _loading = true;
+        My20Options = BuildMy20(); ModeOptions = BuildMode(); ThemeOptions = BuildTheme();
+        OnPropertyChanged(nameof(My20Options)); OnPropertyChanged(nameof(ModeOptions)); OnPropertyChanged(nameof(ThemeOptions));
+        My20 = My20Options.FirstOrDefault(o => o.Value == my) ?? My20Options[0];
+        Mode = ModeOptions.FirstOrDefault(o => o.Value == mode) ?? ModeOptions[0];
+        Theme = ThemeOptions.FirstOrDefault(o => o.Value == theme) ?? ThemeOptions[0];
+        _loading = wasLoading;
     }
 
     partial void OnThemeChanged(ChoiceOption? value) { if (!_loading && value != null) ApplyTheme(value.Value); }
@@ -186,7 +210,7 @@ public partial class SettingsViewModel : PageViewModel
         var digits = new string(Version.Where(char.IsDigit).ToArray());
         if (Version.Trim().Length > 0 && digits.Length != 7)
         {
-            Message = "Version must look like 3.4.20282 (Settings > General > About on the car)."; return false;
+            Message = Ctx.T("Settings.VersionFormat"); return false;
         }
         var m = Ctx.Main; var p = Ctx.Profile;
 
@@ -211,6 +235,7 @@ public partial class SettingsViewModel : PageViewModel
         }
 
         m.DownloadConnections = Connections;
+        m.CheckForUpdates = CheckUpdates;
         m.Lang = Language?.Code ?? m.Lang;
         m.Theme = Theme?.Value ?? "Default";
         m.LicenseKey = LicenseKey.Trim();
@@ -236,7 +261,7 @@ public partial class SettingsViewModel : PageViewModel
     [RelayCommand]
     private async Task ResetAsync()
     {
-        if (!await Dialogs.Confirm("Reset all settings (including this profile) to their defaults?", Ctx.T("String.Warning") + "!", warning: true)) return;
+        if (!await Dialogs.Confirm(Ctx.T("Settings.ResetConfirm"), Ctx.T("String.Warning") + "!", warning: true)) return;
         Ctx.Store.Reset();
         Ctx.Loc.SetLanguage(Ctx.Main.Lang); Loc.Instance.Refresh();
         Load();

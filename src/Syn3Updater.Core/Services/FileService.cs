@@ -287,9 +287,10 @@ public class FileService
     }
 
     // ---------- checksum ----------
-    public static async Task<string?> Md5Async(string file, IProgress<int>? progress, CancellationToken ct)
+    public static async Task<string?> Md5Async(string file, IProgress<int>? progress, CancellationToken ct, bool bypassCache = false)
     {
         await using var s = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 20, true);
+        if (bypassCache) CacheEvictor.Drop(s);         // read what is on the device, not what the OS still has in memory from the copy
         using var md5 = IncrementalHash.CreateHash(HashAlgorithmName.MD5);
         var buf = new byte[1 << 20]; long total = 0, size = s.Length; int last = -1, n;
         while ((n = await s.ReadAsync(buf, ct)) > 0)
@@ -306,11 +307,11 @@ public class FileService
     /// Checks <paramref name="localFile"/> against <paramref name="md5"/>. With no checksum available it falls back to
     /// comparing against the source file (localOnly) or the remote Content-Length.
     /// </summary>
-    public async Task<ValidationResult> ValidateAsync(string source, string localFile, string? md5, bool localOnly, IProgress<int>? progress, CancellationToken ct)
+    public async Task<ValidationResult> ValidateAsync(string source, string localFile, string? md5, bool localOnly, IProgress<int>? progress, CancellationToken ct, bool bypassCache = false)
     {
         if (!File.Exists(localFile)) return new(false);
         var name = Path.GetFileName(localFile);
-        var localMd5 = await Md5Async(localFile, progress, ct);
+        var localMd5 = await Md5Async(localFile, progress, ct, bypassCache);
 
         if (string.IsNullOrWhiteSpace(md5))
         {

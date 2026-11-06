@@ -75,7 +75,8 @@ public class UpdateRunner
             var queue = new List<Ivsu>(req.Queue);
             Directory.CreateDirectory(req.DownloadDir);
             if (FileService.CleanStalePartials(req.DownloadDir, TimeSpan.FromDays(14)) is > 0 and var stale) Info($"Removed {stale} abandoned partial download(s) older than 14 days");
-            int steps = queue.Count * (req.DownloadOnly ? 2 : 4), done = 0;
+            int verifySteps = req.Drive is { IsFolder: false } && !req.DownloadOnly ? queue.Count : 0;
+            int steps = queue.Count * (req.DownloadOnly ? 2 : 4) + verifySteps, done = 0;
             string phase = "download";
             int connections = req.Connections;
             // byte accounting for speed / ETA: what has been moved in this phase and what is still expected
@@ -168,7 +169,8 @@ public class UpdateRunner
 
             // ---- copy ----
             queue.AddRange(extras);
-            steps = queue.Count * 4; // download steps already counted above; extras only copy
+            verifySteps = req.Drive is { IsFolder: false } ? queue.Count : 0;
+            steps = queue.Count * 4 + verifySteps; // download steps already counted above; extras only copy
             var syncDir = Path.Combine(target!, "SyncMyRide");
             Directory.CreateDirectory(syncDir);
             lock (gate)
@@ -215,7 +217,33 @@ public class UpdateRunner
 
             WriteInstallFiles(req, queue, target!);
             progress.Report(new("Flushing writes to the drive", 100, 99, null));
-            if (req.Drive is { IsFolder: false } drive) await _drives.FlushAsync(drive, ct);
+            if (req.Drive is { IsFolder: false } drive)
+            {
+                await _drives.FlushAsync(drive, ct);
+                // The check right after each copy is served from the OS cache. Once everything is flushed, read it all back from
+                // the stick itself: a bad stick or a silent write failure shows up here instead of in the car.
+                lock (gate) { phase = "verify"; movedBefore = 0; fileBytes = 0; planned = queue.Where(i => i.Source != "naviextras").Sum(i => i.FileSize); }
+                Info("Verifying the files on the drive");
+                foreach (var item in queue)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    if (item.Source == "naviextras") { done++; continue; }
+                    var src = Path.Combine(req.DownloadDir, item.FileName);
+                    var dst = Path.Combine(syncDir, item.FileName);
+                    var fp = new Progress<int>(p => Total("", p, item.FileName));
+                    Total($"Verifying: {item.FileName}", 0, item.FileName);
+                    if (!(await _files.ValidateAsync(src, dst, item.Md5, true, fp, ct, bypassCache: true)).Ok)
+                    {
+                        LastError = $"{item.FileName} on the drive does not match the downloaded file. The drive may be faulty; try another USB stick.";
+                        Info($"Unable to verify {item.FileName} on the drive, ABORTING PROCESS!");
+                        return false;
+                    }
+                    lock (gate) { movedBefore += item.FileSize; fileBytes = 0; }
+                    done++;
+                    Info($"Verified: {item.FileName}");
+                }
+                Info("All files on the drive verified");
+            }
             progress.Report(new("Completed", 100, 100, null));
             Info(req.Drive?.IsFolder == true
                 ? "ALL FILES DOWNLOADED AND COPIED TO THE SELECTED FOLDER SUCCESSFULLY!"

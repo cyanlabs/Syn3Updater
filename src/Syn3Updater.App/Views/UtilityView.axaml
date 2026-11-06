@@ -141,11 +141,11 @@
         <StackPanel Spacing="12">
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
             <Border Classes="ico purple"><PathIcon Data="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z" /></Border>
-            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1"><TextBlock Text="MY20 APIM check" Classes="section" /><TextBlock Text="Enter the 14G371 model number of your APIM to check it against the MY20 database. Not 100% accurate." Classes="muted" TextWrapping="Wrap" FontSize="13" /></StackPanel>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1"><TextBlock Text="{svc:T Utility.My20CheckTitle}" Classes="section" /><TextBlock Text="{svc:T Utility.My20CheckDesc}" Classes="muted" TextWrapping="Wrap" FontSize="13" /></StackPanel>
           </Grid>
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
             <TextBox Text="{Binding ApimModelInput}" Watermark="####-14G371-###" />
-            <Button Grid.Column="1" Content="Check" Command="{Binding CheckMy20Command}" />
+            <Button Grid.Column="1" Content="{svc:T App.Check}" Command="{Binding CheckMy20Command}" />
           </Grid>
         </StackPanel>
       </Border>

@@ -89,11 +89,11 @@ public partial class UtilityViewModel : PageViewModel
     }
 
     // ---------- special USBs ----------
-    [RelayCommand] private Task GracenotesAsync() => RunSpecialAsync(SpecialPackages.GraceNotesRemoval, UpdateAction.GracenotesRemoval, "Gracenotes Removal");
-    [RelayCommand] private Task SmallVoiceAsync() => RunSpecialAsync(SpecialPackages.SmallVoice, UpdateAction.VoiceShrinker, "Voice Package Shrinker");
-    [RelayCommand] private Task DowngradeAsync() => RunSpecialAsync(SpecialPackages.DowngradeApp, UpdateAction.Downgrade, "Enforced Downgrade");
-    [RelayCommand] private Task Upgrade22Async() => RunSpecialAsync(SpecialPackages.Upgrade22App, UpdateAction.Upgrade22, "Upgrade to Sync 2.2");
-    [RelayCommand] private Task RwDataCleanerAsync() => RunSpecialAsync(null, UpdateAction.RwDataCleaner, "RW Data Cleaner", rwOnly: true);
+    [RelayCommand] private Task GracenotesAsync() => RunSpecialAsync(SpecialPackages.GraceNotesRemoval, UpdateAction.GracenotesRemoval, Ctx.T("App.TaskGracenotes"));
+    [RelayCommand] private Task SmallVoiceAsync() => RunSpecialAsync(SpecialPackages.SmallVoice, UpdateAction.VoiceShrinker, Ctx.T("App.TaskVoice"));
+    [RelayCommand] private Task DowngradeAsync() => RunSpecialAsync(SpecialPackages.DowngradeApp, UpdateAction.Downgrade, Ctx.T("App.TaskDowngrade"));
+    [RelayCommand] private Task Upgrade22Async() => RunSpecialAsync(SpecialPackages.Upgrade22App, UpdateAction.Upgrade22, Ctx.T("App.TaskUpgrade22"));
+    [RelayCommand] private Task RwDataCleanerAsync() => RunSpecialAsync(null, UpdateAction.RwDataCleaner, Ctx.T("App.TaskRwCleaner"), rwOnly: true);
     [RelayCommand] private Task CreateLogUsbAsync() => PrepareLogUsbAsync(SelectedDrive, UpdateAction.LogUtility);
 
     private async Task RunSpecialAsync(string? package, UpdateAction action, string name, bool rwOnly = false)
@@ -128,7 +128,7 @@ public partial class UtilityViewModel : PageViewModel
         {
             await Workflow.StartAsync(new JobSpec
             {
-                Action = action, Mode = InstallModes.Autoinstall, Release = "Interrogator Log Utility", Drive = drive,
+                Action = action, Mode = InstallModes.Autoinstall, Release = Ctx.T("App.TaskInterrogator"), Drive = drive,
                 SpecialPackage = LogToolFor(Ctx.Profile.CurrentVersion ?? 0), NeedRwCleaner = false,
             });
         }
@@ -139,7 +139,7 @@ public partial class UtilityViewModel : PageViewModel
     [RelayCommand]
     private async Task ParseLogAsync()
     {
-        var path = await Dialogs.PickFile("Interrogator Log XML", "Interrogator Log XML Files", "*.xml");
+        var path = await Dialogs.PickFile(Ctx.T("Utility.PickInterrogatorTitle"), Ctx.T("Utility.PickInterrogatorFilter"), "*.xml");
         if (path == null) { await Dialogs.Info(Ctx.T("MessageBox.My20CheckCancelled")); return; }
         try
         {
@@ -201,14 +201,14 @@ public partial class UtilityViewModel : PageViewModel
         var model = ApimModelInput.Trim();
         if (!Regex.IsMatch(model, "^[a-zA-Z0-9]{4}-14G371-[a-zA-Z0-9]{2,3}$"))
         {
-            await Dialogs.Error("Invalid APIM Model Specified\nPlease enter the ####-14G371-### model number"); return;
+            await Dialogs.Error(Ctx.T("Utility.My20InvalidModel")); return;
         }
         try
         {
             var matches = (await Ctx.Api.GetMy20Models()).Where(m => model.StartsWith(m.Model, StringComparison.OrdinalIgnoreCase)).Select(m => m.Model).ToList();
             await Dialogs.Info(matches.Count > 0
-                ? $"{model} has been detected as MY20\n\nThis model matches the following MY20 model checks:\n{string.Join("\n", matches)}"
-                : $"{model} has been detected as NOT MY20\nIf this is a newer APIM this may not be accurate!\n\nAsk for assistance on our forum if unsure.", "MY20 Detection");
+                ? Ctx.T("Utility.My20Detected", model, string.Join("\n", matches))
+                : Ctx.T("Utility.My20NotDetected", model), Ctx.T("Utility.My20DetectionTitle"));
         }
         catch (ApiException e) { await Dialogs.Error(e.Message); }
     }
@@ -218,7 +218,7 @@ public partial class UtilityViewModel : PageViewModel
     {
         string? file = null;
         if (SelectedDrive is { MountPath.Length: > 0 } d && File.Exists(Path.Combine(d.MountPath, "log.txt"))) file = Path.Combine(d.MountPath, "log.txt");
-        file ??= await Dialogs.PickFile("Syn3 Updater log", "Syn3 Updater Log Files", "*.txt");
+        file ??= await Dialogs.PickFile(Ctx.T("Utility.PickLogTitle"), Ctx.T("Utility.PickLogFilter"), "*.txt");
         if (file != null) await DownloadViewModel.UploadAsync(await File.ReadAllTextAsync(file));
     }
 

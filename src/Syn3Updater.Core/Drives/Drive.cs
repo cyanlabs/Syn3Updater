@@ -26,7 +26,9 @@ public class DriveInfoModel
     /// <summary>"E: SanDisk Ultra (CYANLABS)" on Windows (drive letter is short); name and label elsewhere (mount paths are long).</summary>
     public string Title => IsFolder || IsChooser ? Name
         : $"{(OperatingSystem.IsWindows() ? MountPath.TrimEnd('\\') + " " : "")}{Name}{(string.IsNullOrEmpty(VolumeName) ? "" : $" ({VolumeName})")}".Trim();
-    public string Detail => IsFolder || IsChooser ? "" : $"Free: {Format.Bytes(FreeBytes)}   Size: {Format.Bytes(SizeBytes)}   File System: {FileSystem}{(PartitionType == "" ? "" : $" ({PartitionType})")}";
+    /// <summary>Set by the app so the "Free / Size / File System" labels follow the chosen language; English until then.</summary>
+    public static Func<string, string> Label { get; set; } = key => key switch { "free" => "Free", "size" => "Size", _ => "File System" };
+    public string Detail => IsFolder || IsChooser ? "" : $"{Label("free")}: {Format.Bytes(FreeBytes)}   {Label("size")}: {Format.Bytes(SizeBytes)}   {Label("fs")}: {FileSystem}{(PartitionType == "" ? "" : $" ({PartitionType})")}";
 
     public string Display => IsFolder || IsChooser ? Name : $"{Name} ({Format.Bytes(SizeBytes)}){(string.IsNullOrEmpty(MountPath) ? "" : " - " + MountPath)}";
     public override string ToString() => Display;

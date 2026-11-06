@@ -16,8 +16,8 @@
       <!-- list of logs -->
       <Border Classes="card" Padding="10">
         <DockPanel>
-          <TextBlock DockPanel.Dock="Top" Margin="8,2,8,10" Classes="label"><Run Text="Saved logs" /><Run Text="  " /><Run Text="{Binding FileCountText}" /></TextBlock>
-          <TextBlock DockPanel.Dock="Bottom" Text="No saved logs yet. A log is saved after every update run." Classes="muted" FontSize="12.5" TextWrapping="Wrap" Margin="10,8" IsVisible="{Binding !HasSavedLogs}" />
+          <TextBlock DockPanel.Dock="Top" Margin="8,2,8,10" Classes="label"><Run Text="{svc:T Logs.SavedLogs}" /><Run Text="  " /><Run Text="{Binding FileCountText}" /></TextBlock>
+          <TextBlock DockPanel.Dock="Bottom" Text="{svc:T Logs.NoSaved}" Classes="muted" FontSize="12.5" TextWrapping="Wrap" Margin="10,8" IsVisible="{Binding !HasSavedLogs}" />
           <ListBox ItemsSource="{Binding Files}" SelectedItem="{Binding Selected}" Background="Transparent">
             <ListBox.ItemTemplate>
               <DataTemplate DataType="vm:LogFile">
@@ -42,19 +42,19 @@
               <TextBlock Text="{Binding ViewTitle}" Classes="section" TextTrimming="CharacterEllipsis" />
               <WrapPanel ItemSpacing="8" LineSpacing="4">
                 <TextBlock Text="{Binding ViewMeta}" Classes="label" VerticalAlignment="Center" />
-                <Border Classes="chip" Margin="0" Padding="8,1" Background="#33ef6b62" IsVisible="{Binding ErrorCount}"><TextBlock Foreground="#ef6b62" FontSize="11.5"><Run Text="{Binding ErrorCount}" /><Run Text=" errors" /></TextBlock></Border>
-                <Border Classes="chip" Margin="0" Padding="8,1" Background="#33f0a43c" IsVisible="{Binding WarningCount}"><TextBlock Foreground="#f0a43c" FontSize="11.5"><Run Text="{Binding WarningCount}" /><Run Text=" warnings" /></TextBlock></Border>
+                <Border Classes="chip" Margin="0" Padding="8,1" Background="#33ef6b62" IsVisible="{Binding ErrorCount}"><TextBlock Foreground="#ef6b62" FontSize="11.5"><Run Text="{Binding ErrorsText}" /></TextBlock></Border>
+                <Border Classes="chip" Margin="0" Padding="8,1" Background="#33f0a43c" IsVisible="{Binding WarningCount}"><TextBlock Foreground="#f0a43c" FontSize="11.5"><Run Text="{Binding WarningsText}" /></TextBlock></Border>
               </WrapPanel>
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
-              <Button Content="Copy" Command="{Binding CopyCommand}" />
+              <Button Content="{svc:T App.Copy}" Command="{Binding CopyCommand}" />
               <Button Content="{svc:T Utility.UploadLog}" Command="{Binding UploadCommand}" />
               <Button Content="{svc:T Profiles.DeleteProfile}" Command="{Binding DeleteCommand}" IsEnabled="{Binding CanDelete}" />
             </StackPanel>
           </Grid>
           <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="18,0,18,10" ColumnSpacing="12">
-            <TextBox Text="{Binding Search}" Watermark="Search this log..." />
-            <CheckBox Grid.Column="1" IsChecked="{Binding ErrorsOnly}" Content="Errors and warnings only" VerticalAlignment="Center" />
+            <TextBox Text="{Binding Search}" Watermark="{svc:T Logs.Search}" />
+            <CheckBox Grid.Column="1" IsChecked="{Binding ErrorsOnly}" Content="{svc:T Logs.ErrorsOnly}" VerticalAlignment="Center" />
           </Grid>
           <Border Grid.Row="2" BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,1,0,0">
             <ListBox ItemsSource="{Binding Lines}" Background="Transparent" Padding="6" SelectionMode="Single">
