@@ -19,6 +19,10 @@ on:
         description: "Build and publish the rolling 'nightly' pre-release instead (Dev repo only; ignores the version above)"
         type: boolean
         default: false
+      legacy_tag:
+        description: "Tag for the v2 Launcher, which only reads bare numeric tags: 'auto' = the next free 2.99.99.N (1 to 999), or an exact tag such as 3.0.0.0. Empty = the normal v<version> tag. Also attaches the flat <tag>.zip it needs."
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -36,6 +40,7 @@ jobs:
       publish: ${{ steps.v.outputs.publish }}
       nightly: ${{ steps.v.outputs.nightly }}
       skip: ${{ steps.v.outputs.skip }}
+      legacy_tag: ${{ steps.v.outputs.legacy_tag }}
     steps:
       - uses: actions/checkout@v6
       - id: v
@@ -44,8 +49,9 @@ jobs:
           INPUT_VERSION: ${{ inputs.version }}
           INPUT_PUBLISH: ${{ inputs.publish }}
           INPUT_NIGHTLY: ${{ inputs.nightly }}
+          INPUT_LEGACY_TAG: ${{ inputs.legacy_tag }}
         run: |
-          nightly=false; skip=false
+          nightly=false; skip=false; legacy=""
           if [[ "$GITHUB_EVENT_NAME" == "schedule" || "$INPUT_NIGHTLY" == "true" ]]; then
             nightly=true; publish=true
             # Nightlies are published only by the Dev repo: the production repo's release list is what the v2 Launcher reads for its Beta channel.
@@ -67,7 +73,26 @@ jobs:
           if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
             echo "::error::'$version' is not a version like 3.0.0 or 3.0.0-beta.1"; exit 1
           fi
-          { echo "version=$version"; echo "publish=$publish"; echo "nightly=$nightly"; echo "skip=$skip"; } >> "$GITHUB_OUTPUT"
+          # The v2 Launcher runs Version.Parse(tag) with no error handling, so a tag like v3.0.0-test9 crashes it. A release for it needs a bare numeric
+          # tag (and a flat zip, see the release job); the real version stays in the release title.
+          if [[ -n "$INPUT_LEGACY_TAG" && "$nightly" != "true" && "$GITHUB_REF_TYPE" != "tag" ]]; then
+            if [[ "$INPUT_LEGACY_TAG" == "auto" ]]; then
+              used="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1000 --json tagName -q '.[].tagName' | sed -n 's/^2\.99\.99\.\([0-9][0-9]*\)$/\1/p' | sort -n | tail -n1)"
+              next=$(( ${used:-0} + 1 ))
+              if (( next > 999 )); then echo "::error::2.99.99.1 to 2.99.99.999 are all used; pass an explicit legacy_tag"; exit 1; fi
+              legacy="2.99.99.$next"
+            else
+              legacy="$INPUT_LEGACY_TAG"
+            fi
+            if [[ ! "$legacy" =~ ^[0-9]+(\.[0-9]+){1,3}$ ]]; then
+              echo "::error::legacy_tag '$legacy' must be 'auto' or 1 to 4 dot-separated numbers like 2.99.99.5 or 3.0.0.0"; exit 1
+            fi
+            # fail now, not after twenty minutes of building
+            if [[ "$publish" == "true" ]] && { gh release view "$legacy" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || git ls-remote --exit-code --tags origin "refs/tags/$legacy" >/dev/null 2>&1; }; then
+              echo "::error::the tag/release '$legacy' already exists"; exit 1
+            fi
+          fi
+          { echo "version=$version"; echo "publish=$publish"; echo "nightly=$nightly"; echo "skip=$skip"; echo "legacy_tag=$legacy"; } >> "$GITHUB_OUTPUT"
           echo "Building $version (publish=$publish, nightly=$nightly, skip=$skip)"
 
   test:
@@ -212,11 +237,36 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.prepare.outputs.version }}
           NIGHTLY: ${{ needs.prepare.outputs.nightly }}
+          LEGACY_TAG: ${{ needs.prepare.outputs.legacy_tag }}
         run: |
           cd dist
           cat ./*.sha256 > SHA256SUMS && rm ./*.sha256
+          if [[ -n "$LEGACY_TAG" ]]; then
+            # The v2 Launcher wants ONE flat zip named <tag>.zip (Syn3Updater.exe and Launcher.exe at the top, no folder) whose content type is
+            # application/x-zip-compressed; it renames its own Launcher.exe away and copies the zip over its folder. Launcher.exe is a copy of the v3 program for now.
+            win="$(find . -maxdepth 1 -name 'Syn3Updater-*-win-x64.zip' | head -n1)"
+            legacy_dir="$RUNNER_TEMP/legacy"; rm -rf "$legacy_dir"; mkdir -p "$legacy_dir/in"
+            unzip -q "$win" -d "$legacy_dir/in"
+            inner="$(find "$legacy_dir/in" -mindepth 1 -maxdepth 1 -type d | head -n1)"
+            cp "$inner/Syn3Updater.exe" "$inner/Launcher.exe"
+            ( cd "$inner" && zip -q -j "$legacy_dir/$LEGACY_TAG.zip" Syn3Updater.exe Launcher.exe LICENSE README.txt )
+            ( cd "$legacy_dir" && sha256sum "$LEGACY_TAG.zip" ) >> SHA256SUMS
+          fi
           ls -l
-          if [[ "$NIGHTLY" == "true" ]]; then
+          if [[ -n "$LEGACY_TAG" ]]; then
+            # a DRAFT first, so an old Launcher never sees a release without its zip; published only once the content type is confirmed
+            flags=(--draft --title "Syn3 Updater $VERSION" --generate-notes)
+            [[ "$VERSION" == *-* ]] && flags+=(--prerelease)
+            gh release create "$LEGACY_TAG" ./* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" "${flags[@]}"
+            id="$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate --jq ".[] | select(.draft and .tag_name == \"$LEGACY_TAG\") | .id" | head -n1)"
+            [[ -n "$id" ]] || { echo "::error::could not find the draft release"; exit 1; }
+            curl -fsS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/x-zip-compressed" --data-binary "@$RUNNER_TEMP/legacy/$LEGACY_TAG.zip" \
+              "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$id/assets?name=$LEGACY_TAG.zip" >/dev/null
+            type="$(gh api "repos/$GITHUB_REPOSITORY/releases/$id" --jq ".assets[] | select(.name == \"$LEGACY_TAG.zip\") | .content_type")"
+            if [[ "$type" != "application/x-zip-compressed" ]]; then echo "::error::$LEGACY_TAG.zip has content type '$type', the v2 Launcher needs application/x-zip-compressed; the release is left as a draft"; exit 1; fi
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$id" -F draft=false >/dev/null
+            echo "published $LEGACY_TAG (Syn3 Updater $VERSION)"
+          elif [[ "$NIGHTLY" == "true" ]]; then
             # one rolling pre-release: the tag stays "nightly" (it does not match v*, so it never starts this workflow); the app reads the version from the title
             gh release delete nightly --repo "$GITHUB_REPOSITORY" --cleanup-tag --yes || true
             gh release create nightly ./* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease --title "Syn3 Updater $VERSION" \
