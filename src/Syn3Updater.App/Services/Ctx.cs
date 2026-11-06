@@ -26,7 +26,10 @@ public static class Ctx
         Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0] ?? "3.0.0";
     public static string Branch => "Stable";
 
-    public static void Init(string? dataDirOverride = null, HttpMessageHandler? handler = null, IDriveService? drives = null)
+    /// <summary>Watches for drives being plugged in or removed (started by the main window).</summary>
+    public static DriveMonitor DriveMonitor { get; private set; } = null!;
+
+    public static void Init(string? dataDirOverride = null, HttpMessageHandler? handler = null, IDriveService? drives = null, Func<string?>? driveFingerprint = null)
     {
         Paths = new AppPaths(dataDirOverride ?? Environment.GetEnvironmentVariable("SYN3_DATA_DIR"));
         Store = new SettingsStore(Paths);
@@ -41,6 +44,7 @@ public static class Ctx
         Files = new FileService(Http);
         Drives = drives ?? DriveServiceFactory.Create();
         Runner = new UpdateRunner(Drives, Files, Log);
+        DriveMonitor = new DriveMonitor(Drives, driveFingerprint ?? DriveFingerprint.Current, () => !Workflow.Busy && DialogHostViewModel.Instance?.HasDialog != true);
 
         Loc.SetLanguage(Main.Lang);
         Main.Lang = Loc.Code;

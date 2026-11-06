@@ -28,7 +28,7 @@ public partial class UtilityViewModel : PageViewModel
 
     private InterrogatorResult? _parsed;
 
-    public UtilityViewModel() { Ctx.Loc.LanguageChanged += () => { OnPropertyChanged(nameof(PrepareLabel)); OnPropertyChanged(nameof(PrepareTip)); OnPropertyChanged(nameof(UploadTip)); }; }
+    public UtilityViewModel() { Ctx.DriveMonitor.Changed += OnDrivesChanged; Ctx.Loc.LanguageChanged += () => { OnPropertyChanged(nameof(PrepareLabel)); OnPropertyChanged(nameof(PrepareTip)); OnPropertyChanged(nameof(UploadTip)); }; }
 
     public override void OnShown() => _ = RefreshAsync();
 
@@ -62,6 +62,17 @@ public partial class UtilityViewModel : PageViewModel
         OnPropertyChanged(nameof(CanEjectSelected)); RaisePrepare();
         if (value?.Encrypted == true) { _ = Dialogs.Error(Ctx.T("MessageBox.EncryptedDrive")); SelectedDrive = null; return; }
         DriveInfo = value == null ? "" : $"{value.PartitionType} {value.FileSystem} · {Format.Bytes(value.SizeBytes)}";
+    }
+
+    /// <summary>The drives changed by themselves (plugged in or removed): update the list in place and keep the selection on the same stick.</summary>
+    private void OnDrivesChanged(IReadOnlyList<DriveInfoModel> found)
+    {
+        var before = SelectedDrive;
+        var result = DriveListMerger.Merge(Drives, found);
+        if (before == null) return;
+        var now = result.Current(before);
+        if (!ReferenceEquals(now, before)) SelectedDrive = now;
+        if (now == null) DriveInfo = Ctx.T("App.DriveRemoved");
     }
 
     [RelayCommand]
