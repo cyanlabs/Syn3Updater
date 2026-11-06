@@ -143,6 +143,28 @@ public class UpdateCheckerTests
         Assert.Equal("Beta", m.UpdateChannel);               // the unknown old key is ignored, the rest is read
     }
 
+    [Fact]
+    public void APrereleaseUnderABareNumericTag_IsTheBuildNamedInItsTitle_NotAHigherVersion()
+    {
+        // The v2 Launcher needs a bare tag like 3.0.0.0, so test builds are published as 3.0.0.0 flagged "pre-release" with the real name in the title.
+        var json = Releases2(("3.0.0.0", "Syn3 Updater 3.0.0-test8", true));
+        Assert.Null(UpdateChecker.Pick(json, "3.0.0-test8"));                                          // already running exactly that build: no banner
+        Assert.Equal("3.0.0-test8", UpdateChecker.Pick(json, "3.0.0-test7")!.Version);                 // an older test build is offered test8, not "3.0.0.0"
+        Assert.Null(UpdateChecker.Pick(json, "3.0.0-test9"));                                          // a newer test build is not told to go back
+        // the same tag as a real (not pre-release) release IS the final 3.0.0 and beats every test build
+        var final = Releases2(("3.0.0.0", "Syn3 Updater 3.0.0", false));
+        Assert.Equal("3.0.0.0", UpdateChecker.Pick(final, "3.0.0-test8")!.Version);
+        // a title that does not name the same version changes nothing
+        Assert.Equal("3.0.0.0", UpdateChecker.Pick(Releases2(("3.0.0.0", "Big v3 release", true)), "3.0.0-test8")!.Version);
+        Assert.Equal("3.0.0.0", UpdateChecker.Pick(Releases2(("3.0.0.0", "Syn3 Updater 3.1.0-test1", true)), "3.0.0-test8")!.Version);
+        // the real situation: test8 published as 3.0.0.0 and test9 as v3.0.0-test9. The newest TEST build is offered (test9), never the bare 3.0.0.0 label.
+        var both = Releases2(("v3.0.0-test9", "Syn3 Updater 3.0.0-test9", true), ("3.0.0.0", "Syn3 Updater 3.0.0-test8", true), ("2.14.2.1", "2.14.2.1", false));
+        Assert.Equal("3.0.0-test9", UpdateChecker.Pick(both, "3.0.0-test8")!.Version);
+        Assert.Null(UpdateChecker.Pick(both, "3.0.0-test9"));
+        // Stable never sees a pre-release, whatever it is called
+        Assert.Null(UpdateChecker.Pick(json, "3.0.0", UpdateChannel.Stable));
+    }
+
     private static string Releases2(params (string tag, string? name, bool pre)[] r) =>
         JsonSerializer.Serialize(r.Select(x => new { tag_name = x.tag, name = x.name, prerelease = x.pre, draft = false, html_url = "https://example/" + x.tag }));
 

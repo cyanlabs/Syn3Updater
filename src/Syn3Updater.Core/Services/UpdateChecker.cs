@@ -72,7 +72,7 @@ public class UpdateChecker
             var pre = rel.TryGetProperty("prerelease", out var p) && p.GetBoolean();
             var tag = rel.TryGetProperty("tag_name", out var t) ? t.GetString() : null;
             var title = rel.TryGetProperty("name", out var n) ? n.GetString() : null;
-            var version = VersionOf(tag, title);                    // nightlies sit under a rolling "nightly" tag, so their version is in the title
+            var version = VersionOf(tag, title, pre);               // nightlies sit under a rolling "nightly" tag, so their version is in the title
             var v = SemVer.Parse(version);
             if (v == null) continue;
             var kind = Channels.Of(version);
@@ -89,8 +89,19 @@ public class UpdateChecker
     }
 
     private static readonly Regex VersionInTitle = new(@"\d+\.\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z.\-]+)?", RegexOptions.Compiled);
-    private static string? VersionOf(string? tag, string? title) =>
-        SemVer.Parse(tag) != null ? tag : title != null && VersionInTitle.Match(title) is { Success: true } m ? m.Value : null;
+    /// <summary>
+    /// The version a release really is. Normally its tag. Two cases use the title instead: nightlies (the tag is just "nightly"), and a pre-release published
+    /// under a bare numeric tag such as 3.0.0.0 (the v2 Launcher only accepts those) whose title names the real build, 3.0.0-test8. Without the second,
+    /// 3.0.0.0 would look newer than the 3.0.0-test8 it contains and everyone on that build would be told to update to it.
+    /// </summary>
+    private static string? VersionOf(string? tag, string? title, bool prerelease)
+    {
+        var fromTitle = title != null && VersionInTitle.Match(title) is { Success: true } m ? m.Value : null;
+        var t = SemVer.Parse(tag);
+        if (t == null) return fromTitle;
+        if (prerelease && !t.IsPrerelease && SemVer.Parse(fromTitle) is { IsPrerelease: true } named && named.SameNumbers(t)) return fromTitle;
+        return tag;
+    }
 }
 
 /// <summary>Just enough of semantic versioning to order "3.0.0", "v3.0.0-test6" and "3.1.0-rc.2".</summary>
@@ -100,6 +111,7 @@ public class SemVer : IComparable<SemVer>
     public int[] Numbers { get; }
     public string Pre { get; }
     public bool IsPrerelease => Pre.Length > 0;
+    public bool SameNumbers(SemVer other) => Numbers.SequenceEqual(other.Numbers);
     private SemVer(int[] n, string pre) { Numbers = n; Pre = pre; }
 
     public static SemVer? Parse(string? s)
