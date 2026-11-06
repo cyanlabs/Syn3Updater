@@ -244,6 +244,10 @@ public partial class SettingsViewModel : PageViewModel
         m.DownloadConnections = Connections;
         var channelBefore = Ctx.UpdateChannel;
         m.UpdateChannel = Channel?.Value ?? m.UpdateChannel;
+        // the Launcher installs whatever channel its prefs file names (v2 wrote it from this same setting), so keep that file in step
+        var branch = LauncherPrefs.ToBranch(Channels.Parse(m.UpdateChannel, Ctx.Version));
+        if (LauncherPrefs.HasLauncher(Ctx.LauncherPrefsPath) && LauncherPrefs.ReadBranch(Ctx.LauncherPrefsPath) != branch)
+            Ctx.Log.Info(LauncherPrefs.WriteBranch(Ctx.LauncherPrefsPath, branch) ? $"Told the Launcher to follow the {(branch == LauncherPrefs.Stable ? "Stable" : "Beta")} channel" : "Could not update the Launcher's channel (launcherPrefs.json)");
         if (Ctx.UpdateChannel != channelBefore) _ = MainWindowViewModel.Instance.CheckForUpdateAsync();       // the notice should follow the new channel straight away
         m.Lang = Language?.Code ?? m.Lang;
         m.Theme = Theme?.Value ?? "Default";

@@ -78,6 +78,108 @@ public class PostCopyVerificationTests : IDisposable
     }
 }
 
+public class LauncherPrefsTests
+{
+    private static string Tmp() { var d = Path.Combine(Path.GetTempPath(), "s3u-prefs-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(d); return d; }
+
+    [Fact]
+    public void TheDefaultPath_ExistsOnlyOnWindows()
+    {
+        Assert.Equal(OperatingSystem.IsWindows(), LauncherPrefs.DefaultPath() != null);
+        if (OperatingSystem.IsWindows()) Assert.EndsWith(Path.Combine("CyanLabs", "Syn3Updater", "launcherPrefs.json"), LauncherPrefs.DefaultPath());
+        // with no path (every non-Windows system) nothing is read, written or detected
+        Assert.Null(LauncherPrefs.ReadBranch(null)); Assert.False(LauncherPrefs.WriteBranch(null, 1)); Assert.False(LauncherPrefs.HasLauncher(null));
+    }
+
+    [Theory]
+    [InlineData("{\"ReleaseBranch\":0}", 0)]
+    [InlineData("{\"ReleaseBranch\":1,\"ReleaseInstalled\":\"2.14.2.1\"}", 1)]
+    [InlineData("{\"ReleaseBranch\":2}", 2)]
+    [InlineData("{\"ReleaseBranch\":\"Beta\"}", 1)]
+    [InlineData("{\"ReleaseBranch\":\"stable\"}", 0)]
+    [InlineData("{\"ReleaseBranch\":\"1\"}", 1)]
+    public void ReadBranch_UnderstandsWhatNewtonsoftWritesAndWhatItAccepts(string json, int expected)
+    {
+        var f = Path.Combine(Tmp(), "launcherPrefs.json"); File.WriteAllText(f, json);
+        Assert.Equal(expected, LauncherPrefs.ReadBranch(f));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("not json")]
+    [InlineData("[]")]
+    [InlineData("{}")]
+    [InlineData("{\"ReleaseBranch\":7}")]
+    [InlineData("{\"ReleaseBranch\":\"Gamma\"}")]
+    [InlineData("{\"ReleaseBranch\":null}")]
+    public void ReadBranch_IgnoresAnythingItCannotUse(string json)
+    {
+        var f = Path.Combine(Tmp(), "launcherPrefs.json"); File.WriteAllText(f, json);
+        Assert.Null(LauncherPrefs.ReadBranch(f));
+        Assert.Null(LauncherPrefs.ReadBranch(Path.Combine(Tmp(), "missing.json")));
+    }
+
+    [Fact]
+    public void WriteBranch_ChangesOnlyTheChannel_AndKeepsWhatTheLauncherRecordedAboutTheInstall()
+    {
+        var f = Path.Combine(Tmp(), "launcherPrefs.json");
+        File.WriteAllText(f, "{\"ReleaseBranch\":0,\"ReleaseInstalled\":\"2.14.2.1\",\"ReleaseTypeInstalled\":0,\"Extra\":\"kept\"}");
+        Assert.True(LauncherPrefs.WriteBranch(f, LauncherPrefs.Beta));
+        var o = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(f))!.AsObject();
+        Assert.Equal(1, (int)o["ReleaseBranch"]!); Assert.Equal("2.14.2.1", (string)o["ReleaseInstalled"]!); Assert.Equal(0, (int)o["ReleaseTypeInstalled"]!); Assert.Equal("kept", (string)o["Extra"]!);
+        Assert.DoesNotContain("\n", File.ReadAllText(f).Trim());                                              // compact, like the Launcher's own
+    }
+
+    [Fact]
+    public void WriteBranch_CreatesTheFileWithTheLaunchersDefaults_AndReplacesACorruptOne()
+    {
+        var f = Path.Combine(Tmp(), "sub", "launcherPrefs.json");
+        Assert.True(LauncherPrefs.WriteBranch(f, LauncherPrefs.Beta));
+        Assert.Equal("{\"ReleaseBranch\":1,\"ReleaseInstalled\":\"0.0.0.0\",\"ReleaseTypeInstalled\":0}", File.ReadAllText(f));
+        File.WriteAllText(f, "{{{ garbage"); Assert.True(LauncherPrefs.WriteBranch(f, LauncherPrefs.Stable));
+        Assert.Equal(0, LauncherPrefs.ReadBranch(f));
+    }
+
+    [Fact]
+    public void WriteBranch_FailsQuietly_WhenTheFileCannotBeWritten()
+    {
+        var d = Tmp(); var blocker = Path.Combine(d, "blocker"); File.WriteAllText(blocker, "x");
+        Assert.False(LauncherPrefs.WriteBranch(Path.Combine(blocker, "launcherPrefs.json"), 1));               // a file where a folder should be
+    }
+
+    [Theory]
+    [InlineData(UpdateChannel.Stable, 0)]
+    [InlineData(UpdateChannel.Beta, 1)]
+    [InlineData(UpdateChannel.Nightly, 2)]      // v2's unfinished third slot, Alpha, is v3's Nightly
+    public void EveryChannel_HasItsOwnSlotInTheLaunchersFile(UpdateChannel c, int branch)
+    {
+        Assert.Equal(branch, LauncherPrefs.ToBranch(c));
+        Assert.Equal(c, LauncherPrefs.FromBranch(branch));
+    }
+
+    [Theory]
+    [InlineData(UpdateChannel.Stable, null, UpdateChannel.Stable)]      // no Launcher file: the app's choice stands
+    [InlineData(UpdateChannel.Nightly, null, UpdateChannel.Nightly)]
+    [InlineData(UpdateChannel.Beta, 1, UpdateChannel.Beta)]
+    [InlineData(UpdateChannel.Nightly, 2, UpdateChannel.Nightly)]
+    [InlineData(UpdateChannel.Stable, 1, UpdateChannel.Beta)]            // the file was changed elsewhere (v2, the Launcher): it wins, as in v2
+    [InlineData(UpdateChannel.Beta, 0, UpdateChannel.Stable)]
+    [InlineData(UpdateChannel.Nightly, 0, UpdateChannel.Stable)]
+    [InlineData(UpdateChannel.Nightly, 1, UpdateChannel.Beta)]
+    [InlineData(UpdateChannel.Stable, 2, UpdateChannel.Nightly)]
+    [InlineData(UpdateChannel.Beta, 2, UpdateChannel.Nightly)]
+    public void TheLauncherFileWinsWhenItDisagrees(UpdateChannel chosen, int? file, UpdateChannel expected) => Assert.Equal(expected, LauncherPrefs.Reconcile(chosen, file));
+
+    [Fact]
+    public void ALauncherIsPresent_WhenItsFileExists_OrLauncherExeSitsBesideTheApp()
+    {
+        var d = Tmp(); var f = Path.Combine(d, "launcherPrefs.json"); var app = Path.Combine(d, "app"); Directory.CreateDirectory(app);
+        Assert.False(LauncherPrefs.HasLauncher(f, app));
+        File.WriteAllText(Path.Combine(app, "Launcher.exe"), "x"); Assert.True(LauncherPrefs.HasLauncher(f, app));
+        File.Delete(Path.Combine(app, "Launcher.exe")); File.WriteAllText(f, "{}"); Assert.True(LauncherPrefs.HasLauncher(f, app));
+    }
+}
+
 public class UpdateCheckerTests
 {
     private static string Releases(params (string tag, bool pre, bool draft)[] r) =>
