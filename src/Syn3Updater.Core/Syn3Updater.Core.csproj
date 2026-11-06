@@ -7,6 +7,7 @@
   <ItemGroup>
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <EmbeddedResource Include="Languages\*.json" />
+    <InternalsVisibleTo Include="Syn3Updater.Tests" />
   </ItemGroup>
 
   <!-- Generates obj/.../ApiSecret.g.cs so the token is a compiled-in constant, never a user setting or a committed file -->
