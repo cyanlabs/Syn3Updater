@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "Затвори",
   "App.CheckUpdates": "Провери за актуализации",
   "App.UpToDate": "Използвате най-новата версия ({0}).",
-  "Settings.CheckForUpdates": "Проверявай за по-нова версия при стартиране на приложението",
   "Settings.UpdateChannel": "Канал за актуализации",
   "Settings.ChannelStable": "Стабилен - тествани версии (препоръчително)",
   "Settings.ChannelBeta": "Бета - ранни версии, възможни са грешки",

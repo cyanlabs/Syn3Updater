@@ -158,8 +158,6 @@ public class MainSettings
     public string? AdLinkUrl { get; set; }
     /// <summary>Parallel connections per download (1-8). Application-wide.</summary>
     public int DownloadConnections { get; set; } = 8;
-    /// <summary>Look for a newer Syn3 Updater release on start-up (a single request to GitHub; it only shows a notice).</summary>
-    public bool CheckForUpdates { get; set; } = true;
     /// <summary>Which builds the update notice offers: Stable, Beta or Nightly. Empty means the channel of the build that is running.</summary>
     public string? UpdateChannel { get; set; }
 }

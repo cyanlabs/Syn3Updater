@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "Afvis",
   "App.CheckUpdates": "Søg efter opdateringer",
   "App.UpToDate": "Du kører den nyeste version ({0}).",
-  "Settings.CheckForUpdates": "Søg efter en nyere version, når appen starter",
   "Settings.UpdateChannel": "Opdateringskanal",
   "Settings.ChannelStable": "Stabil - testede udgivelser (anbefalet)",
   "Settings.ChannelBeta": "Beta - tidlige udgivelser, kan indeholde fejl",

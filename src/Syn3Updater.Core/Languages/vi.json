@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "Bỏ qua",
   "App.CheckUpdates": "Kiểm tra cập nhật",
   "App.UpToDate": "Bạn đang dùng phiên bản mới nhất ({0}).",
-  "Settings.CheckForUpdates": "Kiểm tra phiên bản mới hơn khi ứng dụng khởi động",
   "Settings.UpdateChannel": "Kênh cập nhật",
   "Settings.ChannelStable": "Ổn định - các bản phát hành đã kiểm thử (khuyến nghị)",
   "Settings.ChannelBeta": "Beta - bản phát hành sớm, có thể có lỗi",

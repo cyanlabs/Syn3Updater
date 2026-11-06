@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "Zavřít",
   "App.CheckUpdates": "Zkontrolovat aktualizace",
   "App.UpToDate": "Používáte nejnovější verzi ({0}).",
-  "Settings.CheckForUpdates": "Při spuštění aplikace hledat novější verzi",
   "Settings.UpdateChannel": "Kanál aktualizací",
   "Settings.ChannelStable": "Stabilní - otestované verze (doporučeno)",
   "Settings.ChannelBeta": "Beta - předběžné verze, mohou obsahovat chyby",

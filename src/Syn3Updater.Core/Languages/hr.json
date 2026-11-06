@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "Odbaci",
   "App.CheckUpdates": "Provjeri ažuriranja",
   "App.UpToDate": "Koristite najnoviju verziju ({0}).",
-  "Settings.CheckForUpdates": "Provjeri postoji li novija verzija pri pokretanju aplikacije",
   "Settings.UpdateChannel": "Kanal ažuriranja",
   "Settings.ChannelStable": "Stabilno - testirana izdanja (preporučeno)",
   "Settings.ChannelBeta": "Beta - rana izdanja, mogu sadržavati greške",

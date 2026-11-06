@@ -193,7 +193,7 @@ public partial class AboutViewModel : PageViewModel
     [RelayCommand]
     private async Task CheckUpdateAsync()
     {
-        await MainWindowViewModel.Instance.CheckForUpdateAsync(force: true);
+        await MainWindowViewModel.Instance.CheckForUpdateAsync();
         if (!MainWindowViewModel.Instance.UpdateAvailable) await Dialogs.Info(Ctx.T("App.UpToDate", Ctx.Version));
     }
 

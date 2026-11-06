@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "Ignorer",
   "App.CheckUpdates": "Rechercher des mises à jour",
   "App.UpToDate": "Vous utilisez la dernière version ({0}).",
-  "Settings.CheckForUpdates": "Rechercher une version plus récente au démarrage de l'application",
   "Settings.UpdateChannel": "Canal de mise à jour",
   "Settings.ChannelStable": "Stable - versions testées (recommandé)",
   "Settings.ChannelBeta": "Bêta - versions anticipées, peuvent contenir des bogues",

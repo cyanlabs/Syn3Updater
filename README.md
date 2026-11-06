@@ -87,7 +87,7 @@ A token compiled into a public download can be extracted by anyone, so keep it r
 - **Diagnostics** (sidebar): checks the tools and permissions the current OS needs (Linux: `lsblk`, `sfdisk`, `mkfs.exfat`, `pkexec`, `udisks2`; Windows: Administrator, PowerShell, `diskpart`;
   macOS: `diskutil`, app location), the data/download/log folders, the API key, the Syn3 Updater and Ford servers and the clock. Each failed check says how to fix it. "Copy report" puts it on the clipboard.
 - **Logs** now start with a system section (OS, architecture, runtime, desktop/session, install location, which tools are present, free space). The home folder is replaced by `~` so logs are safe to share.
-- **Update notice**: on start-up the app asks GitHub for a newer build on your update channel (below) and shows a banner with a link. It never downloads or installs anything. Turn it off in Settings.
+- **Update notice**: on start-up the app asks GitHub for a newer build on your update channel (below) and shows a banner with a link. It never downloads or installs anything. The check is a single request to GitHub and is always on.
 - **Drive verification**: after copying and flushing, every file on the stick is read back and checked against the download (Linux and macOS bypass the OS cache for this read).
 - **Languages** live in `src/Syn3Updater.Core/Languages/*.json`. A test keeps every language complete and in step with `en-US`, and fails on keys nothing uses or text hardcoded in XAML.
 

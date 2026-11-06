@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "Dismiss",
   "App.CheckUpdates": "Check for updates",
   "App.UpToDate": "You are running the latest version ({0}).",
-  "Settings.CheckForUpdates": "Check for a newer version when the app starts",
   "Settings.UpdateChannel": "Update channel",
   "Settings.ChannelStable": "Stable - tested releases (recommended)",
   "Settings.ChannelBeta": "Beta - early releases, may have bugs",

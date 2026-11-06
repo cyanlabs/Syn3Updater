@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "Elvetés",
   "App.CheckUpdates": "Frissítések keresése",
   "App.UpToDate": "A legújabb verziót használja ({0}).",
-  "Settings.CheckForUpdates": "Újabb verzió keresése az alkalmazás indításakor",
   "Settings.UpdateChannel": "Frissítési csatorna",
   "Settings.ChannelStable": "Stabil - tesztelt kiadások (ajánlott)",
   "Settings.ChannelBeta": "Béta - korai kiadások, hibákat tartalmazhatnak",

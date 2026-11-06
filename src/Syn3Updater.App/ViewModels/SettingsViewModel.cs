@@ -63,7 +63,6 @@ public partial class SettingsViewModel : PageViewModel
     [ObservableProperty] private ChoiceOption? _mode;
     [ObservableProperty] private ChoiceOption? _theme;
     [ObservableProperty] private int _connections = 1;
-    [ObservableProperty] private bool _checkUpdates = true;
     [ObservableProperty] private string _downloadPath = "";
     [ObservableProperty] private string _logPath = "";
     [ObservableProperty] private string _licenseKey = "";
@@ -149,7 +148,6 @@ public partial class SettingsViewModel : PageViewModel
         Mode = ModeOptions.FirstOrDefault(o => o.Value == p.InstallMode) ?? ModeOptions[0];
         Theme = ThemeOptions.FirstOrDefault(o => o.Value == (m.Theme ?? "Dark")) ?? ThemeOptions[0];
         Connections = Math.Clamp(m.DownloadConnections, 1, 8);
-        CheckUpdates = m.CheckForUpdates;
         Channel = ChannelOptions.FirstOrDefault(o => o.Value == Ctx.UpdateChannel.ToString()) ?? ChannelOptions[0];
         DownloadPath = m.DownloadPath ?? ""; LogPath = m.LogPath ?? "";
         LicenseKey = m.LicenseKey ?? "";
@@ -244,10 +242,9 @@ public partial class SettingsViewModel : PageViewModel
         }
 
         m.DownloadConnections = Connections;
-        m.CheckForUpdates = CheckUpdates;
         var channelBefore = Ctx.UpdateChannel;
         m.UpdateChannel = Channel?.Value ?? m.UpdateChannel;
-        if (Ctx.UpdateChannel != channelBefore) _ = MainWindowViewModel.Instance.CheckForUpdateAsync(force: true);       // the notice should follow the new channel straight away
+        if (Ctx.UpdateChannel != channelBefore) _ = MainWindowViewModel.Instance.CheckForUpdateAsync();       // the notice should follow the new channel straight away
         m.Lang = Language?.Code ?? m.Lang;
         m.Theme = Theme?.Value ?? "Default";
         m.LicenseKey = LicenseKey.Trim();

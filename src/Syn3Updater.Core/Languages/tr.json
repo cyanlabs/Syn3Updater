@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "Kapat",
   "App.CheckUpdates": "Güncellemeleri denetle",
   "App.UpToDate": "En son sürümü kullanıyorsunuz ({0}).",
-  "Settings.CheckForUpdates": "Uygulama başlarken daha yeni bir sürüm ara",
   "Settings.UpdateChannel": "Güncelleme kanalı",
   "Settings.ChannelStable": "Kararlı - test edilmiş sürümler (önerilir)",
   "Settings.ChannelBeta": "Beta - erken sürümler, hatalar içerebilir",

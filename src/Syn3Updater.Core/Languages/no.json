@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "Lukk",
   "App.CheckUpdates": "Se etter oppdateringer",
   "App.UpToDate": "Du kjører den nyeste versjonen ({0}).",
-  "Settings.CheckForUpdates": "Se etter en nyere versjon når appen starter",
   "Settings.UpdateChannel": "Oppdateringskanal",
   "Settings.ChannelStable": "Stabil - testede utgivelser (anbefalt)",
   "Settings.ChannelBeta": "Beta - tidlige utgivelser, kan inneholde feil",

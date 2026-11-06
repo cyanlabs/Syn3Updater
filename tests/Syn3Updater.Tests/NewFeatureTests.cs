@@ -136,6 +136,13 @@ public class UpdateCheckerTests
         Assert.Equal(UpdateChannel.Nightly, Channels.Parse("nightly", "3.0.0"));
     }
 
+    [Fact]
+    public void AnOldSettingsFile_StillLoads_AfterTheOptOutWasRemoved()
+    {
+        var m = JsonSerializer.Deserialize<Cyanlabs.Syn3Updater.Core.Models.MainSettings>("{\"CheckForUpdates\": false, \"UpdateChannel\": \"Beta\"}")!;
+        Assert.Equal("Beta", m.UpdateChannel);               // the unknown old key is ignored, the rest is read
+    }
+
     private static string Releases2(params (string tag, string? name, bool pre)[] r) =>
         JsonSerializer.Serialize(r.Select(x => new { tag_name = x.tag, name = x.name, prerelease = x.pre, draft = false, html_url = "https://example/" + x.tag }));
 

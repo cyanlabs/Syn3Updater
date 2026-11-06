@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "Скрыть",
   "App.CheckUpdates": "Проверить обновления",
   "App.UpToDate": "У вас установлена последняя версия ({0}).",
-  "Settings.CheckForUpdates": "Проверять наличие новой версии при запуске приложения",
   "Settings.UpdateChannel": "Канал обновлений",
   "Settings.ChannelStable": "Стабильный - проверенные выпуски (рекомендуется)",
   "Settings.ChannelBeta": "Бета - ранние выпуски, возможны ошибки",

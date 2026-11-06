@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "ปิด",
   "App.CheckUpdates": "ตรวจสอบการอัปเดต",
   "App.UpToDate": "คุณใช้เวอร์ชันล่าสุดอยู่ ({0})",
-  "Settings.CheckForUpdates": "ตรวจหาเวอร์ชันที่ใหม่กว่าเมื่อเริ่มแอป",
   "Settings.UpdateChannel": "ช่องทางอัปเดต",
   "Settings.ChannelStable": "เสถียร - รุ่นที่ผ่านการทดสอบ (แนะนำ)",
   "Settings.ChannelBeta": "เบต้า - รุ่นแรกเริ่ม อาจมีข้อบกพร่อง",

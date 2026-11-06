@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "تجاهل",
   "App.CheckUpdates": "التحقق من التحديثات",
   "App.UpToDate": "أنت تستخدم أحدث إصدار ({0}).",
-  "Settings.CheckForUpdates": "البحث عن إصدار أحدث عند بدء التطبيق",
   "Settings.UpdateChannel": "قناة التحديث",
   "Settings.ChannelStable": "مستقر - إصدارات مختبرة (موصى به)",
   "Settings.ChannelBeta": "بيتا - إصدارات مبكرة وقد تحتوي على أخطاء",

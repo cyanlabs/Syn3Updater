@@ -65,7 +65,6 @@
             <StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="{svc:T Settings.MapKey}" Classes="label" /><TextBox Text="{Binding LicenseKey}" /></StackPanel>
           </Grid>
           <StackPanel Spacing="6"><TextBlock Text="{svc:T Settings.UpdateChannel}" Classes="label" /><ComboBox ItemsSource="{Binding ChannelOptions}" SelectedItem="{Binding Channel}" HorizontalAlignment="Stretch" /></StackPanel>
-          <CheckBox IsChecked="{Binding CheckUpdates}" Content="{svc:T Settings.CheckForUpdates}" />
         </StackPanel>
       </Border>
 

@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "Απόρριψη",
   "App.CheckUpdates": "Έλεγχος για ενημερώσεις",
   "App.UpToDate": "Χρησιμοποιείτε την πιο πρόσφατη έκδοση ({0}).",
-  "Settings.CheckForUpdates": "Έλεγχος για νεότερη έκδοση κατά την έναρξη της εφαρμογής",
   "Settings.UpdateChannel": "Κανάλι ενημερώσεων",
   "Settings.ChannelStable": "Σταθερό - δοκιμασμένες εκδόσεις (προτείνεται)",
   "Settings.ChannelBeta": "Beta - πρώιμες εκδόσεις, μπορεί να έχουν σφάλματα",

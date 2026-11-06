@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "لابردن",
   "App.CheckUpdates": "پشکنینی نوێکردنەوە",
   "App.UpToDate": "تۆ نوێترین وەشان بەکاردەهێنیت ({0}).",
-  "Settings.CheckForUpdates": "لە کاتی دەستپێکردنی بەرنامەکە بەدوای وەشانێکی نوێتر بگەڕێ",
   "Settings.UpdateChannel": "کەناڵی نوێکردنەوە",
   "Settings.ChannelStable": "جێگیر - وەشانە تاقیکراوەکان (پێشنیارکراو)",
   "Settings.ChannelBeta": "بێتا - وەشانە سەرەتاییەکان، لەوانەیە هەڵەیان تێدا بێت",

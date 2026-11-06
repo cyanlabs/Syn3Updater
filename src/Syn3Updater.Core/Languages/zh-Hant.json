@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "忽略",
   "App.CheckUpdates": "檢查更新",
   "App.UpToDate": "您正在使用最新版本 ({0})。",
-  "Settings.CheckForUpdates": "應用程式啟動時檢查是否有新版本",
   "Settings.UpdateChannel": "更新通道",
   "Settings.ChannelStable": "穩定版 - 已測試的發佈版本（建議）",
   "Settings.ChannelBeta": "測試版 - 早期版本，可能有缺陷",

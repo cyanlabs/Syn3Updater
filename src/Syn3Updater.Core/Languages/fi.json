@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "Sulje",
   "App.CheckUpdates": "Tarkista päivitykset",
   "App.UpToDate": "Käytössäsi on uusin versio ({0}).",
-  "Settings.CheckForUpdates": "Tarkista uudempi versio sovelluksen käynnistyessä",
   "Settings.UpdateChannel": "Päivityskanava",
   "Settings.ChannelStable": "Vakaa - testatut julkaisut (suositeltu)",
   "Settings.ChannelBeta": "Beta - varhaiset julkaisut, voivat sisältää virheitä",

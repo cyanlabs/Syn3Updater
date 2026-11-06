@@ -233,7 +233,6 @@
   "App.UpdateDismiss": "Sluiten",
   "App.CheckUpdates": "Controleren op updates",
   "App.UpToDate": "Je gebruikt de nieuwste versie ({0}).",
-  "Settings.CheckForUpdates": "Controleer bij het starten van de app op een nieuwere versie",
   "Settings.UpdateChannel": "Updatekanaal",
   "Settings.ChannelStable": "Stabiel - geteste uitgaven (aanbevolen)",
   "Settings.ChannelBeta": "Beta - vroege uitgaven, kunnen fouten bevatten",
