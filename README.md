@@ -39,12 +39,9 @@ The `.deb`, `.rpm` and Arch packages install the USB tools the app needs (`util-
 
 Start the app from the application menu (on Linux also with `syn3updater` in a terminal).
 
-## Using it
+## Usage
 
-1. **Home:** choose your region, SYNC release and maps, and the USB drive. Start the run; the app downloads, verifies, copies and
-   writes the install files. Only USB / external drives are offered, never a system disk, and the confirmation names the exact device before anything is formatted.
-2. **Eject** the drive from the app when it finishes, then plug it into the car.
-3. **Utilities** has the APIM checks (for example whether a unit is MY20) and log tools. **Settings** holds the install mode, language, theme and update channel.
+See the guide at <https://cyanlabs.net/docs/Syn3Updater>.
 
 The install mode (AutoInstall, Reformat, Downgrade) is chosen automatically and protects MY20 units. The rules are in [docs/install-mode-logic.md](docs/install-mode-logic.md).
 

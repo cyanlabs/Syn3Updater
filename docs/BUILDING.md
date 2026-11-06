@@ -18,8 +18,6 @@ The CyanLabs backend needs a bearer token. It is compiled into the app at build 
 or from the `SYN3_API_TOKEN` environment variable (which wins; handy for CI). See [secrets/README.md](../secrets/README.md).
 It is not a user setting and never appears in the UI or in git. Without a token the app still builds, but API calls are rejected.
 
-A token compiled into a public download can be extracted by anyone, so keep it read-only and revocable.
-
 ## Tests
 
 ```sh
