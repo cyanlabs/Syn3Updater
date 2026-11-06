@@ -107,6 +107,24 @@ Settings > Update channel decides which builds the update notice offers. The cha
   and the app reads it from the release title because the tag is always `nightly`. They are kept out of the production repo on purpose: the v2 Launcher treats that repo's newest pre-release as its Beta update.
 - The word sent to the API and written in logs as the "branch" is the channel of the running build (`Stable`, `Beta` or `Nightly`).
 
+## Releasing for the v2 Launcher
+
+The v2 Launcher (2.14.2.0 and older) cannot read a tag like `v3.0.0-test9`: it runs `Version.Parse(tag)` unguarded and crashes. It also wants one flat zip. Run **Actions > Release > Run workflow** with `publish` ticked and `legacy_tag` set:
+
+| `legacy_tag` | Result |
+|---|---|
+| empty | the normal release: tag `v<version>`, no flat zip. Fine for the Dev repo and for people who do not use the Launcher; **do not use it on `CyanLabs/Syn3Updater`** while v2 Launchers exist |
+| `auto` | the next free `2.9.9.N` (numbered 0 to 999, compared as numbers: 2.9.9.2 is lower than 2.9.9.12), for test builds |
+| an exact tag such as `3.0.0.0` | that tag, for the real release (it fails at once if the tag or release already exists) |
+
+With a legacy tag the workflow also builds `<tag>.zip`: a flat zip with `Syn3Updater.exe` and a copy of it as `Launcher.exe` (plus LICENSE and README.txt), uploaded as `application/x-zip-compressed`
+(the old Launcher's download picks the first asset of that exact type). The release is created as a **draft**, the zip is attached and its content type checked, and only then is it published,
+so an old Launcher never sees a release without its zip. The release title stays `Syn3 Updater <version>`: the in-app update check reads the real version (`3.0.0-test9`) from the title of a pre-release
+under a bare numeric tag. The release is flagged pre-release when the version has a suffix, and only Launchers on the Beta channel see pre-releases.
+
+Things to know: the old Launcher installs any release that merely *differs* from what it has, so a `2.9.9.N` test build is installed even though the number is lower than 2.14.2.x. The 2.14.2.1+ Launcher picks the
+**highest version number** instead, so it will not offer `2.9.9.N` test builds (it stays on 2.14.2.1 until a real 3.x tag, which is higher, is published).
+
 ## syn3updater:// links
 
 Links such as `syn3updater://Region=EU;Release=3.4.19274;Maps=Navigation_Map_Name` (on the CyanLabs website and forum, as in v2) open the app and
