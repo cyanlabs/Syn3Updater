@@ -160,6 +160,8 @@ public class MainSettings
     public int DownloadConnections { get; set; } = 8;
     /// <summary>Look for a newer Syn3 Updater release on start-up (a single request to GitHub; it only shows a notice).</summary>
     public bool CheckForUpdates { get; set; } = true;
+    /// <summary>Which builds the update notice offers: Stable, Beta or Nightly. Empty means the channel of the build that is running.</summary>
+    public string? UpdateChannel { get; set; }
 }
 
 public class ProfileSettings

@@ -58,7 +58,7 @@ drive code is covered by parser unit tests but untested against real devices.
 
 - **CI** (`.github/workflows/ci.yml`): every push and pull request to `main` builds and tests on Linux, Windows and macOS.
 - **Release** (`.github/workflows/release.yml`): pushing a tag like `v3.0.0` runs the tests, builds every package and publishes a GitHub Release
-  with checksums. It can also be started by hand (Actions > Release > Run workflow) to build packages without publishing.
+  with checksums. It can also be started by hand (Actions > Release > Run workflow) to build packages without publishing. It also builds the Nightly channel (see *Update channels*).
 
 | Package | Built by | Notes |
 |---|---|---|
@@ -87,10 +87,24 @@ A token compiled into a public download can be extracted by anyone, so keep it r
 - **Diagnostics** (sidebar): checks the tools and permissions the current OS needs (Linux: `lsblk`, `sfdisk`, `mkfs.exfat`, `pkexec`, `udisks2`; Windows: Administrator, PowerShell, `diskpart`;
   macOS: `diskutil`, app location), the data/download/log folders, the API key, the Syn3 Updater and Ford servers and the clock. Each failed check says how to fix it. "Copy report" puts it on the clipboard.
 - **Logs** now start with a system section (OS, architecture, runtime, desktop/session, install location, which tools are present, free space). The home folder is replaced by `~` so logs are safe to share.
-- **Update notice**: on start-up the app asks GitHub for newer releases of `CyanLabs/Syn3Updater` and shows a banner with a link. It never downloads or installs anything. Turn it off in Settings.
-  Pre-releases are only offered to people already on a pre-release.
+- **Update notice**: on start-up the app asks GitHub for a newer build on your update channel (below) and shows a banner with a link. It never downloads or installs anything. Turn it off in Settings.
 - **Drive verification**: after copying and flushing, every file on the stick is read back and checked against the download (Linux and macOS bypass the OS cache for this read).
 - **Languages** live in `src/Syn3Updater.Core/Languages/*.json`. A test keeps every language complete and in step with `en-US`, and fails on keys nothing uses or text hardcoded in XAML.
+
+## Update channels
+
+Settings > Update channel decides which builds the update notice offers. The channel a build came from is read from its version, so nothing else has to be stored:
+
+| Channel | Gets | Version looks like | Published as |
+|---|---|---|---|
+| **Stable** (default for releases) | tested releases | `3.0.0` | a normal GitHub release on `CyanLabs/Syn3Updater` |
+| **Beta** (default for test builds) | the newest release *or* pre-release | `3.1.0-beta.2`, `3.0.0-test8` | a pre-release on `CyanLabs/Syn3Updater` |
+| **Nightly** | automatic, untested builds of the latest code | `3.1.0-nightly.20261108.5` | one rolling pre-release named `nightly` on `CyanLabs/Syn3UpdaterDev` only |
+
+- A newer build in your own channel is a normal update. Choosing a *different* channel offers that channel's newest build even if its number is lower (as in v2): for example a Beta tester who picks Stable is offered the latest stable release.
+- Nightlies are built by `release.yml` at 03:17 UTC, only when `main` changed since the last one and only in the Dev repo (it can also be run by hand with "nightly"). The version is `<Version in Directory.Build.props>-nightly.<date>.<run number>`,
+  and the app reads it from the release title because the tag is always `nightly`. They are kept out of the production repo on purpose: the v2 Launcher treats that repo's newest pre-release as its Beta update.
+- The word sent to the API and written in logs as the "branch" is the channel of the running build (`Stable`, `Beta` or `Nightly`).
 
 ## syn3updater:// links
 

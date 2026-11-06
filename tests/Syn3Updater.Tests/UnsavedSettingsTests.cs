@@ -1,5 +1,6 @@
 using Avalonia.Headless.XUnit;
 using Cyanlabs.Syn3Updater.App.Services;
+using Cyanlabs.Syn3Updater.Core.Services;
 using Xunit;
 namespace Cyanlabs.Syn3Updater.Tests;
 
@@ -22,6 +23,19 @@ public class UnsavedSettingsTests
         Assert.True(await m.GoToAsync(m.Home));
         Assert.Same(m.Home, m.Current); Assert.Equal(3319052, Ctx.Profile.CurrentVersion);
         Assert.Equal(new[] { "Keep editing", "Discard changes", "Save changes" }, env.Dialogs.Shown.Single().Buttons);
+    }
+
+    [AvaloniaFact]
+    public async Task TheUpdateChannel_DefaultsToTheRunningBuild_AndIsSavedWhenChanged()
+    {
+        using var env = new AppEnv(); var m = env.Main; m.Current = m.Settings;
+        Assert.Equal(Channels.Of(Ctx.Version).ToString(), m.Settings.Channel!.Value);                 // nothing saved yet: follows the build
+        Assert.Equal(new[] { "Stable", "Beta", "Nightly" }, m.Settings.ChannelOptions.Select(o => o.Value));
+        Assert.False(m.Settings.IsDirty);
+        m.Settings.Channel = m.Settings.ChannelOptions.Single(o => o.Value == "Nightly"); Assert.True(m.Settings.IsDirty);
+        env.Dialogs.Choices.Enqueue(2);
+        Assert.True(await m.GoToAsync(m.Home));
+        Assert.Equal("Nightly", Ctx.Main.UpdateChannel); Assert.Equal(UpdateChannel.Nightly, Ctx.UpdateChannel);
     }
 
     [AvaloniaFact]
