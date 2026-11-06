@@ -202,3 +202,45 @@ public class EjectUiTests
         Assert.Same(stick, home.SelectedDrive); Assert.Contains(env.Dialogs.Messages, m => m == "busy");   // failure: selection kept so the user can retry
     }
 }
+
+public class DownloadChipLayoutTests
+{
+    private static (Avalonia.Controls.Border speed, Avalonia.Controls.Border eta, Avalonia.Controls.Border conns) Chips(Avalonia.Controls.Window w)
+    {
+        var v = (Cyanlabs.Syn3Updater.App.Views.DownloadView)w.Content!;
+        Avalonia.Controls.Border Find(string name) => Avalonia.Controls.ControlExtensions.FindControl<Avalonia.Controls.Border>(v, name)!;
+        return (Find("SpeedChip"), Find("EtaChip"), Find("ConnectionsChip"));
+    }
+
+    [AvaloniaFact]
+    public void TheChips_StayPut_WhateverTheNumbersSay()
+    {
+        using var env = new AppEnv(); var dl = env.Main.Downloads;
+        var window = new Avalonia.Controls.Window { Width = 900, Height = 700, Content = new Cyanlabs.Syn3Updater.App.Views.DownloadView { DataContext = dl } }; window.Show();
+        dl.IsRunning = true; dl.ConnectionsText = "1 connection"; dl.SpeedText = "1MB/s"; dl.EtaText = "5 s left";
+        window.UpdateLayout(); var (s, e, c) = Chips(window);
+        var before = (sx: s.Bounds.X, sw: s.Bounds.Width, ex: e.Bounds.X, ew: e.Bounds.Width, cx: c.Bounds.X, cw: c.Bounds.Width);
+
+        dl.SpeedText = "999.9MB/s"; dl.EtaText = "59 min 59 s left"; dl.ConnectionsText = "8 connections"; window.UpdateLayout();
+        Assert.Equal(before.sx, s.Bounds.X); Assert.Equal(before.ex, e.Bounds.X); Assert.Equal(before.cx, c.Bounds.X);          // nothing slides sideways
+        Assert.Equal(before.sw, s.Bounds.Width); Assert.Equal(before.ew, e.Bounds.Width); Assert.Equal(before.cw, c.Bounds.Width);
+
+        dl.SpeedText = ""; dl.EtaText = ""; window.UpdateLayout();                                                               // e.g. while verifying: values go, the chips stay
+        Assert.Equal("–", dl.SpeedDisplay); Assert.Equal("–", dl.EtaDisplay);
+        Assert.Equal(before.ex, e.Bounds.X); Assert.Equal(before.cx, c.Bounds.X); Assert.Equal(before.ew, e.Bounds.Width);
+        Assert.True(c.IsVisible && s.IsVisible && e.IsVisible);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void Connections_SitOnTheRightEdge_AndLeaveTheRowWhenNothingRuns()
+    {
+        using var env = new AppEnv(); var dl = env.Main.Downloads;
+        var window = new Avalonia.Controls.Window { Width = 900, Height = 700, Content = new Cyanlabs.Syn3Updater.App.Views.DownloadView { DataContext = dl } }; window.Show();
+        dl.IsRunning = true; dl.ConnectionsText = "3 connections"; window.UpdateLayout(); var (s, e, c) = Chips(window);
+        Assert.True(c.Bounds.X > e.Bounds.X + e.Bounds.Width + 50);                       // far to the right of the other two, not next to them
+        var row = (Avalonia.Controls.Grid)c.Parent!; Assert.Equal(row.Bounds.Width, c.Bounds.X + c.Bounds.Width, 1);   // flush with the row's right edge
+        dl.IsRunning = false; window.UpdateLayout(); Assert.False(row.IsEffectivelyVisible);
+        window.Close();
+    }
+}

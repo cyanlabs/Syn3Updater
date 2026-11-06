@@ -41,9 +41,15 @@ public partial class DownloadViewModel : PageViewModel
     [ObservableProperty] private string _etaText = "";
     [ObservableProperty] private string _connectionsText = "";
     public bool HasStats => SpeedText.Length > 0 || EtaText.Length > 0 || ConnectionsText.Length > 0;
-    partial void OnSpeedTextChanged(string value) => OnPropertyChanged(nameof(HasStats));
-    partial void OnEtaTextChanged(string value) => OnPropertyChanged(nameof(HasStats));
-    partial void OnConnectionsTextChanged(string value) => OnPropertyChanged(nameof(HasStats));
+
+    // The stat chips keep their place while a run is going: an unknown value shows a dash instead of the chip disappearing and shifting its neighbours.
+    private const string Unknown = "–";
+    public string SpeedDisplay => SpeedText.Length > 0 ? SpeedText : Unknown;
+    public string EtaDisplay => EtaText.Length > 0 ? EtaText : Unknown;
+    public string ConnectionsDisplay => ConnectionsText.Length > 0 ? ConnectionsText : Unknown;
+    partial void OnSpeedTextChanged(string value) { OnPropertyChanged(nameof(HasStats)); OnPropertyChanged(nameof(SpeedDisplay)); }
+    partial void OnEtaTextChanged(string value) { OnPropertyChanged(nameof(HasStats)); OnPropertyChanged(nameof(EtaDisplay)); }
+    partial void OnConnectionsTextChanged(string value) { OnPropertyChanged(nameof(HasStats)); OnPropertyChanged(nameof(ConnectionsDisplay)); }
 
     /// <summary>Recomputes speed and ETA. Also runs on a timer so the numbers fall to nothing while a checksum is verified.</summary>
     internal void RefreshStats(long? nowTicks = null)
