@@ -23,11 +23,12 @@
             <ProgressBar Value="{Binding FileProgress}" Maximum="100" Height="8" VerticalAlignment="Center" />
             <TextBlock Grid.Column="1" Text="{Binding FileProgress, StringFormat={}{0}%}" HorizontalAlignment="Right" />
           </Grid>
-          <WrapPanel ItemSpacing="8" LineSpacing="6" IsVisible="{Binding HasStats}">
-            <Border Classes="chip" Margin="0" IsVisible="{Binding SpeedText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"><TextBlock Text="{Binding SpeedText}" FontWeight="SemiBold" /></Border>
-            <Border Classes="chip" Margin="0" IsVisible="{Binding EtaText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"><TextBlock Text="{Binding EtaText}" /></Border>
-            <Border Classes="chip" Margin="0" IsVisible="{Binding ConnectionsText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"><TextBlock Text="{Binding ConnectionsText}" Classes="muted" /></Border>
-          </WrapPanel>
+          <!-- fixed-width slots so changing numbers never move their neighbours: speed and time left on the left, connections on the right -->
+          <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="8" IsVisible="{Binding IsRunning}">
+            <Border x:Name="SpeedChip" Classes="chip" Margin="0" MinWidth="120"><TextBlock Text="{Binding SpeedDisplay}" FontWeight="SemiBold" HorizontalAlignment="Center" /></Border>
+            <Border x:Name="EtaChip" Grid.Column="1" Classes="chip" Margin="0" MinWidth="168"><TextBlock Text="{Binding EtaDisplay}" HorizontalAlignment="Center" /></Border>
+            <Border x:Name="ConnectionsChip" Grid.Column="3" Classes="chip" Margin="0" MinWidth="148"><TextBlock Text="{Binding ConnectionsDisplay}" Classes="muted" HorizontalAlignment="Center" /></Border>
+          </Grid>
           <TextBlock Text="{svc:T Download.TotalDownload}" Classes="label" />
           <Grid ColumnDefinitions="*,52" ColumnSpacing="10">
             <ProgressBar Value="{Binding TotalProgress}" Maximum="100" Height="8" VerticalAlignment="Center" />
