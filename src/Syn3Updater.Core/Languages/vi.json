@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "Khu vực hiện tại và khu vực mới không giống nhau, điều này có thể không hoạt động. Bạn có muốn tiếp tục không?",
   "MessageBox.CancelDownloadIsDrive": "Đường dẫn tải xuống và ổ USB đích giống nhau, vui lòng thay đổi đường dẫn tải xuống của bạn.",
   "MessageBox.CancelNoApps": "InstallMode đã chọn đang định dạng lại hoặc giảm cấp nhưng không có gói \"APPS\" nào được chọn nhưng Syn3 Updater đã xác định rằng cần phải giảm cấp hoặc định dạng lại, điều này sẽ dẫn đến hệ thống không khởi động được. Hủy bỏ!",
-  "MessageBox.CancelFormatUSB": "CẢNH BÁO, TẤT CẢ DỮ LIỆU TRÊN Ổ đĩa ĐÃ CHỌN SẼ BỊ MẤT {0}\nTên Ổ đĩa: {1}\n\nNhấp vào CÓ để định dạng và tiếp tục.",
+  "MessageBox.CancelFormatUSB": "CẢNH BÁO, TẤT CẢ DỮ LIỆU TRÊN Ổ đĩa ĐÃ CHỌN SẼ BỊ MẤT{0}\nTên Ổ đĩa: {1}\n\nNhấp vào CÓ để định dạng và tiếp tục.",
   "MessageBox.DownloadInProgress": "Một thao tác khác đang chạy, vui lòng đợi thao tác hiện có kết thúc trước khi tiếp tục.",
   "MessageBox.OptionalFormatUSB": "Ổ USB này đã được Syn3 Updater sử dụng.\n\n{0}\nTên Drive: {1}\n\nĐể sử dụng các tệp hiện có trên ổ USB, hãy nhấp vào Không\nĐể định dạng ổ USB, hãy nhấp vào Yes\n\nBạn có muốn định dạng ổ USB đã chọn không?",
   "MessageBox.FailedToValidate3": "Không thể xác thực {0} 3 lần, BỎ QUÁ TRÌNH XỬ LÝ",

@@ -24,7 +24,7 @@ public class HomeFlowTests
     {
         using var env = new AppEnv();
         var home = env.Main.Home; home.ReloadSummary();
-        Assert.Equal(new[] { "Version", "Region", "Navigation", "MY20 Protection" }, home.ConfigItems.Select(c => c.Label));   // the profile lives in the sidebar now
+        Assert.Equal(new[] { "Version", "Region", "Navigation" }, home.ConfigItems.Select(c => c.Label));   // the profile lives in the sidebar now
         Assert.Equal("3.4.20282", home.ConfigItems[0].Value);
 
         await PickAll(home);

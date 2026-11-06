@@ -22,7 +22,7 @@ public class FreeSpaceWorkflowTests
         var drives = new RemountingDrives(Path.Combine(Path.GetTempPath(), "never-used"));
         using var env = new AppEnv(drives: drives);
         var tiny = new DriveInfoModel { DeviceId = "/dev/sdx", MountPath = "/m", Name = "Tiny", SizeBytes = 8L << 20, FileSystem = "exFAT", PartitionType = "MBR" };   // 8 MB stick
-        env.Dialogs.Say(m => m.Contains("/dev/sdx"), true);                                    // the user would have confirmed the format
+        env.Dialogs.Say(m => m.StartsWith("ALL DATA ON THE SELECTED DRIVE"), true);                                    // the user would have confirmed the format
         var ok = await Workflow.StartAsync(new JobSpec { Release = "r", Region = "NA", Drive = tiny, Packages = { Pkg(env, "A", 40L << 20) } });
         Assert.False(ok);
         Assert.Contains(env.Dialogs.Messages, m => m.Contains("too small") && m.Contains("Needed:") && m.Contains("Available:"));
@@ -141,7 +141,7 @@ public class EjectUiTests
         var root = Directory.CreateTempSubdirectory("syn3eject").FullName; var after = Path.Combine(root, "CYANLABS");
         var drives = new RemountingDrives(after); using var env = new AppEnv(drives: drives);
         var stick = new DriveInfoModel { DeviceId = "/dev/sdx", MountPath = Path.Combine(root, "OLD"), Name = "Stick", SizeBytes = 32L << 30 };
-        env.Dialogs.Say(m => m.Contains("/dev/sdx"), true);                                         // confirm the format
+        env.Dialogs.Say(m => m.StartsWith("ALL DATA ON THE SELECTED DRIVE"), true);                                         // confirm the format
         env.Dialogs.Say(m => m == Ctx.T("MessageBox.Completed"), true);                             // choose the second button on the completion dialog: Eject drive
         Assert.True(await Workflow.StartAsync(StickJob(env, stick)));
         await AppEnv.Until(() => !env.Main.Downloads.IsRunning && drives.Ejected.Count == 1);
@@ -159,7 +159,7 @@ public class EjectUiTests
         var root = Directory.CreateTempSubdirectory("syn3eject2").FullName;
         var drives = new RemountingDrives(Path.Combine(root, "CYANLABS")) { EjectAnswer = new EjectResult(false, "Could not unmount /dev/sdx1: target is busy") };
         using var env = new AppEnv(drives: drives);
-        env.Dialogs.Say(m => m.Contains("/dev/sdx"), true);                                         // the completion dialog's default answer (OK) is kept
+        env.Dialogs.Say(m => m.StartsWith("ALL DATA ON THE SELECTED DRIVE"), true);                                         // the completion dialog's default answer (OK) is kept
         Assert.True(await Workflow.StartAsync(StickJob(env, new DriveInfoModel { DeviceId = "/dev/sdx", MountPath = "/old", Name = "S", SizeBytes = 32L << 30 })));
         await AppEnv.Until(() => !env.Main.Downloads.IsRunning && env.Main.Downloads.CanEject);
         Assert.Empty(drives.Ejected); Assert.True(env.Main.Downloads.CanPressEject);

@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "Nykyinen alue ja valitsemasi alue eivät täsmää, tämä ei välttämättä toimi!\n\nHaluatko jatkaa silti?",
   "MessageBox.CancelDownloadIsDrive": "Latauspolku ja kohde-USB-asema ovat samat, vaihda latauspolkua tai valitse toinen USB-asema.",
   "MessageBox.CancelNoApps": "Valittu asennustila on uudelleenalustus tai vanhempaan versioon palautus, mutta \"APPS\"-pakettia ei ole valittu, ja Syn3 Updater on todennut, että palautus tai uudelleenalustus on tarpeen. Tämä johtaisi järjestelmään, joka ei käynnisty. Keskeytetään!",
-  "MessageBox.CancelFormatUSB": "KAIKKI VALITUN ASEMAN TIEDOT MENETETÄÄN {0}\nAseman kirjain: {1}\n\nAlusta ja jatka napsauttamalla KYLLÄ.",
+  "MessageBox.CancelFormatUSB": "KAIKKI VALITUN ASEMAN TIEDOT MENETETÄÄN{0}\nAseman kirjain: {1}\n\nAlusta ja jatka napsauttamalla KYLLÄ.",
   "MessageBox.DownloadInProgress": "Toinen toiminto on jo käynnissä, odota sen päättymistä ennen jatkamista.",
   "MessageBox.OptionalFormatUSB": "Syn3 Updater on jo käyttänyt tätä USB-asemaa.\n\n{0}\nAseman kirjain: {1}\n\nKäyttääksesi USB-aseman olemassa olevia tiedostoja napsauta Ei\nAlustaaksesi USB-aseman napsauta Kyllä\n\nHaluatko alustaa valitun USB-aseman?",
   "MessageBox.FailedToValidate3": "Tiedoston {0} vahvistus epäonnistui 3 kertaa, KESKEYTETÄÄN!",

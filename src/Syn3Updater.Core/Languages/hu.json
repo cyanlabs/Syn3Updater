@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "A jelenlegi régió és az új régió nem azonos, ez nem biztos, hogy működik. Szeretne mégis folytatni?",
   "MessageBox.CancelDownloadIsDrive": "A letöltési út és a cél USB-meghajtó ugyanaz, kérjük, módosítsa a letöltési útvonalat.",
   "MessageBox.CancelNoApps": "A mód átformázása vagy leminősítése, és egyetlen alkalmazáscsomag sem lett kiválasztva, ez nem indító rendszert eredményez, MEGSZAKÍT! Nem választottunk ki „APPS” csomagot, de a Syn3 Updater megállapította, hogy a leminősítésre vagy az átformázásra van szükség, ez nem indító rendszert eredményez. Megszakítás!",
-  "MessageBox.CancelFormatUSB": "FIGYELMEZTETÉS, A KIVÁLASZTOTT MEGHAJTÓ MINDEN ADATA VESZÉL. {0}  n Levél meghajtó: {1}  n  nKattintson a YES gombra a formázáshoz és a folytatáshoz.",
+  "MessageBox.CancelFormatUSB": "FIGYELMEZTETÉS, A KIVÁLASZTOTT MEGHAJTÓ MINDEN ADATA VESZÉL.{0}\nLevél meghajtó: {1}\n\nKattintson a YES gombra a formázáshoz és a folytatáshoz.",
   "MessageBox.DownloadInProgress": "A letöltés vagy másolás már folyamatban van. Kérjük, először várjon, vagy állítsa le a letöltést.",
   "MessageBox.OptionalFormatUSB": "Ezt az USB-meghajtót már használta a Syn3 Updater.  N  n {0}  nHajtó levél: {1}  n  nAz USB-meghajtón lévő meglévő fájlok használatához kattintson a Nem gombra  Az USB-meghajtó formázásához kattintson az Igen  n  nKész formázni szeretné a kiválasztott USB-meghajtót?",
   "MessageBox.FailedToValidate3": "Nem sikerült {0} háromszor érvényesíteni, FOLYAMATOS FOLYAMAT!",

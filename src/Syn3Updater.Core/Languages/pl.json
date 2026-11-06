@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "Obecny region i wybrany region nie pasują do siebie, to może nie działać ! Czy mimo to chcesz kontynuować ?",
   "MessageBox.CancelDownloadIsDrive": "Ścieżka pobierania i docelowy dysk USB są takie same, zmień ścieżkę pobierania lub wybierz inny dysk USB.",
   "MessageBox.CancelNoApps": "Wybrany InstallMode to reformat lub downgrade, ale nie wybrano pakietu \\\"APPS\\\", ale Syn3 Updater ustalił, że  downgrade lub reformat,  spowoduje, że system nie uruchomi się. Przerywanie!",
-  "MessageBox.CancelFormatUSB": "WSZYSTKIE DANE NA WYBRANYM DYSKU ZOSTANĄ UTRACONE {0}\nLitera dysku: {1}\n\nKliknij TAK, aby sformatować i kontynuować.",
+  "MessageBox.CancelFormatUSB": "WSZYSTKIE DANE NA WYBRANYM DYSKU ZOSTANĄ UTRACONE{0}\nLitera dysku: {1}\n\nKliknij TAK, aby sformatować i kontynuować.",
   "MessageBox.DownloadInProgress": "Inna operacja jest już uruchomiona, przed kontynuowaniem poczekaj na zakończenie istniejącej operacji.",
   "MessageBox.OptionalFormatUSB": "Ten nośnik USB był już używany przez Syn3 Updater\n\n{0}\nLitera Dysku: {1}\n\nBy używać obecnych plików na nośniku USB kliknij NIE\nBy sformatować nośnik USB kliknij TAK\n\nCzy chcesz sformatować zaznaczony nośnik USB?",
   "MessageBox.FailedToValidate3": "Nie udało się sprawdzić poprawności {0} 3 razy, ANULOWANIE PROCESU",

@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "The current region and your selected region do not match, this may not work!\n\nWould you like to continue anyway?",
   "MessageBox.CancelDownloadIsDrive": "Download path and destination USB drive are the same, please change your download path or select another USB drive.",
   "MessageBox.CancelNoApps": "Selected InstallMode is reformat or downgrade but no \"APPS\" package has been selected but Syn3 Updater has determined that a downgrade or reformat is required, this will result in a non booting system. Aborting!",
-  "MessageBox.CancelFormatUSB": "ALL DATA ON THE SELECTED DRIVE WILL BE LOST {0}\nDrive Letter: {1}\n\nClick YES to format and continue.",
+  "MessageBox.CancelFormatUSB": "ALL DATA ON THE SELECTED DRIVE WILL BE LOST{0}\nDrive Letter: {1}\n\nClick YES to format and continue.",
   "MessageBox.DownloadInProgress": "Another operation is already running, please wait for the existing operation to finish before continuing.",
   "MessageBox.OptionalFormatUSB": "This USB drive has already been used by Syn3 Updater.\n\n{0}\nDrive Letter: {1}\n\nTo use existing files on the USB drive click No\nTo format the USB drive click Yes\n\nDo you want to format the selected USB drive?",
   "MessageBox.FailedToValidate3": "Failed to validate {0} 3 times, ABORTING PROCESS!",

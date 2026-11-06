@@ -175,7 +175,8 @@ public static class Workflow
         }
 
         // Destructive: name the exact device so the user can verify it.
-        var msg = Ctx.T("MessageBox.CancelFormatUSB", drive.Name + $" [{drive.DeviceId}, {Format.Bytes(drive.SizeBytes)}]", drive.MountPath);
+        // the drive on its own line after a blank one, without the OS disk number; a drive with no letter yet shows "-" instead of nothing
+        var msg = Ctx.T("MessageBox.CancelFormatUSB", $"\n\n{drive.Name} ({Format.Bytes(drive.SizeBytes)})", string.IsNullOrEmpty(drive.MountPath) ? "-" : drive.MountPath.TrimEnd('\\'));
         return await Dialogs.Confirm(msg, Ctx.T("String.Warning") + "!", warning: true) ? false : null;
     }
 

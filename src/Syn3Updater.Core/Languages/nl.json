@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "Huidige regio en nieuwe regio zijn niet dezelfde, dit werkt mogelijk niet!\nWenst U toch door te gaan?",
   "MessageBox.CancelDownloadIsDrive": "Het downloadpad en de USB-stick zijn hetzelfde, verander uw downloadpad of selecteer een andere USB-stick.",
   "MessageBox.CancelNoApps": "Geselecteerde InstallModus is herformatteren of downgraden, maar er is geen \"APPS\" pakket geselecteerd, Syn3 Updater heeft vastgesteld dat herformatteren of downgraden nodig is, dit zal resulteren in een niet-werkend systeem. Afbreken!",
-  "MessageBox.CancelFormatUSB": "ALLE GEGEVENS OP DE GESELECTEERDE SCHIJF ZULLEN VERLOREN GAAN {0} \nHardeschijf Letter: {1} \n\nKlik op JA om te formatteren en door te gaan.",
+  "MessageBox.CancelFormatUSB": "ALLE GEGEVENS OP DE GESELECTEERDE SCHIJF ZULLEN VERLOREN GAAN{0} \nHardeschijf Letter: {1} \n\nKlik op JA om te formatteren en door te gaan.",
   "MessageBox.DownloadInProgress": "Er wordt al een download of kopie uitgevoerd, wacht even of annuleer eerst de download.",
   "MessageBox.OptionalFormatUSB": "Deze USB-drive is al gebruikt door Syn3 Updater. \n\n{0}  \nSchijf Letter: {1}\n\nAls U bestaande bestanden op de USB-drive wilt gebruiken, klik dan op Nee  \nAls U de USB-drive wilt formatteren, klik dan op Ja\n\nWilt U de geselecteerde USB-drive formatteren?",
   "MessageBox.FailedToValidate3": "Kan {0} 3 keer niet verifiëren, PROCES WORDT AFGEBROKEN!",

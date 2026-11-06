@@ -32,7 +32,7 @@
   "MessageBox.CancelRegionMismatch": "La région actuelle et la nouvelle région ne sont pas les mêmes, cela peut ne pas fonctionner. Souhaitez-vous continuer quand même?",
   "MessageBox.CancelDownloadIsDrive": "Le chemin de téléchargement et le lecteur USB de destination sont les mêmes, veuillez modifier votre chemin de téléchargement.",
   "MessageBox.CancelNoApps": "Le mode d'installation sélectionné est reformaté ou rétrogradé et Aucun package \"APPS\" n'a été sélectionné mais Syn3 Updater a déterminé qu'une rétrogradation ou un reformatage est nécessaire, cela entraînera un système qui ne démarrera pas. Abandon!",
-  "MessageBox.CancelFormatUSB": "ATTENTION, TOUTES LES DONNÉES DU DISQUE SÉLECTIONNÉ SERONT PERDUES {0}\nLettre du lecteur: {1}\n\nCliquez sur OUI pour formater et continuer.",
+  "MessageBox.CancelFormatUSB": "ATTENTION, TOUTES LES DONNÉES DU DISQUE SÉLECTIONNÉ SERONT PERDUES{0}\nLettre du lecteur: {1}\n\nCliquez sur OUI pour formater et continuer.",
   "MessageBox.DownloadInProgress": "Un téléchargement ou une copie est déjà en cours, veuillez d'abord attendre ou annuler le téléchargement avant de continuer.",
   "MessageBox.OptionalFormatUSB": "Ce lecteur USB a déjà été utilisé par Syn3 Updater. \n\n{0}\nLettre du lecteur: {1}\n\nPour utiliser les fichiers existants sur le lecteur USB, cliquez sur Non\nPour formater le lecteur USB, cliquez sur Oui\n\nVoulez vous souhaitez formater la clé USB sélectionnée?",
   "MessageBox.FailedToValidate3": "Échec de la validation {0} 3 fois, PROCESSUS D'AVORTEMENT!",
