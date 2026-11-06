@@ -499,7 +499,7 @@ public class PageViewModelTests
     public void MainWindow_Navigation_Sidebar_Title()
     {
         using var env = new AppEnv(); var m = env.Main;
-        Assert.Equal(5, m.TopPages.Count); Assert.DoesNotContain(m.Diagnostics, m.TopPages); Assert.Contains(m.Diagnostics, m.Pages); Assert.False(m.Diagnostics.IsNavVisible); Assert.Equal(new PageViewModel[] { m.Downloads, m.Settings }, m.BottomPages); Assert.True(m.Home.IsActive);
+        Assert.Equal(new PageViewModel[] { m.Home, m.Utility, m.Logs, m.News }, m.TopPages); Assert.DoesNotContain(m.Diagnostics, m.TopPages); Assert.Contains(m.Diagnostics, m.Pages); Assert.False(m.Diagnostics.IsNavVisible); Assert.Equal(new PageViewModel[] { m.Downloads, m.Settings, m.About }, m.BottomPages); Assert.True(m.Home.IsActive);
         m.NavigateCommand.Execute(m.Logs); Assert.Same(m.Logs, m.Current); Assert.True(m.Logs.IsActive); Assert.False(m.Home.IsActive);
         m.ShowDownloads(); m.ShowUtility(); m.ShowSettings(); m.ShowHome(); Assert.Same(m.Home, m.Current);
         m.SidebarExpanded = false; Assert.Equal(64, m.SidebarWidth); m.SidebarExpanded = true; Assert.Equal(200, m.SidebarWidth);

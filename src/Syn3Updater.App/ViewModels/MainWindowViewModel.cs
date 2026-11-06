@@ -137,8 +137,8 @@ public partial class MainWindowViewModel : ObservableObject
         Instance = this;
         Ctx.Loc.LanguageChanged += () => { OnPropertyChanged(nameof(UpdateText)); OnPropertyChanged(nameof(WindowTitle)); };
         Pages = new() { About, Home, Utility, Downloads, Logs, News, Diagnostics, Settings };
-        TopPages = new() { Home, Utility, Logs, News, About };      // Diagnostics is reached from a button on About, not the sidebar
-        BottomPages = new() { Downloads, Settings };          // Downloads sits just above Settings: appearing/disappearing never shifts the tabs above it
+        TopPages = new() { Home, Utility, Logs, News };      // the update workflow; Diagnostics is reached from a button on About, not the sidebar
+        BottomPages = new() { Downloads, Settings, About };   // Downloads comes first so appearing/disappearing never shifts the tabs above it; Settings and About stay put
         ReloadProfiles();
         _current = ProfileReady ? Home : Settings;       // a fresh profile starts on Settings, because Home cannot work without a version and region
         _current.IsActive = true;
