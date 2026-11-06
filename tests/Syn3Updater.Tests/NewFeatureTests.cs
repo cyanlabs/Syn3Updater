@@ -150,23 +150,24 @@ public class LauncherPrefsTests
     [Theory]
     [InlineData(UpdateChannel.Stable, 0)]
     [InlineData(UpdateChannel.Beta, 1)]
-    [InlineData(UpdateChannel.Nightly, 1)]      // the Launcher only reads the production repo, so the closest it can follow is Beta
-    public void EveryChannel_MapsToAChannelTheLauncherKnows(UpdateChannel c, int branch)
+    [InlineData(UpdateChannel.Nightly, 2)]      // v2's unfinished third slot, Alpha, is v3's Nightly
+    public void EveryChannel_HasItsOwnSlotInTheLaunchersFile(UpdateChannel c, int branch)
     {
         Assert.Equal(branch, LauncherPrefs.ToBranch(c));
-        Assert.Equal(branch == 0 ? UpdateChannel.Stable : UpdateChannel.Beta, LauncherPrefs.FromBranch(branch));
-        Assert.Equal(UpdateChannel.Beta, LauncherPrefs.FromBranch(LauncherPrefs.Alpha));                      // v2's own settings page treated Alpha as Beta
+        Assert.Equal(c, LauncherPrefs.FromBranch(branch));
     }
 
     [Theory]
     [InlineData(UpdateChannel.Stable, null, UpdateChannel.Stable)]      // no Launcher file: the app's choice stands
     [InlineData(UpdateChannel.Nightly, null, UpdateChannel.Nightly)]
     [InlineData(UpdateChannel.Beta, 1, UpdateChannel.Beta)]
-    [InlineData(UpdateChannel.Nightly, 1, UpdateChannel.Nightly)]        // Beta in the file is what a Nightly choice is stored as
-    [InlineData(UpdateChannel.Nightly, 2, UpdateChannel.Nightly)]        // Alpha counts as Beta
+    [InlineData(UpdateChannel.Nightly, 2, UpdateChannel.Nightly)]
     [InlineData(UpdateChannel.Stable, 1, UpdateChannel.Beta)]            // the file was changed elsewhere (v2, the Launcher): it wins, as in v2
     [InlineData(UpdateChannel.Beta, 0, UpdateChannel.Stable)]
     [InlineData(UpdateChannel.Nightly, 0, UpdateChannel.Stable)]
+    [InlineData(UpdateChannel.Nightly, 1, UpdateChannel.Beta)]
+    [InlineData(UpdateChannel.Stable, 2, UpdateChannel.Nightly)]
+    [InlineData(UpdateChannel.Beta, 2, UpdateChannel.Nightly)]
     public void TheLauncherFileWinsWhenItDisagrees(UpdateChannel chosen, int? file, UpdateChannel expected) => Assert.Equal(expected, LauncherPrefs.Reconcile(chosen, file));
 
     [Fact]

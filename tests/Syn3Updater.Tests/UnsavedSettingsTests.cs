@@ -55,13 +55,13 @@ public class UnsavedSettingsTests
     }
 
     [AvaloniaFact]
-    public async Task Nightly_IsWrittenAsBeta_ButStaysNightlyInTheApp()
+    public async Task Nightly_IsWrittenAsTheLaunchersAlphaSlot_AndReadBackAsNightly()
     {
         using var env = new AppEnv(); var m = env.Main;
         var f = PrefsFile("{\"ReleaseBranch\":0,\"ReleaseInstalled\":\"2.14.2.1\",\"ReleaseTypeInstalled\":0}"); Ctx.LauncherPrefsPath = f;
         m.Current = m.Settings; m.Settings.Channel = m.Settings.ChannelOptions.Single(o => o.Value == "Nightly");
         env.Dialogs.Choices.Enqueue(2); Assert.True(await m.GoToAsync(m.Home));
-        Assert.Equal(1, LauncherPrefs.ReadBranch(f)); Assert.Equal(UpdateChannel.Nightly, Ctx.UpdateChannel);
+        Assert.Equal(2, LauncherPrefs.ReadBranch(f)); Assert.Equal(UpdateChannel.Nightly, Ctx.UpdateChannel);
     }
 
     [AvaloniaFact]

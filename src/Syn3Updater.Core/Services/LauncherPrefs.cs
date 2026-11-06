@@ -6,7 +6,7 @@ namespace Cyanlabs.Syn3Updater.Core.Services;
 /// <summary>
 /// The Windows Launcher (v2, and the 2.14.2.1+ one) keeps the release channel it follows in launcherPrefs.json under the shared program-data folder, and v2's
 /// Settings page wrote to that file when you changed it. v3 does the same, so the channel chosen in the app is the one the Launcher installs. The file is plain
-/// Newtonsoft JSON: {"ReleaseBranch":1,"ReleaseInstalled":"2.14.2.1","ReleaseTypeInstalled":1} with ReleaseBranch 0 = Stable, 1 = Beta, 2 = Alpha.
+/// Newtonsoft JSON: {"ReleaseBranch":1,"ReleaseInstalled":"2.14.2.1","ReleaseTypeInstalled":1} with ReleaseBranch 0 = Stable, 1 = Beta, 2 = Alpha (v3's Nightly).
 /// </summary>
 public static class LauncherPrefs
 {
@@ -20,9 +20,12 @@ public static class LauncherPrefs
         ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "CyanLabs", "Syn3Updater", "launcherPrefs.json")
         : null;
 
-    /// <summary>The Launcher only knows Stable and Beta here (v2's own settings page treated Alpha as Beta), and it only reads the production repo, so Nightly is written as Beta.</summary>
-    public static int ToBranch(UpdateChannel channel) => channel == UpdateChannel.Stable ? Stable : Beta;
-    public static UpdateChannel FromBranch(int branch) => branch == Stable ? UpdateChannel.Stable : UpdateChannel.Beta;
+    /// <summary>
+    /// v2 had a third channel slot, Alpha (the CI/CD builds, never finished); v3 calls it Nightly, so Nightly is stored as Alpha and Alpha is read back as Nightly.
+    /// The 2.14.2.1+ Launcher treats Alpha like Beta (every release and pre-release by version); the OLD 2.14.2.0 Launcher treats anything that is not Beta as Stable.
+    /// </summary>
+    public static int ToBranch(UpdateChannel channel) => channel switch { UpdateChannel.Stable => Stable, UpdateChannel.Beta => Beta, _ => Alpha };
+    public static UpdateChannel FromBranch(int branch) => branch switch { Stable => UpdateChannel.Stable, Beta => UpdateChannel.Beta, _ => UpdateChannel.Nightly };
 
     /// <summary>True when there is a Launcher to tell: its prefs file exists, or a Launcher.exe sits next to this program.</summary>
     public static bool HasLauncher(string? path, string? appDir = null) =>
@@ -67,15 +70,10 @@ public static class LauncherPrefs
     }
 
     /// <summary>
-    /// The channel to use: the one chosen in the app, unless the Launcher's file says something else (it was changed there, or by v2), in which case the file wins,
-    /// as it did in v2. A Nightly choice is stored as Beta, so Beta in the file agrees with it.
+    /// The channel to use: the one chosen in the app, unless the Launcher's file says something else (it was changed there, or by v2), in which case the file wins, as it did in v2.
     /// </summary>
-    public static UpdateChannel Reconcile(UpdateChannel chosen, int? launcherBranch)
-    {
-        if (launcherBranch is not int b) return chosen;
-        var branch = b == Alpha ? Beta : b;
-        return ToBranch(chosen) == branch ? chosen : FromBranch(branch);
-    }
+    public static UpdateChannel Reconcile(UpdateChannel chosen, int? launcherBranch) =>
+        launcherBranch is int b && ToBranch(chosen) != b ? FromBranch(b) : chosen;
 
     private enum LauncherBranch { Stable, Beta, Alpha }
 }
