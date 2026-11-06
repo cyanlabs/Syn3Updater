@@ -11,9 +11,10 @@ namespace Cyanlabs.Syn3Updater.Core.Services;
 public sealed class SingleInstance : IDisposable
 {
     private readonly NamedPipeServerStream _server;
+    private readonly FileStream _lock;
     private readonly CancellationTokenSource _cts = new();
 
-    private SingleInstance(NamedPipeServerStream server) { _server = server; }
+    private SingleInstance(NamedPipeServerStream server, FileStream lockFile) { _server = server; _lock = lockFile; }
 
     /// <summary>Pipe name unique to this OS user and data folder (so a test or a second profile directory never collides with a real session).</summary>
     public static string NameFor(string dataDir)
@@ -22,15 +23,27 @@ public sealed class SingleInstance : IDisposable
         return "syn3updater-" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(id)))[..16].ToLowerInvariant();
     }
 
-    /// <summary>Becomes the primary instance, or returns null when another one already owns the name.</summary>
+    /// <summary>
+    /// Becomes the primary instance, or returns null when another one already owns the name.
+    /// Ownership is an exclusive lock on a file: the OS drops it if the app dies, and it works across processes on every OS.
+    /// (A pipe name alone is not enough: on Linux .NET lets a second process re-bind the pipe's socket file, so two copies would both think they are first.)
+    /// </summary>
     public static SingleInstance? TryBecomePrimary(string name)
     {
+        FileStream? lockFile = null;
         try
         {
-            return new SingleInstance(new NamedPipeServerStream(name, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly));
+            var path = Path.Combine(Path.GetTempPath(), name + ".lock");
+            var options = new FileStreamOptions { Mode = FileMode.OpenOrCreate, Access = FileAccess.ReadWrite, Share = FileShare.None };
+            if (!OperatingSystem.IsWindows()) options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;   // owner only (Windows has no such mode)
+            lockFile = new FileStream(path, options);
+            return new SingleInstance(new NamedPipeServerStream(name, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly), lockFile);
         }
-        catch (IOException) { return null; }               // the name is taken: another instance is running
-        catch (UnauthorizedAccessException) { return null; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            lockFile?.Dispose();
+            return null;                                   // the lock is held: another instance is running
+        }
     }
 
     /// <summary>Starts delivering messages from later launches to <paramref name="onMessage"/> (called on a background thread).</summary>
@@ -65,5 +78,5 @@ public sealed class SingleInstance : IDisposable
         catch (Exception e) when (e is TimeoutException or IOException or UnauthorizedAccessException) { return false; }
     }
 
-    public void Dispose() { _cts.Cancel(); _server.Dispose(); _cts.Dispose(); }
+    public void Dispose() { _cts.Cancel(); _server.Dispose(); _lock.Dispose(); _cts.Dispose(); }
 }

@@ -61,6 +61,18 @@ public class SingleInstanceTests
     private static string Name() => "syn3test-" + Guid.NewGuid().ToString("N");
 
     [Fact]
+    public void AnotherProcessHoldingTheLock_MeansNotPrimary_EvenWithoutAPipeInThisProcess()
+    {
+        // Regression: on Linux a pipe name alone does not stop a second process becoming "primary" (it re-binds the socket file),
+        // so ownership is a file lock. Holding the lock the way another process would must be enough to be refused.
+        var name = Name(); var path = Path.Combine(Path.GetTempPath(), name + ".lock");
+        using (new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+            Assert.Null(SingleInstance.TryBecomePrimary(name));
+        using var after = SingleInstance.TryBecomePrimary(name);                   // released again: the next start can take over
+        Assert.NotNull(after);
+    }
+
+    [Fact]
     public async Task ASecondLaunch_HandsItsLinkToTheFirst_AndKnowsItIsNotPrimary()
     {
         var name = Name();
