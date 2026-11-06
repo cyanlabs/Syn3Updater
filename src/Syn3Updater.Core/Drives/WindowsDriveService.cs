@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace Cyanlabs.Syn3Updater.Core.Drives;
 
-/// <summary>Windows: PowerShell storage cmdlets to list, diskpart to format (requires an elevated process).</summary>
+/// <summary>Windows: PowerShell storage cmdlets to list and format (requires an elevated process); diskpart only if the cmdlets are missing.</summary>
 public class WindowsDriveService : IDriveService
 {
     private readonly CommandRunner _run;
@@ -71,20 +71,73 @@ public class WindowsDriveService : IDriveService
         return list;
     }
 
+    /// <summary>
+    /// Formats with the PowerShell storage cmdlets: structured errors, no text script piped into diskpart and no dependence on its
+    /// localized output. <c>{0}</c> is the validated disk number and <c>{1}</c> the drive letter to keep ('' = any). Exit code 3 means the
+    /// cmdlets do not exist on this system, which is the only case that falls back to diskpart.
+    /// </summary>
+    public const string FormatScript = """
+        $ErrorActionPreference = 'Stop'
+        if (-not (Get-Command Clear-Disk -ErrorAction SilentlyContinue)) { [Console]::Error.WriteLine('The Windows storage cmdlets are not available'); exit 3 }
+        try {
+          $n = {0}; $keep = '{1}'
+          $d = Get-Disk -Number $n
+          if ($d.BusType -ne 'USB' -or $d.IsSystem -or $d.IsBoot) { throw ('Disk ' + $n + ' is not a removable USB disk; refusing to format it.') }
+          if ($d.IsOffline) { Set-Disk -Number $n -IsOffline $false }
+          if ($d.IsReadOnly) { Set-Disk -Number $n -IsReadOnly $false }
+          Clear-Disk -Number $n -RemoveData -RemoveOEM -Confirm:$false
+          Initialize-Disk -Number $n -PartitionStyle MBR
+          if ($keep -ne '' -and -not (Get-Volume -DriveLetter $keep -ErrorAction SilentlyContinue)) { $p = New-Partition -DiskNumber $n -UseMaximumSize -DriveLetter $keep }
+          else { $p = New-Partition -DiskNumber $n -UseMaximumSize -AssignDriveLetter }
+          Format-Volume -Partition $p -FileSystem exFAT -NewFileSystemLabel 'CYANLABS' -Confirm:$false -Force | Out-Null
+          $letter = (Get-Partition -DiskNumber $n | Where-Object { $_.DriveLetter } | Select-Object -First 1).DriveLetter
+          Write-Output ('LETTER=' + $letter)
+        } catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }
+        """;
+
     public async Task<string> FormatAsync(DriveInfoModel drive, IProgress<string> log, CancellationToken ct = default)
     {
-        if (!int.TryParse(drive.DeviceId, out var number)) throw new Drives.FormatException("Invalid disk number.");
+        if (!int.TryParse(drive.DeviceId, out var number) || number < 0) throw new Drives.FormatException("Invalid disk number.");
         if (!(await ListAsync(ct)).Any(d => d.DeviceId == drive.DeviceId))
             throw new Drives.FormatException($"Disk {number} is no longer a USB drive; refusing to format it.");
         var letter = string.IsNullOrEmpty(drive.MountPath) ? "" : drive.MountPath[..1];
+        if (letter != "" && !System.Text.RegularExpressions.Regex.IsMatch(letter, "^[A-Za-z]$")) letter = "";        // only ever a single letter reaches the script
         log.Report("Re-creating partition table as MBR and formatting as exFAT on the selected USB drive");
+
+        var script = FormatScript.Replace("{0}", number.ToString(System.Globalization.CultureInfo.InvariantCulture)).Replace("{1}", letter.ToUpperInvariant());
+        var r = await Run("powershell", new[] { "-NoProfile", "-NonInteractive", "-Command", script }, ct: ct, timeoutMs: 600_000);
+        string? assigned = null;
+        if (r.ExitCode == 3)
+        {
+            log.Report("The PowerShell storage cmdlets are not available, falling back to diskpart");
+            await DiskpartFormatAsync(number, letter, ct);
+        }
+        else if (!r.Ok)
+        {
+            var why = (r.StdErr + " " + r.StdOut).Trim();
+            throw new Drives.FormatException("Formatting failed: " + why + (why.Contains("denied", StringComparison.OrdinalIgnoreCase) || why.Contains("administrator", StringComparison.OrdinalIgnoreCase)
+                ? " (run Syn3 Updater as Administrator)" : ""));
+        }
+        else
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(r.StdOut, @"LETTER=([A-Za-z])");
+            if (m.Success) assigned = m.Groups[1].Value.ToUpperInvariant();
+        }
+
+        await _delay(5000, ct);
+        var after = (await ListAsync(ct)).FirstOrDefault(d => d.DeviceId == drive.DeviceId);
+        if (after?.MountPath is { Length: > 0 } mount) return mount;
+        if (assigned != null) return assigned + @":\";
+        return letter != "" ? letter.ToUpperInvariant() + @":\" : throw new Drives.FormatException("Formatted, but no drive letter was assigned.");
+    }
+
+    /// <summary>Last resort for Windows installs that lack the storage module (e.g. stripped-down editions).</summary>
+    private async Task DiskpartFormatAsync(int number, string letter, CancellationToken ct)
+    {
         var script = $"SELECT DISK={number}\nCLEAN\nCONVERT MBR\nCREATE PARTITION PRIMARY\nFORMAT FS=EXFAT LABEL=\"CYANLABS\" QUICK\n" +
                      (letter != "" ? $"ASSIGN LETTER={letter}\n" : "ASSIGN\n") + "EXIT\n";
         var r = await Run("diskpart", Array.Empty<string>(), stdin: script, ct: ct, timeoutMs: 600_000);
         if (!r.Ok) throw new Drives.FormatException("diskpart failed (run Syn3 Updater as Administrator): " + (r.StdErr + r.StdOut).Trim());
-        await _delay(5000, ct);
-        var after = (await ListAsync(ct)).FirstOrDefault(d => d.DeviceId == drive.DeviceId);
-        return after?.MountPath is { Length: > 0 } m ? m : (letter != "" ? letter + @":\" : throw new Drives.FormatException("Formatted, but no drive letter was assigned."));
     }
 
     public Task<string> EnsureMountedAsync(DriveInfoModel drive, CancellationToken ct = default) =>
