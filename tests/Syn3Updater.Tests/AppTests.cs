@@ -382,7 +382,7 @@ public class PageViewModelTests
         using var env = new AppEnv(); var s = env.Main.Settings; s.OnShown();
         Assert.DoesNotContain("\n", s.WarningText); Assert.StartsWith("INCORRECT INFORMATION", s.WarningText, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("default", s.ProfileName); Assert.Equal(2, s.Connections);                       // read from application settings, not the profile
-        Assert.Equal(8, new ProfileSettings().DownloadConnections); Assert.Equal(8, new MainSettings().DownloadConnections);
+        Assert.Null(new ProfileSettings().LegacyDownloadConnections); Assert.Equal(8, new MainSettings().DownloadConnections);
     }
 
     [AvaloniaFact]

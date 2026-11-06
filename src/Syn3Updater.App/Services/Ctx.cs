@@ -22,7 +22,7 @@ public static class Ctx
 
     public static MainSettings Main => Store.Main;
     public static ProfileSettings Profile => Store.Profile;
-    public static bool ModeForced => Profile.InstallMode != "autodetect" && !string.IsNullOrEmpty(Profile.InstallMode);
+    public static bool ModeForced => InstallModes.IsForced(Profile.InstallMode);
     public static string Version { get; } =
         Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0] ?? "3.0.0";
     /// <summary>The channel the running build came from (also what the API and logs call its "branch").</summary>

@@ -18,6 +18,7 @@ public class SettingsStore
         Main = ReadOrNew<MainSettings>(_paths.MainConfigFile);
         if (string.IsNullOrWhiteSpace(Main.Profile)) Main.Profile = "default";
         Profile = ReadOrNew<ProfileSettings>(_paths.ProfileFile(Main.Profile));
+        MigrateProfile();
         if (string.IsNullOrWhiteSpace(Main.DownloadPath)) Main.DownloadPath = AppPaths.DefaultDownloadDir();
         if (string.IsNullOrWhiteSpace(Main.LogPath)) Main.LogPath = _paths.DefaultLogDir;
         TryCreate(Main.DownloadPath); TryCreate(Main.LogPath);
@@ -28,7 +29,25 @@ public class SettingsStore
         Save();
         Main.Profile = AppPaths.FileSafe(name);
         Profile = ReadOrNew<ProfileSettings>(_paths.ProfileFile(Main.Profile));
+        MigrateProfile();
         Save();
+    }
+
+    /// <summary>
+    /// Brings a profile written by v2 into line. (An unknown install mode is already turned into auto-detect by ProfileSettings.) The download connections v2 kept in
+    /// the profile move to the application settings, unless those already hold a value of their own (then the profile's is simply dropped).
+    /// </summary>
+    private void MigrateProfile()
+    {
+        if (Profile.LegacyDownloadConnections is not int legacy) return;
+        if (!HasKey(_paths.MainConfigFile, nameof(MainSettings.DownloadConnections))) Main.DownloadConnections = Math.Clamp(legacy, 1, 8);
+        Profile.LegacyDownloadConnections = null;
+    }
+
+    private static bool HasKey(string file, string name)
+    {
+        try { return File.Exists(file) && JsonDocument.Parse(File.ReadAllText(file)).RootElement.TryGetProperty(name, out _); }
+        catch (Exception e) when (e is JsonException or IOException or InvalidOperationException) { return false; }
     }
 
     public IEnumerable<string> ListProfiles() =>
