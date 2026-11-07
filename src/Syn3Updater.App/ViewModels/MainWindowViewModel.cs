@@ -118,7 +118,17 @@ public partial class MainWindowViewModel : ObservableObject
     /// Looks for a newer release and shows the banner if there is one, then checks its signed manifest to learn whether the app can install it itself.
     /// A failed check is silent: it is never worth interrupting anyone for. <paramref name="periodic"/> checks do not bring back a notice that was dismissed.
     /// </summary>
+    /// <summary>Update checks run one at a time: the one started at launch and the one the required-update check makes a moment later would otherwise overwrite each other's result, leaving the second with no plan.</summary>
+    private readonly SemaphoreSlim _checkGate = new(1, 1);
+
     public async Task CheckForUpdateAsync(bool periodic = false)
+    {
+        await _checkGate.WaitAsync();
+        try { await CheckForUpdateCoreAsync(periodic); }
+        finally { _checkGate.Release(); }
+    }
+
+    private async Task CheckForUpdateCoreAsync(bool periodic)
     {
         if (InstallingUpdate) return;
         var found = await Ctx.Updates.CheckAsync(Ctx.Version, Ctx.UpdateChannel);
