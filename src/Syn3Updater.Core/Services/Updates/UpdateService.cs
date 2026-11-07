@@ -71,9 +71,8 @@ public sealed class UpdateService
         return new UpdatePlan(PlanKind.Manual, manifest, asset, install, InstallDetector.ManualInstructions(install.Kind, asset?.Name), install.Reason);
     }
 
-    /// <summary>User-level Linux tar installs, and Windows folders that came with the update helper (installs from before it existed are shown instructions).</summary>
-    public static bool DefaultCanApply(InstallInfo i) =>
-        i.Kind == InstallKind.LinuxTar || (i.Kind == InstallKind.WindowsFolder && WindowsHelperLauncher.HasHelper(i.AppDir));
+    /// <summary>User-level Linux tar installs and Windows folders: the two the app replaces itself. (Package-managed and macOS installs are shown instructions.)</summary>
+    public static bool DefaultCanApply(InstallInfo i) => i.Kind is InstallKind.LinuxTar or InstallKind.WindowsFolder;
 
     /// <summary>The kind of file each way of installing is updated from.</summary>
     public static AssetKind? KindFor(InstallKind k) => k switch

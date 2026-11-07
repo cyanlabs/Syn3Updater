@@ -22,14 +22,6 @@ public static class UpdateRestart
         return true;
     }
 
-    /// <summary>Closes this program without starting anything: on Windows a helper is replacing the files and will start the new program itself once this one has gone.</summary>
-    public static void Exit()
-    {
-        AppLaunch.Primary?.Dispose();
-        AppLaunch.Primary = null;
-        Quit();
-    }
-
     private static bool DefaultStart(string exe)
     {
         try

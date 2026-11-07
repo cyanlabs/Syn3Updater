@@ -180,17 +180,15 @@ public partial class MainWindowViewModel : ObservableObject
         try
         {
             var progress = new Progress<double>(p => { UpdateProgress = p; UpdateStatus = Ctx.T("App.UpdateDownloading", version, (int)(p * 100)); });
-            var outcome = await Ctx.UpdateInstaller.RunAsync(plan, progress, stage =>
+            var exe = await Ctx.UpdateInstaller.RunAsync(plan, progress, stage =>
             {
                 if (stage == UpdateInstaller.Stage.Installing) Dispatcher.UIThread.Post(() => { UpdateProgress = 1; UpdateStatus = Ctx.T("App.UpdateInstalling", version); });
-            });
-            Ctx.Log.Info(outcome.HelperRestarts ? $"Handing over to the update helper for Syn3 Updater {version}" : $"Installed Syn3 Updater {version}; restarting into {outcome.Exe}");
+            }, log: Ctx.Log.Info);
+            Ctx.Log.Info($"Installed Syn3 Updater {version}; restarting into {exe}");
             Ctx.Main.WhatsNewVersion = version; Ctx.Main.WhatsNewNotes = plan.Manifest.Notes;
             Ctx.Save(); Ctx.Log.Save(Ctx.Paths.AppLogFile);
             UpdateStatus = Ctx.T("App.UpdateRestarting");
-            // Windows: the helper waits for this program to close, swaps the files and starts the new one. Elsewhere this program starts the new one itself.
-            if (outcome.HelperRestarts) { UpdateRestart.Exit(); restarting = true; return; }
-            if (UpdateRestart.Restart(outcome.Exe)) { restarting = true; return; }
+            if (UpdateRestart.Restart(exe)) { restarting = true; return; }
             await Dialogs.Error(Ctx.T("App.UpdateRestartFailed", version));
         }
         catch (Exception e) when (e is not OperationCanceledException)
@@ -230,23 +228,11 @@ public partial class MainWindowViewModel : ObservableObject
         if (Ctx.Install.Kind == InstallKind.LinuxTar) LinuxTarApplier.CleanUpPrevious(Ctx.Install.AppDir);
         if (Ctx.Install.Kind == InstallKind.WindowsFolder)
         {
-            // an update that was cut short (power loss, a crash) is undone here, as the Launcher does at its start; leftovers of a finished one are removed
+            // an update that was cut short (power loss, a crash) is undone here, as the Launcher does at its start; the old program of a finished one, which could not be deleted while it ran, is removed
             try { if (InstallTransaction.Recover(Ctx.Install.AppDir)) Ctx.Log.Info("Rolled back an interrupted update"); }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Ctx.Log.Error("Could not clean up after an update: " + e.Message); }
         }
         _ = Task.Run(MigrateLauncherShortcuts);
-        // what the update helper reported: a failure is shown once (the helper already told the user, but the app was closed then and could not keep it)
-        if (ApplyResult.Read(Ctx.UpdateResultFile) is { } result)
-        {
-            try { File.Delete(Ctx.UpdateResultFile); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
-            if (!result.Success)
-            {
-                Ctx.Main.WhatsNewVersion = null; Ctx.Main.WhatsNewNotes = null; Ctx.Save();
-                Ctx.Log.Error($"The update to {result.Version} failed: {result.Message}");
-                await Dialogs.Error(Ctx.T("App.UpdateFailed", result.Message));
-                return;
-            }
-        }
         var m = Ctx.Main;
         if (m.WhatsNewVersion == null) return;
         var version = m.WhatsNewVersion; var notes = m.WhatsNewNotes;

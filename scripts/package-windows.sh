@@ -12,13 +12,6 @@ OUT="$(cd "$OUT" && pwd)"
 
 dotnet publish src/Syn3Updater.App -c Release -r "$RID" --self-contained \
   -p:Version="$VERSION" -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o "$STAGE"
-# The update helper: a running program cannot replace itself on Windows, so the app starts a copy of this, closes, and the helper swaps the files (all or nothing, with rollback)
-# and starts the app again. Trimmed and compressed (about 14 MB). It is listed in the install manifest like every other file, so the next update replaces it too.
-HELPER_OUT="$(mktemp -d)"
-dotnet publish src/Syn3Updater.Updater -c Release -r "$RID" --self-contained \
-  -p:Version="$VERSION" -p:PublishSingleFile=true -p:PublishTrimmed=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o "$HELPER_OUT"
-cp "$HELPER_OUT/Syn3Updater.Updater.exe" "$STAGE/"
-rm -rf "$HELPER_OUT"
 cp LICENSE "$STAGE/"
 # The hybrid Launcher goes in every Windows package: when the Launcher installs a package it removes old files the package does not ship (every .dll, on the
 # first run after the v2 Launcher), so a package without the Launcher's own libraries would make it delete them. The files are pinned by hash.
@@ -28,7 +21,7 @@ LAUNCHER_DIR="packaging/windows/launcher"
 while read -r _ file; do cp "$LAUNCHER_DIR/${file#\*}" "$STAGE/"; done < "$LAUNCHER_DIR/SHA256SUMS"
 cat > "$STAGE/README.txt" <<TXT
 Syn3 Updater $VERSION
-Start Syn3Updater.exe (or Launcher.exe, which keeps it up to date and then opens it). Syn3 Updater checks for new versions itself and installs them with Syn3Updater.Updater.exe.
+Start Syn3Updater.exe (or Launcher.exe, which keeps it up to date and then opens it). Syn3 Updater checks for new versions itself and installs them.
 Syn3 Updater asks for administrator rights because formatting a USB drive needs them.
 TXT
 

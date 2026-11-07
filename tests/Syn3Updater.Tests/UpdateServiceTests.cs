@@ -39,19 +39,18 @@ public class UpdateServiceTests
     }
 
     [Fact]
-    public async Task A_windows_install_gets_the_matching_zip_once_the_app_can_apply_it()
+    public async Task A_windows_install_gets_the_matching_zip()
     {
-        var svc = new UpdateService(new HttpClient(new FuncHandler(r => r.RequestUri!.AbsolutePath.EndsWith(".minisig") ? Ok(Signature) : Ok(Manifest))), null, _ => true);
-        var p = await Plan(svc, Inst(InstallKind.WindowsFolder, UpdateRoute.InPlace), os: UpdateOs.Windows, arch: UpdateArch.Arm64);
+        var p = await Plan(Svc(), Inst(InstallKind.WindowsFolder, UpdateRoute.InPlace), os: UpdateOs.Windows, arch: UpdateArch.Arm64);
         Assert.Equal(PlanKind.Install, p.Kind);
         Assert.Equal("Syn3Updater-3.1.0-beta.2-win-arm64.zip", p.Asset!.Name);
     }
 
     [Fact]
-    public async Task An_install_the_app_cannot_yet_apply_is_shown_instructions_not_a_button_that_would_fail()
+    public async Task An_install_the_app_is_told_it_cannot_apply_is_shown_instructions_not_a_button_that_would_fail()
     {
-        // by default only user-level Linux tar installs are applied; Windows follows in a later step
-        var p = await Plan(Svc(), Inst(InstallKind.WindowsFolder, UpdateRoute.InPlace), os: UpdateOs.Windows, arch: UpdateArch.X64);
+        var svc = new UpdateService(new HttpClient(new FuncHandler(r => r.RequestUri!.AbsolutePath.EndsWith(".minisig") ? Ok(Signature) : Ok(Manifest))), null, _ => false);
+        var p = await Plan(svc, Inst(InstallKind.WindowsFolder, UpdateRoute.InPlace), os: UpdateOs.Windows, arch: UpdateArch.X64);
         Assert.Equal(PlanKind.Manual, p.Kind);
         Assert.Equal("Syn3Updater-3.1.0-beta.2-win-x64.zip", p.Asset!.Name);
         Assert.Contains("cannot update this kind of install by itself yet", p.Reason);
