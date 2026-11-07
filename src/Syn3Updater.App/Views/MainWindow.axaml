@@ -100,7 +100,7 @@
               <ctl:MarkdownText Text="{Binding Message}" FontSize="14" IsVisible="{Binding UseMarkdown}" />
             </Panel>
           </ScrollViewer>
-          <TextBox x:Name="PromptBox" Text="{Binding Text}" IsVisible="{Binding IsPrompt}" />
+          <TextBox x:Name="PromptBox" Text="{Binding Text}" IsVisible="{Binding IsPrompt}" AcceptsReturn="{Binding Multiline}" TextWrapping="Wrap" MinHeight="{Binding PromptMinHeight}" MaxHeight="240" />
           <ItemsControl ItemsSource="{Binding Buttons}" HorizontalAlignment="Right">
             <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="10" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>

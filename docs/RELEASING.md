@@ -31,6 +31,9 @@ Settings > Secrets and variables > Actions:
 | `MACOS_CERTIFICATE`, `MACOS_CERTIFICATE_PASSWORD`, `MACOS_CODESIGN_IDENTITY` | optional: sign the macOS app with a Developer ID (base64 `.p12`, its password, and the identity name) |
 | `NOTARY_APPLE_ID`, `NOTARY_TEAM_ID`, `NOTARY_PASSWORD` | optional: notarize the signed app (an app-specific password) |
 
+**Repository variable** (same page, *Variables*): `SYN3_SENTRY_DSN`, the crash report server's DSN, compiled into the Linux, Windows and macOS packages. It is not a secret.
+Leave it empty and those builds never offer to send crash reports.
+
 Without the macOS secrets the app is ad-hoc signed: it runs, but users must right-click > Open the first time.
 
 ## Update channels

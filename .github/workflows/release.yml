@@ -134,6 +134,8 @@ jobs:
         run: scripts/package-linux.sh "${{ matrix.rid }}" "${{ needs.prepare.outputs.version }}" artifacts
         env:
           SYN3_API_TOKEN: ${{ secrets.SYN3_API_TOKEN }}
+          # not a secret (it only lets the app send crash reports, and only when the user agrees); empty = this build never offers to send one
+          SYN3_SENTRY_DSN: ${{ vars.SYN3_SENTRY_DSN }}
       # a package that cannot install cleanly (wrong launcher entry, missing files) must not be published
       - name: Verify the package installs
         run: scripts/verify-linux-package.sh artifacts/*.tar.gz
@@ -173,6 +175,8 @@ jobs:
         run: scripts/package-windows.sh "${{ matrix.rid }}" "${{ needs.prepare.outputs.version }}" artifacts
         env:
           SYN3_API_TOKEN: ${{ secrets.SYN3_API_TOKEN }}
+          # not a secret (it only lets the app send crash reports, and only when the user agrees); empty = this build never offers to send one
+          SYN3_SENTRY_DSN: ${{ vars.SYN3_SENTRY_DSN }}
       - uses: actions/upload-artifact@v6
         with:
           name: pkg-${{ matrix.rid }}
@@ -216,6 +220,8 @@ jobs:
         run: scripts/package-macos.sh "${{ matrix.rid }}" "${{ needs.prepare.outputs.version }}" artifacts
         env:
           SYN3_API_TOKEN: ${{ secrets.SYN3_API_TOKEN }}
+          # not a secret (it only lets the app send crash reports, and only when the user agrees); empty = this build never offers to send one
+          SYN3_SENTRY_DSN: ${{ vars.SYN3_SENTRY_DSN }}
           MACOS_CODESIGN_IDENTITY: ${{ secrets.MACOS_CODESIGN_IDENTITY }}
           NOTARY_APPLE_ID: ${{ secrets.NOTARY_APPLE_ID }}
           NOTARY_TEAM_ID: ${{ secrets.NOTARY_TEAM_ID }}

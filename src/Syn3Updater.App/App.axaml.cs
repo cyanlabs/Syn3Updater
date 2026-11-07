@@ -31,7 +31,7 @@ public class App : Application
             vm.Home.OnShown();
             // first start (or not accepted yet): the disclaimer pops up over the app until it is accepted
             desktop.MainWindow.Opened += async (_, _) =>
-                await DisclaimerGate.EnsureAcceptedAsync(() => { desktop.Shutdown(); return Task.CompletedTask; });
+                { if (await DisclaimerGate.EnsureAcceptedAsync(() => { desktop.Shutdown(); return Task.CompletedTask; })) await CrashReports.OfferAsync(); };
             // syn3updater:// links: the one that started the app, ones forwarded by a second launch, and (macOS) ones the OS delivers while it runs
             desktop.MainWindow.Opened += async (_, _) => { if (AppLaunch.StartupLink is { } link) await UrlIntents.HandleAsync(link); };
             AppLaunch.Primary?.Listen(message => Avalonia.Threading.Dispatcher.UIThread.Post(async () =>

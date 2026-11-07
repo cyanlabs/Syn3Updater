@@ -18,6 +18,12 @@ The CyanLabs backend needs a bearer token. It is compiled into the app at build 
 or from the `SYN3_API_TOKEN` environment variable (which wins; handy for CI). See [secrets/README.md](../secrets/README.md).
 It is not a user setting and never appears in the UI or in git. Without a token the app still builds, but API calls are rejected.
 
+## Crash report server (optional)
+
+Crash reports go to a Sentry-compatible server (CyanLabs runs GlitchTip). The DSN is compiled in from the git-ignored `secrets/sentry-dsn.txt` (one line) or the
+`SYN3_SENTRY_DSN` environment variable (which wins). It is not a secret: it only allows sending reports. Without one the app never offers to send a crash report.
+The app talks to the server with plain HTTP (no Sentry SDK), and only after the user agrees on the next start. See `CrashReporter` in `Syn3Updater.Core`.
+
 ## Tests
 
 ```sh

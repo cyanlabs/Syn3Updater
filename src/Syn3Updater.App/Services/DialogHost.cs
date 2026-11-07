@@ -17,6 +17,9 @@ public class DialogRequest
     public DialogTone Tone { get; init; }
     public int DefaultIndex { get; init; }
     public bool IsPrompt { get; init; }
+    /// <summary>A prompt for several lines: Enter adds a line, Ctrl+Enter confirms.</summary>
+    public bool Multiline { get; init; }
+    public double PromptMinHeight => Multiline ? 120 : 0;
     public bool ShowLogo { get; init; }
     public bool UseMarkdown { get; init; }
     public bool UsePlainText => !UseMarkdown;
