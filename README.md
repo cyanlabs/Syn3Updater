@@ -45,7 +45,7 @@ See the guide at <https://cyanlabs.net/docs/Syn3Updater>.
 
 The install mode (AutoInstall, Reformat, Downgrade) is chosen automatically and protects MY20 units. The rules are in [docs/install-mode-logic.md](docs/install-mode-logic.md).
 
-**Diagnostics** (sidebar) checks the tools and permissions your OS needs, the data / download / log folders, the API key, the Syn3 Updater and Ford servers and the clock.
+**Diagnostics** (the button at the bottom of **About**) checks the tools and permissions your OS needs, the data / download / log folders, the API key, the Syn3 Updater and Ford servers and the clock.
 Each failed check says how to fix it, and *Copy report* puts the result on the clipboard.
 
 > Linux is the only platform the author has run on real hardware. The Windows and macOS drive code is covered by tests but has not been tried against real devices,
