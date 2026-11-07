@@ -1,3 +1,4 @@
+using Avalonia.VisualTree;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Cyanlabs.Syn3Updater.App.Services;
@@ -65,6 +66,28 @@ public class HomeDropdownTests
         Assert.Equal("Select Version", view.FindControl<ComboBox>("ReleaseBox")!.PlaceholderText);
         Assert.Equal("Select Maps", view.FindControl<ComboBox>("MapBox")!.PlaceholderText);
         window.Close(); await Task.CompletedTask;
+    }
+
+    [AvaloniaTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SelectADirectory_CanBePickedAgainAfterCancelling(bool aFolderWasChosenFirst)
+    {
+        using var env = new AppEnv(); var home = env.Main.Home; home.ReloadSummary();
+        if (aFolderWasChosenFirst) { env.Dialogs.FolderToPick = env.UsbDir; await home.ChooseFolderCommand.ExecuteAsync(null); }
+        else await home.RefreshDrivesAsync();
+        var view = new HomeView { DataContext = home }; var window = new Window { Content = view }; window.Show();
+        var box = view.GetVisualDescendants().OfType<ComboBox>().First(c => ReferenceEquals(c.ItemsSource, home.Drives));
+        var before = home.SelectedDrive; env.Dialogs.FolderToPick = null;                    // the folder dialog is cancelled every time
+
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            box.SelectedItem = home.Drives[^1];                                              // the user picks "Select A Directory" in the list
+            await AppEnv.Until(() => env.Dialogs.FolderPicks >= attempt + (aFolderWasChosenFirst ? 1 : 0));
+            await AppEnv.Until(() => ReferenceEquals(box.SelectedItem, before));              // and the list goes back to what was selected, ready for the next pick
+            Assert.Same(before, home.SelectedDrive);
+        }
+        window.Close();
     }
 
     [AvaloniaFact]
