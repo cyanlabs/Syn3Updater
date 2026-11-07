@@ -69,6 +69,33 @@ public static class LauncherPrefs
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or NotSupportedException or ArgumentException) { return false; }
     }
 
+    /// <summary>The release tag as the Launcher records it: always four numeric parts ("v3.0.0" and "3.0.0-beta.1" become "3.0.0.0"), the form older Launchers and v2 can still parse. Null for a tag that is not a version ("nightly").</summary>
+    public static string? NumericTag(string? tag) => SemVer.Parse(tag) is { } v ? string.Join('.', v.Numbers) : null;
+
+    /// <summary>
+    /// Records what an update installed the way the Launcher does (ReleaseInstalled = the release tag as four numbers, ReleaseTypeInstalled = its channel), so a Launcher that still exists
+    /// does not install the same release again at its next start. ReleaseBranch, the channel the user follows, is left exactly as it is. Does nothing when there is no Launcher to tell
+    /// (no prefs file and no Launcher.exe in <paramref name="appDir"/>) or when the tag is not a version.
+    /// </summary>
+    public static bool WriteInstalled(string? path, string? tag, UpdateChannel channel, string? appDir)
+    {
+        if (path == null || NumericTag(tag) is not { } numeric || !HasLauncher(path, appDir)) return false;
+        try
+        {
+            var root = new JsonObject();
+            if (File.Exists(path))
+                try { root = JsonNode.Parse(File.ReadAllText(path)) as JsonObject ?? new JsonObject(); }
+                catch (JsonException) { /* a corrupt file: the Launcher itself replaces those with defaults */ }
+            root["ReleaseBranch"] ??= ToBranch(channel);               // no record yet: the user follows the channel they just installed
+            root["ReleaseInstalled"] = numeric;
+            root["ReleaseTypeInstalled"] = ToBranch(channel);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, root.ToJsonString());
+            return true;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or NotSupportedException or ArgumentException) { return false; }
+    }
+
     /// <summary>
     /// The channel to use: the one chosen in the app, unless the Launcher's file says something else (it was changed there, or by v2), in which case the file wins, as it did in v2.
     /// </summary>
