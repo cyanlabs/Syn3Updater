@@ -247,3 +247,17 @@ public class ProfileSettings
         return s.Length == 7 ? $"{s[0]}.{s[1]}.{s[2..]}" : "0.0.00000";
     }
 }
+
+/// <summary>One row of the backend's update_policy collection: the minimum version per update channel (and OS) that is still allowed to run. Empty = no minimum.</summary>
+public class UpdatePolicyRoot { [JsonPropertyName("update_policy")] public List<UpdatePolicyDto>? Rows { get; set; } }
+public class UpdatePolicyDto
+{
+    [JsonPropertyName("channel")] public string? Channel { get; set; }
+    [JsonPropertyName("enabled")] public bool Enabled { get; set; }
+    [JsonPropertyName("min_version_all")] public string? MinVersionAll { get; set; }
+    [JsonPropertyName("min_version_windows")] public string? MinVersionWindows { get; set; }
+    [JsonPropertyName("min_version_linux")] public string? MinVersionLinux { get; set; }
+    [JsonPropertyName("min_version_macos")] public string? MinVersionMacos { get; set; }
+    [JsonPropertyName("message")] public string? Message { get; set; }
+}
+

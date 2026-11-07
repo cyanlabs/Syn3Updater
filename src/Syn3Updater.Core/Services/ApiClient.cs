@@ -107,6 +107,10 @@ public class ApiClient
         catch (JsonException e) { throw new ApiException("Unexpected API response: " + e.Message, e); }
     }
 
+    /// <summary>The minimum versions the backend still allows to run (see UpdatePolicy). Rows are public to the app's token and hold nothing sensitive.</summary>
+    public Task<UpdatePolicyRoot> GetUpdatePolicy(CancellationToken ct = default) => QueryAsync<UpdatePolicyRoot>(
+        "{ update_policy(limit: -1) { channel enabled min_version_all min_version_windows min_version_linux min_version_macos message } }", ct);
+
     // ---- Queries (same shapes as upstream) ----
     public Task<ReleasesRoot> GetReleases(string region, CancellationToken ct = default) => QueryAsync<ReleasesRoot>($$$"""
         { releases(sort: "-name", limit: -1, filter: {
