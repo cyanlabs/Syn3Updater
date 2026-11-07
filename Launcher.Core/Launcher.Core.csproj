@@ -11,4 +11,25 @@
 		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
 		<NuGetAuditSuppress Include="https://github.com/advisories/GHSA-5crp-9r3c-p9vr" />
 	</ItemGroup>
+	<PropertyGroup>
+		<!-- optional: the crash report server's DSN (not a secret, but kept out of git); SYN3_SENTRY_DSN overrides it. No DSN = the launcher sends nothing. -->
+		<SentryDsnFile>$(MSBuildThisFileDirectory)..\secrets\sentry-dsn.txt</SentryDsnFile>
+	</PropertyGroup>
+	<Target Name="GenerateLauncherSecret" BeforeTargets="CoreCompile">
+		<ReadLinesFromFile File="$(SentryDsnFile)" Condition="Exists('$(SentryDsnFile)')">
+			<Output TaskParameter="Lines" ItemName="_DsnLine" />
+		</ReadLinesFromFile>
+		<PropertyGroup>
+			<_FileDsn>@(_DsnLine)</_FileDsn>
+			<_Dsn Condition="'$(SYN3_SENTRY_DSN)' != ''">$(SYN3_SENTRY_DSN)</_Dsn>
+			<_Dsn Condition="'$(_Dsn)' == ''">$(_FileDsn.Trim())</_Dsn>
+			<_Dsn Condition="$(_Dsn.StartsWith('paste-'))"></_Dsn>
+			<_SecretFile>$(IntermediateOutputPath)LauncherSecret.g.cs</_SecretFile>
+		</PropertyGroup>
+		<WriteLinesToFile File="$(_SecretFile)" Overwrite="true" Lines="// &lt;auto-generated/&gt; from secrets/sentry-dsn.txt or the environment - never committed%0Anamespace Cyanlabs.Launcher.Updating%0A{%0A    internal static class LauncherSecret%0A    {%0A        public const string SentryDsn = &quot;$(_Dsn)&quot;%3B%0A    }%0A}%0A" />
+		<ItemGroup>
+			<Compile Include="$(_SecretFile)" />
+			<FileWrites Include="$(_SecretFile)" />
+		</ItemGroup>
+	</Target>
 </Project>
