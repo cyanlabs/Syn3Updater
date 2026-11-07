@@ -95,6 +95,7 @@ public class WindowsInstallerTests : IDisposable
             Assert.Equal("NEW-APP", File.ReadAllText(exe));                                                // the new program is in place while the old one still runs
             var backup = Path.Combine(dir, InstallTransaction.BackupDirName);
             Assert.True(File.Exists(Path.Combine(backup, "Syn3Updater.exe")));                             // the old one could be renamed aside but not deleted
+            Assert.True(File.Exists(Path.Combine(backup, "COMPLETE")), "the COMPLETE marker was lost: the next start would roll the new version back");
             Assert.False(running.HasExited, "the program stopped after its file was renamed aside and replaced");
         }
         finally { try { running.Kill(true); running.WaitForExit(5000); } catch (InvalidOperationException) { } }

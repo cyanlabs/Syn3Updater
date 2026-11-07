@@ -29,11 +29,12 @@ internal sealed class FaultyFileSystem : ISwapFileSystem
     public Func<string, string, bool> FailMove { get; set; } = (_, _) => false;
     public int MoveFailuresLeft { get; set; }
     public int DeleteDirFailuresLeft { get; set; }
+    public Func<string, bool> FailDeleteFile { get; set; } = _ => false;
     public int MoveCalls { get; private set; }
     public bool FileExists(string p) => _real.FileExists(p);
     public bool DirectoryExists(string p) => _real.DirectoryExists(p);
     public void CreateDirectory(string p) => _real.CreateDirectory(p);
-    public void DeleteFile(string p) => _real.DeleteFile(p);
+    public void DeleteFile(string p) { if (FailDeleteFile(p)) throw new IOException("in use by the running program (simulated)"); _real.DeleteFile(p); }
     public void DeleteDirectory(string p) { if (DeleteDirFailuresLeft > 0) { DeleteDirFailuresLeft--; throw new IOException("still in use (simulated)"); } _real.DeleteDirectory(p); }
     public void MoveFile(string s, string d, bool o)
     {
@@ -249,22 +250,50 @@ public class TransactionTests
         {
             var backup = Path.Combine(install, InstallTransaction.BackupDirName); Directory.CreateDirectory(backup);
             File.WriteAllText(Path.Combine(backup, "Syn3Updater.exe"), "old, still exiting"); File.WriteAllText(Path.Combine(backup, "COMPLETE"), "x");
-            var fs = new FaultyFileSystem { DeleteDirFailuresLeft = 3 };                              // the old program still holds its file for the first few tries
+            var failures = 3;                                                                          // the old program still holds its file for the first few tries
+            var fs = new FaultyFileSystem { FailDeleteFile = p => p.EndsWith("Syn3Updater.exe") && failures-- > 0 };
             Assert.False(InstallTransaction.Recover(install, fs, new RetryPolicy(10, 0)));
             Assert.False(Directory.Exists(backup)); Assert.Equal("new", File.ReadAllText(Path.Combine(install, "Syn3Updater.exe")));
         }
     }
 
     [Fact]
-    public void ALeftoverThatNeverLetsGo_IsLeftForTheNextStart_NotAnError()
+    public void ALeftoverThatNeverLetsGo_IsLeftForTheNextStart_WithItsMarker_AndIsNeverMistakenForAnInterruptedUpdate()
     {
         var (t, install, _) = Setup(("Syn3Updater.exe", "new"));
         using (t)
         {
-            var backup = Path.Combine(install, InstallTransaction.BackupDirName); Directory.CreateDirectory(backup); File.WriteAllText(Path.Combine(backup, "COMPLETE"), "x");
-            Assert.False(InstallTransaction.Recover(install, new FaultyFileSystem { DeleteDirFailuresLeft = 99 }, new RetryPolicy(3, 0)));
-            Assert.True(Directory.Exists(backup));                                                       // still there, still marked complete: the next start tries again
-            Assert.True(File.Exists(Path.Combine(backup, "COMPLETE")));
+            var backup = Path.Combine(install, InstallTransaction.BackupDirName); Directory.CreateDirectory(backup);
+            File.WriteAllText(Path.Combine(backup, "Syn3Updater.exe"), "old"); File.WriteAllText(Path.Combine(backup, "COMPLETE"), "x");
+            var locked = new FaultyFileSystem { FailDeleteFile = p => p.EndsWith("Syn3Updater.exe") };
+            for (var start = 0; start < 3; start++)                                                    // start after start while the old program is somehow still locked
+            {
+                Assert.False(InstallTransaction.Recover(install, locked, new RetryPolicy(2, 0)));      // never "rolled back"
+                Assert.True(File.Exists(Path.Combine(backup, "COMPLETE")));                            // the marker survives
+                Assert.Equal("new", File.ReadAllText(Path.Combine(install, "Syn3Updater.exe")));       // and the new program is never replaced by the old one
+            }
+            Assert.False(InstallTransaction.Recover(install));                                         // finally it is free
+            Assert.False(Directory.Exists(backup));
+        }
+    }
+
+    [Fact]
+    public void AFinishedUpdateWhoseOldProgramCannotBeDeletedYet_KeepsItsMarker_SoTheNextStartDoesNotUndoIt()
+    {
+        var (t, install, staging) = Setup(("Syn3Updater.exe", "old-running"));
+        using (t)
+        {
+            Stage(staging, ("Syn3Updater.exe", "new"));
+            // the old exe is in the backup and cannot be deleted because it is still running; the marker sorts BEFORE it, so a one-shot recursive delete would remove the marker first
+            var fs = new FaultyFileSystem { FailDeleteFile = p => p.EndsWith("Syn3Updater.exe") && p.Contains(InstallTransaction.BackupDirName) };
+            new InstallTransaction(install, fs).Apply(staging, new[] { "Syn3Updater.exe" }, Array.Empty<string>());
+            var backup = Path.Combine(install, InstallTransaction.BackupDirName);
+            Assert.True(File.Exists(Path.Combine(backup, "Syn3Updater.exe")));
+            Assert.True(File.Exists(Path.Combine(backup, "COMPLETE")), "the marker was deleted while the old program was still there: the next start would roll the update back");
+            Assert.False(InstallTransaction.Recover(install, fs, new RetryPolicy(1, 0)));
+            Assert.Equal("new", File.ReadAllText(Path.Combine(install, "Syn3Updater.exe")));
+            Assert.False(InstallTransaction.Recover(install));                                         // released: cleaned up
+            Assert.False(Directory.Exists(backup)); Assert.Equal("new", File.ReadAllText(Path.Combine(install, "Syn3Updater.exe")));
         }
     }
 
