@@ -180,9 +180,15 @@ public static class InstallDetector
             InstallKind.LinuxDeb => download + $"sudo apt install ./{fileName ?? "<downloaded .deb>"}",
             InstallKind.LinuxRpm => download + $"sudo dnf install ./{fileName ?? "<downloaded .rpm>"}          # Fedora, RHEL\nsudo zypper install ./{fileName ?? "<downloaded .rpm>"}          # openSUSE",
             InstallKind.LinuxPacman => download + $"sudo pacman -U {file}",
-            _ => "Download the new version from https://github.com/" + UpdateChecker.Repo + "/releases and install it the same way as before."
+            _ => ReleasesPage
         };
     }
+
+    /// <summary>Where new versions can be downloaded: what a copy that no package manager owns is pointed at.</summary>
+    public const string ReleasesPage = "https://github.com/" + UpdateChecker.Repo + "/releases";
+
+    /// <summary>True for installs a package manager owns (the instructions are commands); false for the rest (the instructions are the download address).</summary>
+    public static bool IsPackageManaged(InstallKind kind) => kind is InstallKind.LinuxDeb or InstallKind.LinuxRpm or InstallKind.LinuxPacman;
 
     /// <summary>
     /// What "Copy command" puts on the clipboard: the download and the first install command joined with <c>&amp;&amp;</c>, so one paste does it all (notes removed).

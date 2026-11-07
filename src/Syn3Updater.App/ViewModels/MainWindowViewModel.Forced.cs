@@ -69,7 +69,8 @@ public partial class MainWindowViewModel
             else if (plan is { Kind: PlanKind.Manual })
             {
                 // updated another way (a package manager, a download): say how, and do not let the app be used until it has been
-                var body = Ctx.T("App.ForcedManualBody", req.Version, plan.Instructions ?? "") + extra;
+                var instructions = plan.Instructions ?? "";
+                var body = (InstallDetector.IsPackageManaged(plan.Install.Kind) ? Ctx.T("App.ForcedManualBody", req.Version, instructions) : Ctx.T("App.ForcedDownloadBody", req.Version, instructions)) + extra;
                 var choice = await Dialogs.Show(body, title, new[] { Ctx.T("App.UpdateCopyCommand"), Ctx.T("App.UpdateView"), Ctx.T("App.ForcedQuit") }, 0);
                 if (choice == 2) { UpdateRestart.Quit(); return; }
                 if (choice == 0) await Dialogs.SetClipboard(InstallDetector.PrimaryCommand(plan.Instructions) ?? page); else if (choice == 1) await Dialogs.OpenUrl(page);

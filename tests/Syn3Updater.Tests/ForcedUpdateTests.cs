@@ -163,6 +163,24 @@ public class ForcedUpdateTests
     }
 
     [AvaloniaFact]
+    public async Task A_copy_no_package_manager_owns_is_pointed_at_the_download_page_and_the_text_does_not_mention_a_package_manager()
+    {
+        using var e = new Env();
+        var (plan, _, _, _) = e.Inner.Scenario(); var portable = new InstallInfo(InstallKind.LinuxPortable, "/home/u/Downloads/x", UpdateRoute.Manual, "nothing installed this");
+        Ctx.Install = portable;
+        e.Plan(plan with { Kind = PlanKind.Manual, Install = portable, Instructions = InstallDetector.ManualInstructions(InstallKind.LinuxPortable, null) });
+        e.App.Dialogs.Choices.Enqueue(0); e.App.Dialogs.Choices.Enqueue(2);          // Copy command, then Quit
+        await e.App.Main.EnforceMinimumAsync();
+        var lines = e.App.Dialogs.Messages[0].Split('\n');
+        Assert.Equal("Please update Syn3 Updater to continue.", lines[0]);
+        Assert.Equal("Version 3.0.5 or newer is required. This copy can't update itself because of how it was installed. Download the new version here:", lines[2]);
+        Assert.Equal("https://github.com/CyanLabs/Syn3Updater/releases", lines[4]);
+        Assert.Equal("Install it the same way as before. Then start Syn3 Updater again.", lines[6]);
+        Assert.DoesNotContain("package manager", e.App.Dialogs.Messages[0]);
+        Assert.Equal(new[] { "https://github.com/CyanLabs/Syn3Updater/releases/tag/v3.1.0" }, e.App.Dialogs.Clipboard);          // no command to copy: the page for this release
+    }
+
+    [AvaloniaFact]
     public async Task A_failed_install_offers_to_try_again_and_the_second_try_succeeds()
     {
         if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
