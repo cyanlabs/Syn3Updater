@@ -13,6 +13,8 @@ body:
         - In the app go to **About**, then press **Diagnostics** at the bottom, and use **Copy report**. It checks the tools and permissions your system needs and tells you how to fix what fails.
         - Search the [existing issues](https://github.com/cyanlabs/Syn3Updater/issues?q=is%3Aissue) first, and ask for help with using the app or with your car on the [forum](https://community.cyanlabs.net).
 
+        > **A wrong or missing translation?** Please fix it with a pull request instead: the texts are in [`src/Syn3Updater.Core/Languages`](https://github.com/cyanlabs/Syn3Updater/tree/main/src/Syn3Updater.Core/Languages), one JSON file per language.
+
         > **Problems with your car are not app bugs.** If the unit shows MEM_ERR, will not boot or is in a state you do not understand, please post on the [forum](https://community.cyanlabs.net) and not here, and **do not keep retrying** until you have asked.
 
   - type: checkboxes
@@ -84,7 +86,7 @@ body:
         - Diagnostics
         - The Windows Launcher (Launcher.exe)
         - Installing in the car (the APIM does not accept the drive)
-        - Translations or text
+        - Text that does not fit or is cut off
         - Something else
     validations:
       required: true
