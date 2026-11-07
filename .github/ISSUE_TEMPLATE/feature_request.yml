@@ -87,7 +87,7 @@ body:
       description: These need the most care, because a wrong install can brick an APIM. "Not sure" is a fine answer.
       options:
         - No, it only changes how the app looks or behaves
-        - Yes
+        - "Yes"
         - Not sure
     validations:
       required: true
