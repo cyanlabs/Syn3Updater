@@ -47,7 +47,7 @@ public class FakeDialogs : IDialogBackend
         return Task.FromResult(yes ? 1 : 0);
     }
     public Task<string?> PickFolder(string title) => Task.FromResult(FolderToPick);
-    public Task<string?> Prompt(string title, string message, string initial) { Prompts.Add(message); return Task.FromResult(PromptAnswer); }
+    public Task<string?> Prompt(string title, string message, string initial, bool multiline = false) { Prompts.Add(message); return Task.FromResult(PromptAnswer); }
     public Task<string?> PickFile(string title, string filterName, string[] patterns) => Task.FromResult(FileToPick);
     public Task SetClipboard(string text) { Clipboard.Add(text); return Task.CompletedTask; }
     public Task OpenUrl(string url) { Opened.Add(url); return Task.CompletedTask; }

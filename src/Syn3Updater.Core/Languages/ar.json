@@ -34,7 +34,7 @@
   "MessageBox.CrashReportSent": "Thank you. The crash report was sent.",
   "MessageBox.CrashReportFailed": "The crash report could not be sent. It has been discarded and will not be retried.",
   "MessageBox.CrashReportCommentTitle": "Add a comment (optional)",
-  "MessageBox.CrashReportComment": "What were you doing when it crashed? This is optional: leave it empty or cancel to send the report without a comment.\nPlease don't include passwords or personal details. Email addresses and your home folder are removed.",
+  "MessageBox.CrashReportComment": "What were you doing when it crashed? This is optional: leave it empty or cancel to send the report without a comment.\nYou can write several lines (Enter adds a line, Ctrl+Enter or OK sends). Please don't include passwords or personal details. Email addresses and your home folder are removed.",
   "MessageBox.DownloadPathChangeCopy": "هل ترغب في نقل الملفات الموجودة سابقا من {0} إلى {1}",
   "MessageBox.CancelRegionMismatch": "المنطقة الحالية والمنطقة الجديدة غير متطابقة، قد تواجه مشكلة. هل ترغب في الاستمرار على أي حال؟",
   "MessageBox.CancelDownloadIsDrive": "مسار التنزيل وفلاش التخزين وجهتان متماثلان، يرجى تغيير مسار التنزيل او اختيار فلاش تخزين اخر.",

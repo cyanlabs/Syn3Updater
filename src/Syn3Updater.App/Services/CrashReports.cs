@@ -27,7 +27,7 @@ public static class CrashReports
             return true;
         }
         // optional: cancelling or leaving it empty simply sends the report without a comment
-        crash.Comment = CrashReporter.SanitizeComment(await Dialogs.Prompt(Ctx.T("MessageBox.CrashReportCommentTitle"), Ctx.T("MessageBox.CrashReportComment")));
+        crash.Comment = CrashReporter.SanitizeComment(await Dialogs.Prompt(Ctx.T("MessageBox.CrashReportCommentTitle"), Ctx.T("MessageBox.CrashReportComment"), multiline: true));
         var sent = await CrashReporter.SendAsync(Ctx.Http, dsn, crash);
         Ctx.Log.Info(sent ? "Crash report sent" : "Crash report could not be sent");
         await Dialogs.Info(Ctx.T(sent ? "MessageBox.CrashReportSent" : "MessageBox.CrashReportFailed"), Ctx.T("MessageBox.CrashReportTitle"));

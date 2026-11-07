@@ -119,7 +119,8 @@ public class CrashReporterTests : IDisposable
 
     [Theory]
     [InlineData(null, "")] [InlineData("", "")] [InlineData("   \t\n ", "")]
-    [InlineData("  it   crashed\r\nwhen I clicked   Start  ", "it crashed when I clicked Start")]
+    [InlineData("  it   crashed\r\nwhen I clicked   Start  ", "it crashed\nwhen I clicked Start")]
+    [InlineData("one\n\n\n\n\ntwo \r three", "one\n\ntwo\nthree")]
     [InlineData("mail me at someone@example.com please", "mail me at [email removed] please")]
     [InlineData("zero\u0000width\u200Bchars\u0007 gone", "zerowidthchars gone")]
     public void SanitizeComment_CleansWhitespaceControlCharsAndEmails(string? input, string expected) =>
@@ -129,7 +130,7 @@ public class CrashReporterTests : IDisposable
     public void SanitizeComment_RemovesTheHomeFolder_AndCapsTheLength()
     {
         Assert.Equal(@"saved to ~\Downloads", CrashReporter.SanitizeComment(@"saved to C:\Users\scott\Downloads", @"C:\Users\scott"));
-        var long_ = CrashReporter.SanitizeComment(new string('a', 2000));
+        var long_ = CrashReporter.SanitizeComment(new string('a', 5000));
         Assert.Equal(CrashReporter.MaxCommentLength + 3, long_.Length);
         Assert.EndsWith("...", long_);
     }

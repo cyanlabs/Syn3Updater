@@ -41,7 +41,7 @@ public partial class MainWindow : Window
         var host = DialogHostViewModel.Instance;
         if (host.Current == null) return;
         if (e.Key == Key.Escape) { host.Cancel(); e.Handled = true; }
-        else if (e.Key == Key.Enter) { host.AcceptDefault(); e.Handled = true; }
+        else if (e.Key == Key.Enter && (host.Current.Multiline == false || e.KeyModifiers.HasFlag(KeyModifiers.Control))) { host.AcceptDefault(); e.Handled = true; }
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)

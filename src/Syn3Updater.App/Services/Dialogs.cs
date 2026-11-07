@@ -18,8 +18,8 @@ public interface IDialogBackend
     Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex, DialogOptions? options = null);
     Task<string?> PickFolder(string title);
     Task<string?> PickFile(string title, string filterName, string[] patterns);
-    /// <summary>Asks for one line of text. Returns null when cancelled.</summary>
-    Task<string?> Prompt(string title, string message, string initial);
+    /// <summary>Asks for text: one line, or several when <paramref name="multiline"/> (Enter then adds a line and Ctrl+Enter confirms). Returns null when cancelled.</summary>
+    Task<string?> Prompt(string title, string message, string initial, bool multiline = false);
     Task SetClipboard(string text);
     Task OpenUrl(string url);
 }
@@ -38,7 +38,7 @@ public static class Dialogs
 
     public static Task<int> Show(string message, string title, string[] buttons, int defaultIndex = 0, DialogOptions? options = null) => Backend.Show(message, title, buttons, false, false, defaultIndex, options);
     public static Task<string?> PickFolder(string title) => Backend.PickFolder(title);
-    public static Task<string?> Prompt(string title, string message, string initial = "") => Backend.Prompt(title, message, initial);
+    public static Task<string?> Prompt(string title, string message, string initial = "", bool multiline = false) => Backend.Prompt(title, message, initial, multiline);
     public static Task<string?> PickFile(string title, string filterName, params string[] patterns) => Backend.PickFile(title, filterName, patterns);
     public static Task SetClipboard(string text) => Backend.SetClipboard(text);
     public static Task OpenUrl(string url) => Backend.OpenUrl(url);
@@ -60,13 +60,13 @@ internal sealed class AvaloniaDialogBackend : IDialogBackend
         });
     }
 
-    public async Task<string?> Prompt(string title, string message, string initial)
+    public async Task<string?> Prompt(string title, string message, string initial, bool multiline = false)
     {
         var host = DialogHostViewModel.Instance;
-        if (!host.IsAttached) return await DialogsImpl.Prompt(title, message, initial);
+        if (!host.IsAttached) return await DialogsImpl.Prompt(title, message, initial, multiline);
         var request = new DialogRequest
         {
-            Title = title, Message = message, IsPrompt = true, Text = initial, DefaultIndex = 1,
+            Title = title, Message = message, IsPrompt = true, Multiline = multiline, Text = initial, DefaultIndex = 1,
             Buttons = new[] { new DialogButton(Ctx.T("Download.CancelButton"), 0, false), new DialogButton(Ctx.T("String.OK"), 1, true) },
         };
         return await host.ShowAsync(request) == 1 ? request.Text : null;
@@ -119,17 +119,18 @@ public static class DialogsImpl
         return result;
     });
 
-    public static Task<string?> Prompt(string title, string message, string initial) => OnUi(async () =>
+    public static Task<string?> Prompt(string title, string message, string initial, bool multiline = false) => OnUi(async () =>
     {
         string? result = null;
         var win = new Window { Title = title, SizeToContent = SizeToContent.WidthAndHeight, MinWidth = 380, WindowStartupLocation = WindowStartupLocation.CenterOwner, CanResize = false, ShowInTaskbar = false };
         var box = new TextBox { Text = initial, MinWidth = 320 };
+        if (multiline) { box.AcceptsReturn = true; box.TextWrapping = TextWrapping.Wrap; box.MinHeight = 120; box.MaxHeight = 220; }
         var ok = new Button { Content = Ctx.T("String.OK"), MinWidth = 90, HorizontalContentAlignment = HorizontalAlignment.Center };
         ok.Classes.Add("accent");
         var cancel = new Button { Content = Ctx.T("Download.CancelButton"), MinWidth = 90, HorizontalContentAlignment = HorizontalAlignment.Center };
         void Accept() { result = box.Text; win.Close(); }
         ok.Click += (_, _) => Accept(); cancel.Click += (_, _) => win.Close();
-        box.KeyDown += (_, e) => { if (e.Key == Avalonia.Input.Key.Enter) Accept(); };
+        box.KeyDown += (_, e) => { if (e.Key == Avalonia.Input.Key.Enter && (!multiline || e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Control))) Accept(); };
         win.Content = new StackPanel
         {
             Margin = new Thickness(24), Spacing = 14,

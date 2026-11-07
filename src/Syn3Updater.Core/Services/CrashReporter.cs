@@ -72,27 +72,29 @@ public static class CrashReporter
         return text.Replace(home, "~", StringComparison.OrdinalIgnoreCase).Replace(home.Replace('\\', '/'), "~", StringComparison.OrdinalIgnoreCase);
     }
 
-    public const int MaxCommentLength = 500;
+    public const int MaxCommentLength = 1000;
     private static readonly Regex Email = new(@"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}", RegexOptions.Compiled);
 
     /// <summary>
-    /// Cleans a free-text comment before it leaves the machine: control and invisible characters go, whitespace is collapsed to single spaces,
-    /// email addresses and the home folder are removed, and it is cut to <see cref="MaxCommentLength"/> characters. Returns "" for nothing usable.
+    /// Cleans a free-text comment (several lines are fine) before it leaves the machine: control and invisible characters go, spaces are collapsed within each line,
+    /// runs of blank lines become one, email addresses and the home folder are removed, and it is cut to <see cref="MaxCommentLength"/> characters. Returns "" for nothing usable.
     /// </summary>
     public static string SanitizeComment(string? comment, string? home = null)
     {
         if (string.IsNullOrWhiteSpace(comment)) return "";
         var clean = new StringBuilder(comment.Length);
-        foreach (var ch in comment)
+        foreach (var ch in comment.Replace("\r\n", "\n").Replace('\r', '\n'))
         {
             var cat = char.GetUnicodeCategory(ch);
-            if (char.IsWhiteSpace(ch)) clean.Append(' ');
+            if (ch == '\n') clean.Append('\n');
+            else if (char.IsWhiteSpace(ch)) clean.Append(' ');
             else if (cat is System.Globalization.UnicodeCategory.Control or System.Globalization.UnicodeCategory.Format
                           or System.Globalization.UnicodeCategory.Surrogate or System.Globalization.UnicodeCategory.PrivateUse
                           or System.Globalization.UnicodeCategory.OtherNotAssigned) continue;
             else clean.Append(ch);
         }
-        var text = Regex.Replace(clean.ToString(), @" {2,}", " ").Trim();
+        var lines = clean.ToString().Split('\n').Select(l => Regex.Replace(l, @" {2,}", " ").Trim());
+        var text = Regex.Replace(string.Join("\n", lines), @"\n{3,}", "\n\n").Trim();
         text = Email.Replace(Scrub(text, home), "[email removed]");
         if (text.Length > MaxCommentLength) text = text[..MaxCommentLength].TrimEnd() + "...";
         return text;

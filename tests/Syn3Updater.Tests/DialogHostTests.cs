@@ -82,6 +82,20 @@ public class DialogHostTests
     }
 
     [AvaloniaFact]
+    public async Task MultilinePrompt_KeepsTheLineBreaks_AndIsTaller_ButSingleLineStaysOneLine()
+    {
+        var host = Fresh(); var backend = new AvaloniaDialogBackend();
+        var multi = backend.Prompt("Comment", "What happened?", "", multiline: true);
+        Assert.True(host.Current!.Multiline); Assert.True(host.Current.PromptMinHeight > 0);
+        host.Current.Text = "line one\nline two"; host.AcceptDefault();
+        Assert.Equal("line one\nline two", await multi);
+
+        var single = backend.Prompt("Name", "Profile Name", "");
+        Assert.False(host.Current!.Multiline); Assert.Equal(0, host.Current.PromptMinHeight);
+        host.Cancel(); Assert.Null(await single);
+    }
+
+    [AvaloniaFact]
     public async Task ShowFromAnotherThread_IsMarshalledOntoTheUiThread()
     {
         var host = Fresh(); Task<int>? t = null;

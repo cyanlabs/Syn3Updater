@@ -34,7 +34,7 @@
   "MessageBox.CrashReportSent": "Thank you. The crash report was sent.",
   "MessageBox.CrashReportFailed": "The crash report could not be sent. It has been discarded and will not be retried.",
   "MessageBox.CrashReportCommentTitle": "Add a comment (optional)",
-  "MessageBox.CrashReportComment": "What were you doing when it crashed? This is optional: leave it empty or cancel to send the report without a comment.\nPlease don't include passwords or personal details. Email addresses and your home folder are removed.",
+  "MessageBox.CrashReportComment": "What were you doing when it crashed? This is optional: leave it empty or cancel to send the report without a comment.\nYou can write several lines (Enter adds a line, Ctrl+Enter or OK sends). Please don't include passwords or personal details. Email addresses and your home folder are removed.",
   "MessageBox.DownloadPathChangeCopy": "Chci přesunout soubory z {0} do {1}",
   "MessageBox.CancelRegionMismatch": "Vámi vybraný aktuální region se neshoduje, systém nemusí fungovat správně!\nChcete přesto pokračovat?",
   "MessageBox.CancelDownloadIsDrive": "Cesta ke stažení a cílová jednotka USB jsou stejné, změňte prosím cestu ke stažení nebo vyberte jinou jednotku USB.",

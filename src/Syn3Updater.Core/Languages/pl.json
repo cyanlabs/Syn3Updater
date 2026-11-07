@@ -34,7 +34,7 @@
   "MessageBox.CrashReportSent": "Thank you. The crash report was sent.",
   "MessageBox.CrashReportFailed": "The crash report could not be sent. It has been discarded and will not be retried.",
   "MessageBox.CrashReportCommentTitle": "Add a comment (optional)",
-  "MessageBox.CrashReportComment": "What were you doing when it crashed? This is optional: leave it empty or cancel to send the report without a comment.\nPlease don't include passwords or personal details. Email addresses and your home folder are removed.",
+  "MessageBox.CrashReportComment": "What were you doing when it crashed? This is optional: leave it empty or cancel to send the report without a comment.\nYou can write several lines (Enter adds a line, Ctrl+Enter or OK sends). Please don't include passwords or personal details. Email addresses and your home folder are removed.",
   "MessageBox.DownloadPathChangeCopy": "Czy chcesz przenieść istniejące pliki z {0} do {1}",
   "MessageBox.CancelRegionMismatch": "Obecny region i wybrany region nie pasują do siebie, to może nie działać ! Czy mimo to chcesz kontynuować ?",
   "MessageBox.CancelDownloadIsDrive": "Ścieżka pobierania i docelowy dysk USB są takie same, zmień ścieżkę pobierania lub wybierz inny dysk USB.",
