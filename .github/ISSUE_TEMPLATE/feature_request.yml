@@ -1,0 +1,123 @@
+name: Feature request
+description: Suggest an idea or an improvement for Syn3 Updater
+title: "[Feature] "
+labels: ["Type: Enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea. A good request says **what problem you have** before it says what to build.
+
+        - Something is broken? Use the **Bug report** form instead.
+        - Need help with using the app or with your car? Ask on the [forum](https://community.cyanlabs.net).
+        - Wrong or missing translation? Say which language and which text in the "Anything else" box below.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the [existing issues](https://github.com/cyanlabs/Syn3Updater/issues?q=is%3Aissue) and nobody has asked for this yet
+          required: true
+        - label: I checked that the app cannot already do this (see the Settings, the Utility tab and the [guide](https://cyanlabs.net/docs/Syn3Updater))
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: What are you trying to do, and what gets in the way today? Describe the situation, not the solution.
+      placeholder: "Example: I update three cars and have to pick the same region, release and maps every time."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would you like to happen?
+      description: How should it work? Say what you would see and click. A rough sketch or a screenshot with notes is welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What have you tried instead?
+      description: Workarounds, other tools, or other ways it could work.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the app is it about?
+      multiple: true
+      options:
+        - Home (choosing a release and maps)
+        - Install modes and MY20 protection
+        - Downloading, or copying to the USB drive
+        - Formatting or ejecting the drive
+        - Utility (Interrogator log, MEM_ERR tools, MY20 check)
+        - Settings and profiles
+        - Logs, Diagnostics or crash reports
+        - News and About
+        - Updates of Syn3 Updater itself, or the Windows Launcher
+        - Packaging and installation (Windows, Linux packages, macOS)
+        - Translations
+        - Look and feel
+        - Something else
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Which operating systems should have it?
+      multiple: true
+      options:
+        - Windows
+        - Linux
+        - macOS
+        - All of them
+    validations:
+      required: true
+
+  - type: dropdown
+    id: writes
+    attributes:
+      label: Would it change what is written to the USB drive, or how an update is installed?
+      description: These need the most care, because a wrong install can brick an APIM. "Not sure" is a fine answer.
+      options:
+        - No, it only changes how the app looks or behaves
+        - Yes
+        - Not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: How much do you need it?
+      options:
+        - Nice to have
+        - It would save me a lot of effort
+        - I cannot do my job (or my update) without it
+
+  - type: input
+    id: version
+    attributes:
+      label: Syn3 Updater version you use
+      description: Shown under **About**.
+      placeholder: "3.0.0-test17"
+
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Can you help?
+      options:
+        - label: I can test it when a build is ready
+        - label: I could write it and send a pull request
+
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else?
+      description: Links, screenshots, how other tools do it, or the language and text of a translation you would like changed.
