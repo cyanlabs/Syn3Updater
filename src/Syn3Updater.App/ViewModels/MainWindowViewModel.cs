@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Cyanlabs.Syn3Updater.App.Services;
 using Cyanlabs.Syn3Updater.Core.Services;
+using Cyanlabs.Syn3Updater.Core.Services.Updates;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 
@@ -89,23 +90,127 @@ public partial class MainWindowViewModel : ObservableObject
     public string WindowTitle => Ctx.T("Main.WindowTitle", Ctx.Version, Ctx.Branch, Ctx.Main.Profile);
     public void RefreshTitle() => OnPropertyChanged(nameof(WindowTitle));
 
-    // ---- new version notice ----
+    // ---- new version notice, and installing it ----
     [ObservableProperty] private UpdateInfo? _update;
+    /// <summary>What the app will do about <see cref="Update"/> (install it, explain how, or only tell): null until the release's signed manifest has been checked.</summary>
+    [ObservableProperty] private UpdatePlan? _plan;
+    [ObservableProperty] private bool _installingUpdate;
+    [ObservableProperty] private double _updateProgress;
+    [ObservableProperty] private string _updateStatus = "";
+    private string? _dismissedVersion;
+
     public bool UpdateAvailable => Update != null;
+    public bool CanUpdateNow => Plan?.Kind == PlanKind.Install && !InstallingUpdate;
+    public bool CanShowHowTo => Plan?.Kind == PlanKind.Manual && !InstallingUpdate;
+    public bool NotInstallingUpdate => !InstallingUpdate;
     public string UpdateText => Update == null ? "" : Update.Switch ? Ctx.T("App.UpdateSwitch", Update.Version, Ctx.Version, ChannelName(Ctx.UpdateChannel)) : Ctx.T("App.UpdateAvailable", Update.Version, Ctx.Version);
+    /// <summary>What the banner says: the notice, or how far the installation is.</summary>
+    public string UpdateBannerText => InstallingUpdate ? UpdateStatus : UpdateText;
     /// <summary>The channel's short name in the current language ("Stable", "Beta", "Nightly").</summary>
     public static string ChannelName(UpdateChannel channel) => channel switch { UpdateChannel.Beta => Ctx.T("Channel.Beta"), UpdateChannel.Nightly => Ctx.T("Channel.Nightly"), _ => Ctx.T("Channel.Stable") };
-    partial void OnUpdateChanged(UpdateInfo? value) { OnPropertyChanged(nameof(UpdateAvailable)); OnPropertyChanged(nameof(UpdateText)); }
+    partial void OnUpdateChanged(UpdateInfo? value) { Plan = null; OnPropertyChanged(nameof(UpdateAvailable)); OnPropertyChanged(nameof(UpdateText)); OnPropertyChanged(nameof(UpdateBannerText)); }
+    partial void OnPlanChanged(UpdatePlan? value) { OnPropertyChanged(nameof(CanUpdateNow)); OnPropertyChanged(nameof(CanShowHowTo)); }
+    partial void OnInstallingUpdateChanged(bool value) { OnPropertyChanged(nameof(CanUpdateNow)); OnPropertyChanged(nameof(CanShowHowTo)); OnPropertyChanged(nameof(NotInstallingUpdate)); OnPropertyChanged(nameof(UpdateBannerText)); }
+    partial void OnUpdateStatusChanged(string value) => OnPropertyChanged(nameof(UpdateBannerText));
 
-    /// <summary>Looks for a newer release and shows the banner if there is one. A failed check is silent: it is never worth interrupting anyone for.</summary>
-    public async Task CheckForUpdateAsync()
+    /// <summary>
+    /// Looks for a newer release and shows the banner if there is one, then checks its signed manifest to learn whether the app can install it itself.
+    /// A failed check is silent: it is never worth interrupting anyone for. <paramref name="periodic"/> checks do not bring back a notice that was dismissed.
+    /// </summary>
+    public async Task CheckForUpdateAsync(bool periodic = false)
     {
-        Update = await Ctx.Updates.CheckAsync(Ctx.Version, Ctx.UpdateChannel);
-        Ctx.Log.Info(Update == null ? $"No newer version than {Ctx.Version} found on the {Ctx.UpdateChannel} channel" : $"{(Update.Switch ? "A build is available on the " + Ctx.UpdateChannel + " channel" : "A newer version is available")}: {Update.Version}");
+        if (InstallingUpdate) return;
+        var found = await Ctx.Updates.CheckAsync(Ctx.Version, Ctx.UpdateChannel);
+        if (periodic && found != null && found.Version == _dismissedVersion) found = null;
+        Update = found;
+        Ctx.Log.Info(found == null ? $"No newer version than {Ctx.Version} found on the {Ctx.UpdateChannel} channel" : $"{(found.Switch ? "A build is available on the " + Ctx.UpdateChannel + " channel" : "A newer version is available")}: {found.Version}");
+        if (found == null) return;
+        var plan = await Ctx.UpdatePlanner.PlanAsync(found, Ctx.Install, Ctx.Version, Ctx.UpdateChannel, ReleaseManifest.CurrentOs(), ReleaseManifest.CurrentArch());
+        if (!ReferenceEquals(Update, found) || InstallingUpdate) return;              // the check was repeated, or the notice dismissed, while this was working
+        Plan = plan;
+        Ctx.Log.Info($"Update {found.Version}: {plan.Kind}{(plan.Reason != null ? " (" + plan.Reason + ")" : "")}");
+        if (plan.Kind == PlanKind.Rejected) Ctx.Log.Error($"Update {found.Version} was NOT trusted: {plan.Reason}");
+    }
+
+    /// <summary>Checks again every few hours while the app stays open, so a session left running for days still hears about a release.</summary>
+    public void StartUpdateWatcher(TimeSpan? every = null)
+    {
+        var timer = new PeriodicTimer(every ?? TimeSpan.FromHours(6));
+        _ = Task.Run(async () =>
+        {
+            while (await timer.WaitForNextTickAsync())
+            {
+                if (Workflow.Busy || InstallingUpdate) continue;
+                try { await Dispatcher.UIThread.InvokeAsync(() => CheckForUpdateAsync(periodic: true)); }
+                catch (Exception e) when (e is HttpRequestException or TaskCanceledException or InvalidOperationException) { }
+            }
+        });
     }
 
     [RelayCommand] private Task OpenUpdate() => Update == null ? Task.CompletedTask : Dialogs.OpenUrl(Update.Url);
-    [RelayCommand] private void DismissUpdate() => Update = null;
+    [RelayCommand] private void DismissUpdate() { if (InstallingUpdate) return; _dismissedVersion = Update?.Version; Update = null; }
+
+    /// <summary>Shows how to update a copy the app does not update itself (a package manager command, or the download page).</summary>
+    [RelayCommand]
+    private async Task ShowHowTo()
+    {
+        if (Plan is not { Kind: PlanKind.Manual } plan || Update == null) return;
+        var command = plan.Instructions ?? "";
+        var choice = await Dialogs.Show(Ctx.T("App.UpdateHowToBody", Update.Version, command), Ctx.T("App.UpdateHowToTitle", Update.Version),
+            new[] { Ctx.T("String.OK"), Ctx.T("App.UpdateCopyCommand"), Ctx.T("App.UpdateView") }, 0);
+        if (choice == 1) await Dialogs.SetClipboard(command);
+        else if (choice == 2) await Dialogs.OpenUrl(Update.Url);
+    }
+
+    /// <summary>Downloads, installs and restarts into the new version. Refused while a download or USB run is in progress.</summary>
+    [RelayCommand]
+    private async Task UpdateNow()
+    {
+        if (Plan is not { Kind: PlanKind.Install } plan || InstallingUpdate || plan.Manifest == null) return;
+        if (Workflow.Busy) { await Dialogs.Info(Ctx.T("App.UpdateBusy")); return; }
+        var version = plan.Manifest.Version;
+        var notes = string.IsNullOrWhiteSpace(plan.Manifest.Notes) ? Ctx.T("App.UpdateNoNotes") : plan.Manifest.Notes.Trim();
+        if (!await Dialogs.Confirm(Ctx.T("App.UpdateConfirmBody", notes), Ctx.T("App.UpdateConfirmTitle", version), Ctx.T("App.UpdateNow"), Ctx.T("App.UpdateLater"))) return;
+        if (Workflow.Busy) { await Dialogs.Info(Ctx.T("App.UpdateBusy")); return; }          // started something while the question was open
+
+        InstallingUpdate = true; Workflow.Busy = true;                       // nothing else may start while the program is being replaced
+        UpdateProgress = 0; UpdateStatus = Ctx.T("App.UpdateDownloading", version, 0);
+        var restarting = false;
+        try
+        {
+            var progress = new Progress<double>(p => { UpdateProgress = p; UpdateStatus = Ctx.T("App.UpdateDownloading", version, (int)(p * 100)); });
+            var exe = await Ctx.UpdateInstaller.RunAsync(plan, progress, stage =>
+            {
+                if (stage == UpdateInstaller.Stage.Installing) Dispatcher.UIThread.Post(() => { UpdateProgress = 1; UpdateStatus = Ctx.T("App.UpdateInstalling", version); });
+            });
+            Ctx.Log.Info($"Installed Syn3 Updater {version}; restarting into {exe}");
+            Ctx.Main.WhatsNewVersion = version; Ctx.Main.WhatsNewNotes = plan.Manifest.Notes;
+            Ctx.Save(); Ctx.Log.Save(Ctx.Paths.AppLogFile);
+            UpdateStatus = Ctx.T("App.UpdateRestarting");
+            if (UpdateRestart.Restart(exe)) { restarting = true; return; }
+            await Dialogs.Error(Ctx.T("App.UpdateRestartFailed", version));
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            Ctx.Log.Error($"Update to {version} failed: {e.Message}");
+            await Dialogs.Error(Ctx.T("App.UpdateFailed", e.Message));
+        }
+        finally
+        {
+            if (!restarting) { InstallingUpdate = false; Workflow.Busy = false; }
+        }
+    }
+
+    /// <summary>After an update: shows the new version's release notes once. Also removes what the update left behind.</summary>
+    public async Task OnStartedAsync()
+    {
+        if (Ctx.Install.Kind == InstallKind.LinuxTar) LinuxTarApplier.CleanUpPrevious(Ctx.Install.AppDir);
+        var m = Ctx.Main;
+        if (m.WhatsNewVersion == null) return;
+        var version = m.WhatsNewVersion; var notes = m.WhatsNewNotes;
+        m.WhatsNewVersion = null; m.WhatsNewNotes = null; Ctx.Save();                         // once only, even if the dialog is never answered
+        if (version == Ctx.Version && !string.IsNullOrWhiteSpace(notes)) await Dialogs.Info(notes!.Trim(), Ctx.T("App.WhatsNewTitle", version));
+    }
 
     // ---- ad slot ----
     [ObservableProperty] private bool _adVisible;

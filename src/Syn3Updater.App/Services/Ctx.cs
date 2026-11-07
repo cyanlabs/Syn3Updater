@@ -2,6 +2,7 @@ using System.Reflection;
 using Cyanlabs.Syn3Updater.Core.Drives;
 using Cyanlabs.Syn3Updater.Core.Models;
 using Cyanlabs.Syn3Updater.Core.Services;
+using Cyanlabs.Syn3Updater.Core.Services.Updates;
 
 namespace Cyanlabs.Syn3Updater.App.Services;
 
@@ -18,7 +19,13 @@ public static class Ctx
     public static IDriveService Drives { get; private set; } = null!;
     public static UpdateRunner Runner { get; private set; } = null!;
     public static DiagnosticsService Diagnostics { get; private set; } = null!;
-    public static UpdateChecker Updates { get; private set; } = null!;
+    public static UpdateChecker Updates { get; set; } = null!;
+    /// <summary>How this copy was installed, and so whether it may update itself.</summary>
+    public static InstallInfo Install { get; set; } = null!;
+    /// <summary>Decides what to do about a release that was found (verifies its signed manifest).</summary>
+    public static UpdateService UpdatePlanner { get; set; } = null!;
+    public static UpdateInstaller UpdateInstaller { get; set; } = null!;
+    public static string UpdateDir => Path.Combine(Paths.DataDir, "updates");
 
     public static MainSettings Main => Store.Main;
     public static ProfileSettings Profile => Store.Profile;
@@ -53,12 +60,17 @@ public static class Ctx
         Runner = new UpdateRunner(Drives, Files, Log);
         Diagnostics = new DiagnosticsService(Drives, Http, Paths.DataDir, () => Main.DownloadPath, () => Main.LogPath, ApiClient.HasToken);
         Updates = new UpdateChecker(Http);
+        Install = InstallDetector.DetectCurrent();
+        UpdatePlanner = new UpdateService(Http);
+        UpdateInstaller = new UpdateInstaller(new UpdateDownloader(Http), UpdateDir);
+        UpdateInstaller.PurgeOld(UpdateDir, TimeSpan.FromDays(7));
         DriveMonitor = new DriveMonitor(Drives, driveFingerprint ?? DriveFingerprint.Current, () => !Workflow.Busy && DialogHostViewModel.Instance?.HasDialog != true);
 
         DriveInfoModel.Label = key => Loc[key switch { "free" => "Home.DriveFreeSpace", "size" => "Home.DriveSize", _ => "Home.DriveFileSystem" }];
         Loc.SetLanguage(Main.Lang);
         Main.Lang = Loc.Code;
         Log.Info($"Syn3 Updater {Version} ({Branch}) is starting on {OsName()}");
+        Log.Info($"Install: {Install.Kind} in {Install.AppDir}: {Install.Reason} (updates: {Install.Route})");
         foreach (var fact in SystemFacts()) Log.Debug($"System - {fact.Key}: {fact.Value}");
     }
 

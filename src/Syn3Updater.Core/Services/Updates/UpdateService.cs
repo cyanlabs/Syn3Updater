@@ -30,11 +30,19 @@ public sealed class UpdateService
     private const int MaxManifestBytes = 512 * 1024, MaxSignatureBytes = 8 * 1024;
     private readonly HttpClient _http;
     private readonly IReadOnlyList<MinisignKey> _keys;
+    private readonly Func<InstallInfo, bool> _canApply;
 
-    public UpdateService(HttpClient http, IReadOnlyList<MinisignKey>? keys = null) { _http = http; _keys = keys ?? UpdateKeys.Trusted; }
+    /// <param name="canApply">Whether this version of the app can really replace an install of that kind (default: only user-level Linux tar installs for now).
+    /// An install that "may" update itself but cannot yet is shown instructions instead of a button that would fail.</param>
+    public UpdateService(HttpClient http, IReadOnlyList<MinisignKey>? keys = null, Func<InstallInfo, bool>? canApply = null)
+    {
+        _http = http; _keys = keys ?? UpdateKeys.Trusted; _canApply = canApply ?? (i => i.Kind == InstallKind.LinuxTar);
+    }
 
     public async Task<UpdatePlan> PlanAsync(UpdateInfo info, InstallInfo install, string current, UpdateChannel wanted, UpdateOs os, UpdateArch arch, CancellationToken ct = default)
     {
+        if (install.Route == UpdateRoute.InPlace && !_canApply(install))
+            install = install with { Route = UpdateRoute.Manual, Reason = "this version of Syn3 Updater cannot update this kind of install by itself yet" };
         if (install.Route == UpdateRoute.None) return UpdatePlan.Notify(install, install.Reason);
         if (info.ManifestUrl == null || info.SignatureUrl == null) return UpdatePlan.Notify(install, "this release has no signed manifest");
         ReleaseManifest manifest;

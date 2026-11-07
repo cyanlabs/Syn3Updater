@@ -198,6 +198,9 @@ public class MainSettings
     public int DownloadConnections { get; set; } = 8;
     /// <summary>Which builds the update notice offers: Stable, Beta or Nightly. Empty means the channel of the build that is running.</summary>
     public string? UpdateChannel { get; set; }
+    /// <summary>Set just before the app restarts into a new version: that version and its release notes, shown once as "What's new" and then cleared.</summary>
+    public string? WhatsNewVersion { get; set; }
+    public string? WhatsNewNotes { get; set; }
 }
 
 public class ProfileSettings
