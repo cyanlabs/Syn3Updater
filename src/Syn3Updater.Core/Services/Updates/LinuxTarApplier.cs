@@ -91,7 +91,7 @@ public static class LinuxTarApplier
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
             using (var o = new FileStream(target, FileMode.CreateNew, FileAccess.Write, FileShare.None)) tar.CopyEntryContents(o);
             // keep only "executable or not": never setuid/setgid or group/other write
-            File.SetUnixFileMode(target, (e.TarHeader.Mode & 0x40) != 0 ? (UnixFileMode)0b111_101_101 : (UnixFileMode)0b110_100_100);
+            if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(target, (e.TarHeader.Mode & 0x40) != 0 ? (UnixFileMode)0b111_101_101 : (UnixFileMode)0b110_100_100);
         }
         var script = Directory.EnumerateFiles(stage, "install.sh", SearchOption.AllDirectories).OrderBy(p => p.Length).FirstOrDefault();
         return script == null ? stage : Path.GetDirectoryName(script)!;

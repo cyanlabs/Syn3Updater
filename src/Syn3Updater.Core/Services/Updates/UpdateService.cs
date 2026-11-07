@@ -32,11 +32,11 @@ public sealed class UpdateService
     private readonly IReadOnlyList<MinisignKey> _keys;
     private readonly Func<InstallInfo, bool> _canApply;
 
-    /// <param name="canApply">Whether this version of the app can really replace an install of that kind (default: only user-level Linux tar installs for now).
+    /// <param name="canApply">Whether this version of the app can really replace an install of that kind (default: see <see cref="DefaultCanApply"/>).
     /// An install that "may" update itself but cannot yet is shown instructions instead of a button that would fail.</param>
     public UpdateService(HttpClient http, IReadOnlyList<MinisignKey>? keys = null, Func<InstallInfo, bool>? canApply = null)
     {
-        _http = http; _keys = keys ?? UpdateKeys.Trusted; _canApply = canApply ?? (i => i.Kind == InstallKind.LinuxTar);
+        _http = http; _keys = keys ?? UpdateKeys.Trusted; _canApply = canApply ?? DefaultCanApply;
     }
 
     public async Task<UpdatePlan> PlanAsync(UpdateInfo info, InstallInfo install, string current, UpdateChannel wanted, UpdateOs os, UpdateArch arch, CancellationToken ct = default)
@@ -70,6 +70,10 @@ public sealed class UpdateService
         // updated another way: name the exact command for the file this system needs, or the download page
         return new UpdatePlan(PlanKind.Manual, manifest, asset, install, InstallDetector.ManualInstructions(install.Kind, asset?.Name), install.Reason);
     }
+
+    /// <summary>User-level Linux tar installs, and Windows folders that came with the update helper (installs from before it existed are shown instructions).</summary>
+    public static bool DefaultCanApply(InstallInfo i) =>
+        i.Kind == InstallKind.LinuxTar || (i.Kind == InstallKind.WindowsFolder && WindowsHelperLauncher.HasHelper(i.AppDir));
 
     /// <summary>The kind of file each way of installing is updated from.</summary>
     public static AssetKind? KindFor(InstallKind k) => k switch

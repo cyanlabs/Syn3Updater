@@ -79,6 +79,11 @@ public sealed class ReleaseManifest
         }
     }
 
+    /// <summary>The release tag a file is published under (the folder in its download address: v3.1.0, 2.99.99.5, nightly), or null.</summary>
+    public static string? TagOf(ManifestAsset asset) =>
+        Uri.TryCreate(asset.Url, UriKind.Absolute, out var u) && u.AbsolutePath.StartsWith(AllowedPathPrefix, StringComparison.OrdinalIgnoreCase)
+            ? u.AbsolutePath[AllowedPathPrefix.Length..].Split('/')[0] is { Length: > 0 } t ? Uri.UnescapeDataString(t) : null : null;
+
     /// <summary>The file for this OS, CPU and kind of install, or null when the release has none.</summary>
     public ManifestAsset? Find(UpdateOs os, UpdateArch arch, AssetKind kind) => Assets.FirstOrDefault(a => a.Os == os && a.Arch == arch && a.Kind == kind);
 

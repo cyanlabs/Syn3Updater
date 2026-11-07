@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The update helper: a running program cannot replace itself, so the app copies this next to a scratch folder, starts it and exits. It swaps the files, then restarts the app.
+       Windows only in practice; the logic lives in Syn3Updater.Core (WindowsApplier) so it is tested on every OS. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>Syn3Updater.Updater</AssemblyName>
+    <RootNamespace>Cyanlabs.Syn3Updater.Updater</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- the trimmer also analyses the rest of Core (settings, API client...) which this program never reaches -->
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+    <NoWarn>$(NoWarn);IL2026;IL3050;IL2104;IL2057;IL2075;IL2070</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Syn3Updater.Core\Syn3Updater.Core.csproj" />
+    <InternalsVisibleTo Include="Syn3Updater.Tests" />
+  </ItemGroup>
+</Project>

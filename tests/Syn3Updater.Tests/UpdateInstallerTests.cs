@@ -39,7 +39,7 @@ public class UpdateInstallerTests : IDisposable
     {
         var (plan, bytes, xdg, appDir) = Scenario();
         var stages = new List<UpdateInstaller.Stage>();
-        var exe = await Installer(Serve(bytes), xdg).RunAsync(plan, null, stages.Add);
+        var exe = (await Installer(Serve(bytes), xdg).RunAsync(plan, null, stages.Add)).Exe;
         Assert.Equal(Path.Combine(appDir, "Syn3Updater"), exe);
         Assert.Equal("NEW", File.ReadAllText(exe));
         Assert.Equal(new[] { UpdateInstaller.Stage.Downloading, UpdateInstaller.Stage.Installing }, stages);

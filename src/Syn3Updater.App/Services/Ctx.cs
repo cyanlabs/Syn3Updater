@@ -26,6 +26,8 @@ public static class Ctx
     public static UpdateService UpdatePlanner { get; set; } = null!;
     public static UpdateInstaller UpdateInstaller { get; set; } = null!;
     public static string UpdateDir => Path.Combine(Paths.DataDir, "updates");
+    /// <summary>Written by the Windows update helper after it has swapped the files (or failed to): read at the next start.</summary>
+    public static string UpdateResultFile => Path.Combine(Paths.DataDir, "update-result.json");
 
     public static MainSettings Main => Store.Main;
     public static ProfileSettings Profile => Store.Profile;
@@ -62,7 +64,7 @@ public static class Ctx
         Updates = new UpdateChecker(Http);
         Install = InstallDetector.DetectCurrent();
         UpdatePlanner = new UpdateService(Http);
-        UpdateInstaller = new UpdateInstaller(new UpdateDownloader(Http), UpdateDir);
+        UpdateInstaller = new UpdateInstaller(new UpdateDownloader(Http), UpdateDir, null, UpdateResultFile, LauncherPrefsPath);
         UpdateInstaller.PurgeOld(UpdateDir, TimeSpan.FromDays(7));
         DriveMonitor = new DriveMonitor(Drives, driveFingerprint ?? DriveFingerprint.Current, () => !Workflow.Busy && DialogHostViewModel.Instance?.HasDialog != true);
 
