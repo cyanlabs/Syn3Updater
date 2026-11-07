@@ -190,4 +190,28 @@ public class ReleaseManifestTests
     public void A_junk_signature_is_refused_before_the_manifest_is_read() =>
         Assert.Contains("signature", Assert.Throws<FormatException>(() =>
             ManifestTrust.Open(Json(), "untrusted comment: x\nAAAA\ntrusted comment: version:3.1.0\nAAAA", UpdateKeys.Trusted)).Message);
+
+    /// <summary>A manifest made by scripts/make-manifest.sh and signed by scripts/sign-manifest.sh with the REAL primary release key: what CI produces must open with the keys the app embeds.</summary>
+    [Fact]
+    public void A_manifest_made_and_signed_by_the_release_scripts_opens_with_the_embedded_keys()
+    {
+        var m = ManifestTrust.Open(File.ReadAllBytes(Fx("release-manifest.json")), File.ReadAllText(Fx("release-manifest.json.minisig")), UpdateKeys.Trusted);
+        Assert.Equal("3.1.0-beta.2", m.Version);
+        Assert.Equal(UpdateChannel.Beta, m.Channel);
+        Assert.Equal(12, m.Assets.Count);
+        Assert.NotNull(m.Find(UpdateOs.Windows, UpdateArch.Arm64, AssetKind.Zip));
+        Assert.NotNull(m.Find(UpdateOs.Linux, UpdateArch.X64, AssetKind.ArchPkg));
+        Assert.NotNull(m.Find(UpdateOs.MacOs, UpdateArch.Arm64, AssetKind.Dmg));
+    }
+
+    [Fact]
+    public void The_public_key_files_CI_verifies_with_match_the_keys_compiled_into_the_app()
+    {
+        var root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Fx("manifest-test.pub"))))!;      // .../tests/Syn3Updater.Tests
+        var repo = Path.GetFullPath(Path.Combine(root, "..", ".."));
+        var primary = MinisignKey.Parse(File.ReadAllText(Path.Combine(repo, "packaging", "update", "primary.pub")));
+        var backup = MinisignKey.Parse(File.ReadAllText(Path.Combine(repo, "packaging", "update", "backup.pub")));
+        Assert.Equal(UpdateKeys.Trusted[0].PublicKey, primary.PublicKey);
+        Assert.Equal(UpdateKeys.Trusted[1].PublicKey, backup.PublicKey);
+    }
 }

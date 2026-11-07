@@ -28,6 +28,7 @@ Settings > Secrets and variables > Actions:
 | Secret | Needed for |
 |---|---|
 | `SYN3_API_TOKEN` | the CyanLabs API token compiled into every build (without it the app builds but cannot reach the API) |
+| `MINISIGN_PRIMARY_KEY`, `MINISIGN_PASSWORD` | sign each release's `manifest.json` (see below); a release in `CyanLabs/Syn3Updater` fails without them |
 | `MACOS_CERTIFICATE`, `MACOS_CERTIFICATE_PASSWORD`, `MACOS_CODESIGN_IDENTITY` | optional: sign the macOS app with a Developer ID (base64 `.p12`, its password, and the identity name) |
 | `NOTARY_APPLE_ID`, `NOTARY_TEAM_ID`, `NOTARY_PASSWORD` | optional: notarize the signed app (an app-specific password) |
 
@@ -35,6 +36,23 @@ Settings > Secrets and variables > Actions:
 Leave it empty and those builds never offer to send crash reports.
 
 Without the macOS secrets the app is ad-hoc signed: it runs, but users must right-click > Open the first time.
+
+## Signed release manifest (what the app updates from)
+
+Every release carries `manifest.json` and `manifest.json.minisig`. The manifest lists each downloadable file (OS, CPU, kind, address, size, SHA-256) plus the version,
+channel and release notes. The app installs nothing that the manifest does not list, and trusts the manifest only if the signature verifies with one of the two public keys
+compiled into it (`UpdateKeys` in `src/Syn3Updater.Core/Services/Updates/Minisign.cs`, mirrored in `packaging/update/*.pub`; a test keeps them equal).
+
+- **Written and signed by the release job** (`scripts/make-manifest.sh`, `scripts/sign-manifest.sh`) after every package exists. It refuses to write a manifest when any expected file is
+  missing, and verifies its own signature against the public keys, so a wrong key or password stops the release instead of reaching users.
+- **The signed comment** is `version:<v> channel:<c>`, so a signature cannot be moved onto another release's manifest. Updates only ever move forward; the one exception is the user
+  explicitly choosing another channel in Settings.
+- **Release notes** shown in the update banner and the *What's new* box: the *notes* input of the Release workflow, or else the file `release-notes/<version>.md`. Plain text, a line or two.
+- **Keys:** the *primary* private key is the GitHub secret pair `MINISIGN_PRIMARY_KEY` (the `.key` file contents) and `MINISIGN_PASSWORD`. The *backup* private key is **never** in CI: it
+  is kept offline and is only used to sign a release if the primary is lost or leaked (then replace the primary public key in a release signed by the backup). Both are in 1Password
+  (vault Private, "Syn3Updater minisign PRIMARY" / "BACKUP"). Forks without the secrets publish releases without a manifest: the app then only tells people about them.
+- **Install markers:** packages and `install.sh` write `.install-method` (`tar`, `deb`, `rpm`, `pacman`) next to the program. The app updates itself in place only for `tar` (a user-level
+  `install.sh` install); package-managed copies are never rewritten and are shown the right `apt`, `dnf` or `pacman` command instead.
 
 ## Update channels
 
