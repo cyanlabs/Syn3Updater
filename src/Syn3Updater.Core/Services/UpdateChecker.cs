@@ -4,7 +4,8 @@ using System.Text.RegularExpressions;
 
 namespace Cyanlabs.Syn3Updater.Core.Services;
 
-public record UpdateInfo(string Version, string Url, bool Prerelease, bool Switch = false);
+/// <summary>A release the app could move to. ManifestUrl and SignatureUrl are the release's signed manifest.json and manifest.json.minisig, when it has them (older releases do not).</summary>
+public record UpdateInfo(string Version, string Url, bool Prerelease, bool Switch = false, string? ManifestUrl = null, string? SignatureUrl = null);
 
 /// <summary>Where a build comes from. Stable = tested releases, Beta = early releases, Nightly = automatic builds of the latest code.</summary>
 public enum UpdateChannel { Stable, Beta, Nightly }
@@ -76,7 +77,15 @@ public class UpdateChecker
             if (want == UpdateChannel.Stable ? pre || kind != UpdateChannel.Stable : want == UpdateChannel.Beta ? kind == UpdateChannel.Nightly : kind != UpdateChannel.Nightly) continue;
             if (bestVer != null && v.CompareTo(bestVer) <= 0) continue;
             var url = rel.TryGetProperty("html_url", out var u) ? u.GetString() : null;
-            best = new UpdateInfo(version!.TrimStart('v', 'V'), url ?? $"https://github.com/{Repo}/releases", pre);
+            string? manifest = null, signature = null;
+            if (rel.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
+                foreach (var a in assets.EnumerateArray())
+                {
+                    var an = a.TryGetProperty("name", out var nn) ? nn.GetString() : null;
+                    var au = a.TryGetProperty("browser_download_url", out var uu) ? uu.GetString() : null;
+                    if (an == "manifest.json") manifest = au; else if (an == "manifest.json.minisig") signature = au;
+                }
+            best = new UpdateInfo(version!.TrimStart('v', 'V'), url ?? $"https://github.com/{Repo}/releases", pre, false, manifest, manifest != null ? signature : null);
             bestVer = v;
         }
         if (best == null || bestVer == null) return null;
