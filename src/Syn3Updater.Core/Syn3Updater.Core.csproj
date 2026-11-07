@@ -7,6 +7,7 @@
     <SentryDsnFile>$(MSBuildThisFileDirectory)..\..\secrets\sentry-dsn.txt</SentryDsnFile>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <EmbeddedResource Include="Languages\*.json" />
     <InternalsVisibleTo Include="Syn3Updater.Tests" />
@@ -31,8 +32,7 @@
       <_Token Condition="$(_Token.StartsWith('paste-'))"></_Token>
       <_SecretFile>$(IntermediateOutputPath)ApiSecret.g.cs</_SecretFile>
     </PropertyGroup>
-    <WriteLinesToFile File="$(_SecretFile)" Overwrite="true"
-                      Lines="// &lt;auto-generated/&gt; from secrets/api-token.txt, secrets/sentry-dsn.txt or the environment - never committed%0Anamespace Cyanlabs.Syn3Updater.Core.Services%0A{%0A    internal static class ApiSecret%0A    {%0A        public const string Token = &quot;$(_Token)&quot;%3B%0A        public const string SentryDsn = &quot;$(_Dsn)&quot;%3B%0A    }%0A}%0A" />
+    <WriteLinesToFile File="$(_SecretFile)" Overwrite="true" Lines="// &lt;auto-generated/&gt; from secrets/api-token.txt, secrets/sentry-dsn.txt or the environment - never committed%0Anamespace Cyanlabs.Syn3Updater.Core.Services%0A{%0A    internal static class ApiSecret%0A    {%0A        public const string Token = &quot;$(_Token)&quot;%3B%0A        public const string SentryDsn = &quot;$(_Dsn)&quot;%3B%0A    }%0A}%0A" />
     <ItemGroup>
       <Compile Include="$(_SecretFile)" />
       <FileWrites Include="$(_SecretFile)" />
