@@ -310,17 +310,23 @@ public partial class HomeViewModel : PageViewModel
     private async Task ChooseFolderAsync()
     {
         var path = await Dialogs.PickFolder(Ctx.T("Home.NoUSBDir"));
-        if (path == null) { SelectedDrive = _lastSelection; return; }                  // cancelled: keep what was selected before
+        if (path == null) { RestoreSelectionLater(); return; }                         // cancelled: keep what was selected before
         var item = new DriveInfoModel { IsFolder = true, MountPath = path, Name = $"{Ctx.T("Home.NoUSBDir")}: {path}", DeviceId = "" };
         SetDrives(Drives.Where(d => !d.IsFolder && !d.IsChooser).ToList(), item);
         SelectedDrive = item;
     }
 
+    /// <summary>
+    /// Puts the previous selection back after the current change has been handled. Set inside the change notification, the ComboBox misses it, goes on showing
+    /// "Select A Directory" as selected and then ignores the next click on it (after a cancelled dialog, nothing could be picked again).
+    /// </summary>
+    private void RestoreSelectionLater() => Avalonia.Threading.Dispatcher.UIThread.Post(() => SelectedDrive = _lastSelection);
+
     partial void OnSelectedDriveChanged(DriveInfoModel? value)
     {
         if (value?.IsChooser == true)             // the last dropdown entry is an action, not a drive
         {
-            SelectedDrive = _lastSelection;
+            RestoreSelectionLater();
             _ = ChooseFolderAsync();
             return;
         }
