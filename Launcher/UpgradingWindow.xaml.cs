@@ -153,6 +153,7 @@ namespace Cyanlabs.Launcher
                         break;
 
                     case OutcomeKind.Failed:
+                        CrashReports.Report("update-failed", "UpdateFailed", outcome.Message, "");
                         MessageBox.Show(outcome.Message, "Syn3 Updater", MessageBoxButton.OK, MessageBoxImage.Warning);
                         if (!File.Exists(appPath))
                         {

@@ -372,3 +372,5 @@ config
 description
 info/exclude
 objects/
+# local crash report DSN
+secrets/
