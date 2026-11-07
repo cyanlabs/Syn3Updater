@@ -64,11 +64,14 @@
       <Border Classes="card">
         <StackPanel Spacing="12">
           <TextBlock Text="{svc:T App.AboutBuild}" Classes="section" />
-          <Grid ColumnDefinitions="130,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+          <Grid ColumnDefinitions="130,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
             <TextBlock Text="{svc:T App.Version}" Classes="label" /><TextBlock Grid.Column="1" Text="{Binding VersionText}" />
             <TextBlock Grid.Row="1" Text="{svc:T App.Platform}" Classes="label" /><TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Platform}" TextWrapping="Wrap" />
             <TextBlock Grid.Row="2" Text="{svc:T App.Runtime}" Classes="label" /><TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Runtime}" />
             <TextBlock Grid.Row="3" Text="{svc:T App.DataFolder}" Classes="label" /><TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding DataFolder}" Classes="mono" FontSize="12" TextWrapping="Wrap" />
+            <TextBlock Grid.Row="4" Text="{svc:T App.InstalledAs}" Classes="label" /><TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding InstalledAs}" TextWrapping="Wrap" />
+            <TextBlock Grid.Row="5" Text="{svc:T App.UpdateMethod}" Classes="label" /><TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding UpdateMethod}" TextWrapping="Wrap" />
+            <TextBlock Grid.Row="6" Text="{svc:T App.InstallFolder}" Classes="label" /><TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding InstallFolder}" Classes="mono" FontSize="12" TextWrapping="Wrap" />
           </Grid>
           <WrapPanel ItemSpacing="8" LineSpacing="8">
             <Button Command="{Binding OpenDataFolderCommand}" Content="{svc:T App.OpenDataFolder}" />

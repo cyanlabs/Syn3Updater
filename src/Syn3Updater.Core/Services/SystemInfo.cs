@@ -32,7 +32,7 @@ public static class SystemInfo
 
     /// <summary>Ordered key/value facts. <paramref name="exists"/> checks whether a command is installed (injectable for tests).</summary>
     public static IReadOnlyList<KeyValuePair<string, string>> Collect(string appVersion, string branch, string? dataDir = null, string? downloadDir = null,
-        Func<string, bool>? exists = null, Func<string, string?>? env = null)
+        Func<string, bool>? exists = null, Func<string, string?>? env = null, string? installMethod = null)
     {
         exists ??= Drives.ProcessRunner.Exists;
         env ??= Environment.GetEnvironmentVariable;
@@ -56,6 +56,7 @@ public static class SystemInfo
         Add("UI culture", CultureInfo.CurrentUICulture.Name);
         Add("Time zone", TimeZoneInfo.Local.Id);
         Add("Install location", Redact(AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar)));
+        Add("Install method", installMethod);
 
         if (OperatingSystem.IsLinux())
         {
