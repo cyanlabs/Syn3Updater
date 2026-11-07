@@ -201,6 +201,8 @@ public class MainSettings
     /// <summary>Set just before the app restarts into a new version: that version and its release notes, shown once as "What's new" and then cleared.</summary>
     public string? WhatsNewVersion { get; set; }
     public string? WhatsNewNotes { get; set; }
+    /// <summary>The install folder whose Launcher shortcuts and syn3updater:// handler were already pointed at Syn3Updater.exe (done once per install, see LauncherMigration).</summary>
+    public string? LauncherMigratedFor { get; set; }
 }
 
 public class ProfileSettings

@@ -204,6 +204,26 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Windows, once per install: shortcuts and the syn3updater:// handler that the v2 installer pointed at Launcher.exe are pointed at Syn3Updater.exe instead. Only for installs that can
+    /// update themselves (otherwise the Launcher is still what keeps them current), and only marked done when nothing failed, so a missing right is tried again next time.
+    /// </summary>
+    internal static void MigrateLauncherShortcuts()
+    {
+        try
+        {
+            if (!OperatingSystem.IsWindows() || Ctx.Install.Kind != InstallKind.WindowsFolder || !UpdateService.DefaultCanApply(Ctx.Install)) return;
+            if (string.Equals(Ctx.Main.LauncherMigratedFor, Ctx.Install.AppDir, StringComparison.OrdinalIgnoreCase)) return;
+            if (!File.Exists(Path.Combine(Ctx.Install.AppDir, LauncherMigration.LauncherExe))) return;          // no Launcher here: nothing could point at it
+            var r = LauncherMigration.Run(Ctx.Install.AppDir, new Core.Services.Updates.Windows.WindowsShortcutStore(), new Core.Services.Updates.Windows.WindowsProtocolStore(), Ctx.Log.Info);
+            if (r.Complete) { Ctx.Main.LauncherMigratedFor = Ctx.Install.AppDir; Ctx.Save(); }
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Runtime.InteropServices.COMException or System.Security.SecurityException)
+        {
+            Ctx.Log.Error("Could not point the shortcuts at Syn3Updater.exe: " + e.Message);
+        }
+    }
+
     /// <summary>After an update: shows the new version's release notes once. Also removes what the update left behind.</summary>
     public async Task OnStartedAsync()
     {
@@ -214,6 +234,7 @@ public partial class MainWindowViewModel : ObservableObject
             try { if (InstallTransaction.Recover(Ctx.Install.AppDir)) Ctx.Log.Info("Rolled back an interrupted update"); }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Ctx.Log.Error("Could not clean up after an update: " + e.Message); }
         }
+        _ = Task.Run(MigrateLauncherShortcuts);
         // what the update helper reported: a failure is shown once (the helper already told the user, but the app was closed then and could not keep it)
         if (ApplyResult.Read(Ctx.UpdateResultFile) is { } result)
         {
