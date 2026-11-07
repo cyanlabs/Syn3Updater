@@ -158,7 +158,7 @@ public class LinuxTarApplierTests : IDisposable
     [Fact]
     public void The_install_script_does_not_end_on_a_conditional_that_can_make_it_exit_non_zero()
     {
-        var packager = File.ReadAllText(FindRepoFile(Path.Combine("scripts", "package-linux.sh")));
+        var packager = File.ReadAllText(FindRepoFile(Path.Combine("scripts", "package-linux.sh"))).Replace("\r\n", "\n");          // a Windows checkout may have CRLF
         var start = packager.IndexOf("<<'INST'\n", StringComparison.Ordinal) + "<<'INST'\n".Length;
         var script = packager[start..packager.IndexOf("\nINST\n", start, StringComparison.Ordinal)];
         var last = script.TrimEnd().Split('\n').Last().Trim();

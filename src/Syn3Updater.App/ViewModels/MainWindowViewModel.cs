@@ -242,7 +242,7 @@ public partial class MainWindowViewModel : ObservableObject
         if (Ctx.Install.Kind == InstallKind.WindowsFolder)
         {
             // an update that was cut short (power loss, a crash) is undone here, as the Launcher does at its start; the old program of a finished one, which could not be deleted while it ran, is removed
-            try { if (InstallTransaction.Recover(Ctx.Install.AppDir)) Ctx.Log.Info("Rolled back an interrupted update"); }
+            try { if (await Task.Run(() => InstallTransaction.Recover(Ctx.Install.AppDir))) Ctx.Log.Info("Rolled back an interrupted update"); }          // may wait a few seconds for the old program to let go of its file
             catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Ctx.Log.Error("Could not clean up after an update: " + e.Message); }
         }
         _ = Task.Run(MigrateLauncherShortcuts);

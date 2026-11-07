@@ -28,12 +28,13 @@ internal sealed class FaultyFileSystem : ISwapFileSystem
     private readonly RealSwapFileSystem _real = new();
     public Func<string, string, bool> FailMove { get; set; } = (_, _) => false;
     public int MoveFailuresLeft { get; set; }
+    public int DeleteDirFailuresLeft { get; set; }
     public int MoveCalls { get; private set; }
     public bool FileExists(string p) => _real.FileExists(p);
     public bool DirectoryExists(string p) => _real.DirectoryExists(p);
     public void CreateDirectory(string p) => _real.CreateDirectory(p);
     public void DeleteFile(string p) => _real.DeleteFile(p);
-    public void DeleteDirectory(string p) => _real.DeleteDirectory(p);
+    public void DeleteDirectory(string p) { if (DeleteDirFailuresLeft > 0) { DeleteDirFailuresLeft--; throw new IOException("still in use (simulated)"); } _real.DeleteDirectory(p); }
     public void MoveFile(string s, string d, bool o)
     {
         MoveCalls++;
@@ -237,6 +238,33 @@ public class TransactionTests
             Assert.False(InstallTransaction.Recover(install));
             Assert.Equal("new", File.ReadAllText(Path.Combine(install, "Syn3Updater.exe")));
             Assert.False(File.Exists(Path.Combine(install, "Launcher.exe"))); Assert.False(Directory.Exists(backup));
+        }
+    }
+
+    [Fact]
+    public void TheLeftoverBackupOfAFinishedUpdate_IsRemovedOnceTheOldProgramLetsGo()
+    {
+        var (t, install, _) = Setup(("Syn3Updater.exe", "new"));
+        using (t)
+        {
+            var backup = Path.Combine(install, InstallTransaction.BackupDirName); Directory.CreateDirectory(backup);
+            File.WriteAllText(Path.Combine(backup, "Syn3Updater.exe"), "old, still exiting"); File.WriteAllText(Path.Combine(backup, "COMPLETE"), "x");
+            var fs = new FaultyFileSystem { DeleteDirFailuresLeft = 3 };                              // the old program still holds its file for the first few tries
+            Assert.False(InstallTransaction.Recover(install, fs, new RetryPolicy(10, 0)));
+            Assert.False(Directory.Exists(backup)); Assert.Equal("new", File.ReadAllText(Path.Combine(install, "Syn3Updater.exe")));
+        }
+    }
+
+    [Fact]
+    public void ALeftoverThatNeverLetsGo_IsLeftForTheNextStart_NotAnError()
+    {
+        var (t, install, _) = Setup(("Syn3Updater.exe", "new"));
+        using (t)
+        {
+            var backup = Path.Combine(install, InstallTransaction.BackupDirName); Directory.CreateDirectory(backup); File.WriteAllText(Path.Combine(backup, "COMPLETE"), "x");
+            Assert.False(InstallTransaction.Recover(install, new FaultyFileSystem { DeleteDirFailuresLeft = 99 }, new RetryPolicy(3, 0)));
+            Assert.True(Directory.Exists(backup));                                                       // still there, still marked complete: the next start tries again
+            Assert.True(File.Exists(Path.Combine(backup, "COMPLETE")));
         }
     }
 

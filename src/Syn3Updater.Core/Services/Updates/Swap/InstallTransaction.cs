@@ -67,9 +67,10 @@ public sealed class InstallTransaction
     /// With the marker it is just leftover and is deleted.
     /// </summary>
     /// <returns>True when an interrupted update was rolled back.</returns>
-    public static bool Recover(string installDir, ISwapFileSystem? fs = null)
+    /// <param name="retry">How long to keep trying to delete the leftover backup: the old program of a finished update is usually still exiting at the first start, and Windows keeps its exe locked a moment longer.</param>
+    public static bool Recover(string installDir, ISwapFileSystem? fs = null, RetryPolicy? retry = null)
     {
-        fs ??= new RealSwapFileSystem();
+        fs ??= new RealSwapFileSystem(); retry ??= new RetryPolicy(8, 500);
         var backup = Path.Combine(installDir, BackupDirName); var staging = Path.Combine(installDir, StagingDirName);
         var rolledBack = false;
         if (fs.DirectoryExists(backup))
@@ -85,7 +86,7 @@ public sealed class InstallTransaction
                 }
                 rolledBack = true;
             }
-            try { fs.DeleteDirectory(backup); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+            try { retry.Run(() => fs.DeleteDirectory(backup)); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
         }
         try { if (fs.DirectoryExists(staging)) fs.DeleteDirectory(staging); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
         return rolledBack;
