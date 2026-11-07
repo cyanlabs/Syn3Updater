@@ -11,7 +11,7 @@ real Launcher and not a copy of the app.
 | `FluentWPF.dll`, `Newtonsoft.Json.dll` | the libraries it loads (Newtonsoft stays at 12.0.3, the version both the Launcher and the old app agree on) |
 | `Launcher.pdb`, `Launcher.Core.pdb` | debug symbols, so Launcher crash stack traces carry file and line numbers |
 
-**Provenance:** built by the `Launcher` workflow (CI run 42364628845, commit `0245c46`, job "Build the launcher (Windows)", artifact `Launcher-net472`). `SHA256SUMS` pins them; `package-windows.sh` refuses to build if any file differs.
+**Provenance:** built by the `Launcher` workflow (CI run 42368001163, commit `c1134c7`, job "Build the launcher (Windows)", artifact `Launcher-net472`). `SHA256SUMS` pins them; `package-windows.sh` refuses to build if any file differs.
 
 **Why they must be in every package, not just the flat zip:** when the Launcher installs a v3 zip it removes old files the new package does not ship, and with no install manifest yet (the first run after the old
 v2 Launcher installed us) that means every `.dll`. A package without `FluentWPF.dll`, `Launcher.Core.dll` and `Newtonsoft.Json.dll` would make the Launcher delete its own libraries and fail to start next time.
