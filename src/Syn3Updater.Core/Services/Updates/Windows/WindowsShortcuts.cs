@@ -130,35 +130,37 @@ public sealed class WindowsShortcutStore : IShortcutStore
 [SupportedOSPlatform("windows")]
 public sealed class WindowsProtocolStore : IProtocolStore
 {
-    private readonly RegistryKey _root; private readonly string _commandPath;
+    private readonly RegistryKey? _root; private readonly string _commandPath;
 
-    /// <param name="root">Registry root (default HKEY_LOCAL_MACHINE); tests pass a throw-away key.</param>
+    /// <param name="root">A registry key to look below (tests pass a throw-away key, which stays the caller's: it is never closed here); null = HKEY_LOCAL_MACHINE, in both registry views.</param>
     /// <param name="commandPath">Path of the command key below it.</param>
     public WindowsProtocolStore(RegistryKey? root = null, string commandPath = @"Software\Classes\syn3updater\shell\open\command")
     {
-        _root = root ?? Registry.LocalMachine; _commandPath = commandPath;
+        _root = root; _commandPath = commandPath;
     }
 
-    private IEnumerable<RegistryKey> Bases() =>
-        _root == Registry.LocalMachine || _root == Registry.CurrentUser
-            ? new[] { RegistryKey.OpenBaseKey(_root == Registry.LocalMachine ? RegistryHive.LocalMachine : RegistryHive.CurrentUser, RegistryView.Registry64),
-                      RegistryKey.OpenBaseKey(_root == Registry.LocalMachine ? RegistryHive.LocalMachine : RegistryHive.CurrentUser, RegistryView.Registry32) }
-            : new[] { _root };
+    /// <summary>The keys to look in, and whether this store opened them (and so must close them).</summary>
+    private IEnumerable<(RegistryKey Key, bool Owned)> Bases() =>
+        _root != null ? new[] { (_root, false) }
+                      : new[] { (RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64), true), (RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32), true) };
 
     public string? GetOpenCommand()
     {
-        foreach (var b in Bases()) using (b) using (var k = b.OpenSubKey(_commandPath)) if (k?.GetValue(null) as string is { Length: > 0 } v) return v;
+        foreach (var (b, owned) in Bases())
+            try { using var k = b.OpenSubKey(_commandPath); if (k?.GetValue(null) as string is { Length: > 0 } v) return v; }
+            finally { if (owned) b.Dispose(); }
         return null;
     }
 
     public void SetOpenCommand(string command)
     {
-        foreach (var b in Bases())
-            using (b)
+        foreach (var (b, owned) in Bases())
+            try
             {
                 using var existing = b.OpenSubKey(_commandPath);
                 if (existing == null) continue;                                           // only views that already have the entry
                 using var k = b.CreateSubKey(_commandPath, true); k.SetValue(null, command);
             }
+            finally { if (owned) b.Dispose(); }
     }
 }

@@ -37,6 +37,7 @@ public class UpdateInstallerTests : IDisposable
     [Fact]
     public async Task Download_then_install_replaces_the_program_and_reports_both_stages()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         var (plan, bytes, xdg, appDir) = Scenario();
         var stages = new List<UpdateInstaller.Stage>();
         var exe = await Installer(Serve(bytes), xdg).RunAsync(plan, null, stages.Add);
@@ -49,6 +50,7 @@ public class UpdateInstallerTests : IDisposable
     [Fact]
     public async Task A_download_that_does_not_match_the_manifest_never_reaches_install_sh()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         var (plan, bytes, xdg, appDir) = Scenario(script: "#!/usr/bin/env bash\ntouch \"$XDG_DATA_HOME/script-ran\"\n");
         var tampered = (byte[])bytes.Clone(); tampered[tampered.Length / 2] ^= 1;
         await Assert.ThrowsAsync<InvalidDataException>(() => Installer(Serve(tampered), xdg).RunAsync(plan));
@@ -59,6 +61,7 @@ public class UpdateInstallerTests : IDisposable
     [Fact]
     public async Task A_failed_install_leaves_the_old_program()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         var (plan, bytes, xdg, appDir) = Scenario(script: "#!/usr/bin/env bash\nexit 9\n");
         await Assert.ThrowsAsync<UpdateApplyException>(() => Installer(Serve(bytes), xdg).RunAsync(plan));
         Assert.Equal("OLD", File.ReadAllText(Path.Combine(appDir, "Syn3Updater")));

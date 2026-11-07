@@ -85,8 +85,8 @@ public class WindowsInstallerTests : IDisposable
     {
         if (!OperatingSystem.IsWindows()) return;
         var (plan, zip) = Scenario(); var dir = plan.Install.AppDir; var exe = Path.Combine(dir, "Syn3Updater.exe");
-        File.Copy(Path.Combine(Environment.SystemDirectory, "ping.exe"), exe, overwrite: true);          // a real executable image that is really running
-        using var running = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, "-n 120 127.0.0.1") { UseShellExecute = false, CreateNoWindow = true })!;
+        File.Copy(Path.Combine(Environment.SystemDirectory, "cmd.exe"), exe, overwrite: true);           // a real executable image that is really running (a copy of ping.exe cannot start outside System32)
+        using var running = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, "/c ping -n 120 127.0.0.1 >nul") { UseShellExecute = false, CreateNoWindow = true })!;
         try
         {
             await Task.Delay(1000);

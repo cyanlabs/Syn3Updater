@@ -35,7 +35,7 @@ public class UpdateBannerTests
             App.Main.Plan = plan;
             return (plan, xdg, appDir);
         }
-        public void Dispose() { UpdateRestart.Starter = null!; UpdateRestart.Quit = null!; Workflow.Busy = false; App.Dispose(); Inner.Dispose(); }
+        public void Dispose() { UpdateRestart.Starter = null!; UpdateRestart.Quit = null!; Workflow.Busy = false; Ctx.PlanUpdate = i => Ctx.UpdatePlanner.PlanAsync(i, Ctx.Install, Ctx.Version, Ctx.UpdateChannel, ReleaseManifest.CurrentOs(), ReleaseManifest.CurrentArch()); App.Dispose(); Inner.Dispose(); }
     }
 
     [AvaloniaFact]
@@ -52,6 +52,7 @@ public class UpdateBannerTests
     [AvaloniaFact]
     public async Task Update_now_installs_remembers_the_notes_and_restarts_into_the_new_program()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         using var e = new Env(); var (_, _, appDir) = e.Ready();
         e.App.Dialogs.DefaultYes = true;
         await e.App.Main.UpdateNowCommand.ExecuteAsync(null);
@@ -69,6 +70,7 @@ public class UpdateBannerTests
     [AvaloniaFact]
     public async Task Saying_no_downloads_nothing()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         using var e = new Env(); var (_, _, appDir) = e.Ready();
         e.App.Dialogs.DefaultYes = false;
         await e.App.Main.UpdateNowCommand.ExecuteAsync(null);
@@ -79,6 +81,7 @@ public class UpdateBannerTests
     [AvaloniaFact]
     public async Task A_running_job_blocks_the_update_and_nothing_is_asked_or_downloaded()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         using var e = new Env(); e.Ready(); Workflow.Busy = true;
         await e.App.Main.UpdateNowCommand.ExecuteAsync(null);
         Assert.Contains("download or update is running", e.App.Dialogs.Messages.Single());
@@ -89,6 +92,7 @@ public class UpdateBannerTests
     [AvaloniaFact]
     public async Task A_job_started_while_the_question_was_open_also_blocks_it()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         using var e = new Env(); e.Ready();
         e.App.Dialogs.Say(msg => { Workflow.Busy = true; return true; }, yes: true);          // the user starts something while the dialog is up, then says yes
         await e.App.Main.UpdateNowCommand.ExecuteAsync(null);
@@ -98,6 +102,7 @@ public class UpdateBannerTests
     [AvaloniaFact]
     public async Task A_corrupt_download_shows_the_error_and_leaves_everything_as_it_was()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         using var e = new Env(); var (_, _, appDir) = e.Ready(served: new byte[] { 1, 2, 3 });
         e.App.Dialogs.DefaultYes = true;
         await e.App.Main.UpdateNowCommand.ExecuteAsync(null);
@@ -111,6 +116,7 @@ public class UpdateBannerTests
     [AvaloniaFact]
     public async Task A_failing_install_script_shows_the_error_and_rolls_back()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         using var e = new Env(); var (_, _, appDir) = e.Ready(script: "#!/usr/bin/env bash\necho nope >&2\nexit 4\n");
         e.App.Dialogs.DefaultYes = true;
         await e.App.Main.UpdateNowCommand.ExecuteAsync(null);
@@ -122,6 +128,7 @@ public class UpdateBannerTests
     [AvaloniaFact]
     public async Task If_the_new_program_cannot_be_started_the_user_is_told_and_the_app_stays_open()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         using var e = new Env(); e.Ready(); e.StartWorks = false;
         e.App.Dialogs.DefaultYes = true;
         await e.App.Main.UpdateNowCommand.ExecuteAsync(null);
@@ -132,6 +139,7 @@ public class UpdateBannerTests
     [AvaloniaFact]
     public async Task Pressing_Update_now_twice_does_not_start_two_installs()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         using var e = new Env(); e.Ready(); e.App.Dialogs.DefaultYes = true;
         var m = e.App.Main;
         var first = m.UpdateNowCommand.ExecuteAsync(null); var second = m.UpdateNowCommand.ExecuteAsync(null);
@@ -199,7 +207,8 @@ public class UpdateBannerTests
         var h = new FuncHandler(r => r.RequestUri!.Host == "api.github.com" ? new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(Releases("v3.1.0-beta.2", "Syn3 Updater 3.1.0-beta.2", true, b), Encoding.UTF8, "application/json") }
             : new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(r.RequestUri.AbsolutePath.EndsWith(".minisig") ? sig : manifest) });
         var http = new HttpClient(h);
-        Ctx.Updates = new UpdateChecker(http); Ctx.UpdatePlanner = new UpdateService(http);
+        Ctx.Updates = new UpdateChecker(http); var planner = Ctx.UpdatePlanner = new UpdateService(http);
+        Ctx.PlanUpdate = i => planner.PlanAsync(i, Ctx.Install, Ctx.Version, Ctx.UpdateChannel, UpdateOs.Linux, UpdateArch.X64);          // the fixture lists Linux files, whatever OS the tests run on
         Ctx.Install = new InstallInfo(install.Kind, "/x", install.Route, "test"); Ctx.Main.UpdateChannel = "Beta";
     }
     private sealed record Install(InstallKind Kind, UpdateRoute Route);

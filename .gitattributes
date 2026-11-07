@@ -1,2 +1,4 @@
 # keep Git from touching these (no line-ending conversion)
 packaging/windows/launcher/* binary
+# signed test fixtures: a signature covers the exact bytes, so no line-ending conversion on Windows checkouts
+tests/Syn3Updater.Tests/Fixtures/Minisign/* -text

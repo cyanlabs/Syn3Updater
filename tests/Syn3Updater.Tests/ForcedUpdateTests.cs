@@ -65,6 +65,7 @@ public class ForcedUpdateTests
     [AvaloniaFact]
     public async Task A_version_below_the_minimum_is_updated_at_launch_with_no_question_and_the_window_is_blocked()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         using var e = new Env(); var plan = e.Install();
         await e.App.Main.EnforceMinimumAsync();
         Assert.Equal("NEW", File.ReadAllText(Path.Combine(plan.Install.AppDir, "Syn3Updater")));
@@ -77,6 +78,7 @@ public class ForcedUpdateTests
     [AvaloniaFact]
     public async Task The_overlay_text_says_what_is_being_installed_and_carries_the_maintainers_message()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         using var e = new Env(); e.Serve(message: "Fixes a firmware bug."); e.Install();
         await e.App.Main.EnforceMinimumAsync();
         Assert.Contains("3.1.0", e.App.Main.ForcedUpdateText); Assert.Contains("Fixes a firmware bug.", e.App.Main.ForcedUpdateText);
@@ -146,6 +148,7 @@ public class ForcedUpdateTests
     [AvaloniaFact]
     public async Task A_failed_install_offers_to_try_again_and_the_second_try_succeeds()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         using var e = new Env(); var plan = e.Install(); var good = e.Served; var attempts = 0;
         Ctx.UpdateInstaller = new UpdateInstaller(new UpdateDownloader(new HttpClient(new FuncHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
             { Content = new ByteArrayContent(++attempts == 1 ? new byte[] { 1, 2, 3 } : good) })), _ => long.MaxValue), Path.Combine(e.Inner.Root, "updates"), Path.Combine(e.Inner.Root, "xdg"));
@@ -159,6 +162,7 @@ public class ForcedUpdateTests
     [AvaloniaFact]
     public async Task A_failed_install_can_be_answered_with_quit_and_the_old_version_is_untouched()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         using var e = new Env(); var plan = e.Install(); e.Served = new byte[] { 9, 9, 9 };
         e.App.Dialogs.Choices.Enqueue(1);          // Quit
         await e.App.Main.EnforceMinimumAsync();
@@ -201,6 +205,7 @@ public class ForcedUpdateTests
     [AvaloniaFact]
     public async Task The_next_start_asks_again_so_a_fixed_backend_enforces_normally()
     {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
         using var e = new Env(); e.Install();
         e.Serve(raw: () => throw new HttpRequestException("offline"));
         await e.App.Main.EnforceMinimumAsync(); Assert.Empty(e.Started);

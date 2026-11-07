@@ -159,6 +159,10 @@ public class InstallDetectorTests : IDisposable
     }
 
     [Fact]
-    public void The_running_test_process_is_detected_without_throwing() =>
-        Assert.Equal(UpdateRoute.None, InstallDetector.DetectCurrent().Route);       // tests run under the dotnet host
+    public void The_running_test_process_is_detected_without_throwing()
+    {
+        var info = InstallDetector.DetectCurrent();
+        Assert.NotNull(info); Assert.False(string.IsNullOrEmpty(info.AppDir));
+        if (!OperatingSystem.IsWindows()) Assert.Equal(UpdateRoute.None, info.Route);       // on Linux and macOS tests run under the dotnet host (on Windows they run as testhost.exe)
+    }
 }
