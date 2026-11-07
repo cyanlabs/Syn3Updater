@@ -72,7 +72,7 @@ Choosing a different channel offers that channel's newest build even if its numb
 
 If the app crashes, the next start asks whether to send a crash report. Nothing is sent unless you click *Yes*, and the question is asked once per crash.
 A report holds the error and where it happened, the app version and update channel, and your operating system. Your user name and home folder are removed.
-If you had opened a car's log, it also holds that car's VIN, which helps with troubleshooting. It goes to CyanLabs' own [GlitchTip](https://glitchtip.com) server.
+If you had opened a car's log, it also holds that car's VIN, which helps with troubleshooting. You can also add a short comment about what you were doing (optional; email addresses and your home folder are removed from it). It goes to CyanLabs' own [GlitchTip](https://glitchtip.com) server.
 
 ### `syn3updater://` links
 

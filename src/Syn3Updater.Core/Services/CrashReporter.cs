@@ -35,6 +35,8 @@ public sealed class CrashRecord
     public string Version { get; set; } = "";
     public string Channel { get; set; } = "";
     public string Vin { get; set; } = "";
+    /// <summary>What the user wrote about what they were doing, already sanitized (see <see cref="CrashReporter.SanitizeComment"/>). Empty = none.</summary>
+    public string Comment { get; set; } = "";
 }
 
 /// <summary>
@@ -68,6 +70,32 @@ public static class CrashReporter
         home ??= Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         if (string.IsNullOrEmpty(home) || home.Length < 3) return text;
         return text.Replace(home, "~", StringComparison.OrdinalIgnoreCase).Replace(home.Replace('\\', '/'), "~", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public const int MaxCommentLength = 500;
+    private static readonly Regex Email = new(@"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}", RegexOptions.Compiled);
+
+    /// <summary>
+    /// Cleans a free-text comment before it leaves the machine: control and invisible characters go, whitespace is collapsed to single spaces,
+    /// email addresses and the home folder are removed, and it is cut to <see cref="MaxCommentLength"/> characters. Returns "" for nothing usable.
+    /// </summary>
+    public static string SanitizeComment(string? comment, string? home = null)
+    {
+        if (string.IsNullOrWhiteSpace(comment)) return "";
+        var clean = new StringBuilder(comment.Length);
+        foreach (var ch in comment)
+        {
+            var cat = char.GetUnicodeCategory(ch);
+            if (char.IsWhiteSpace(ch)) clean.Append(' ');
+            else if (cat is System.Globalization.UnicodeCategory.Control or System.Globalization.UnicodeCategory.Format
+                          or System.Globalization.UnicodeCategory.Surrogate or System.Globalization.UnicodeCategory.PrivateUse
+                          or System.Globalization.UnicodeCategory.OtherNotAssigned) continue;
+            else clean.Append(ch);
+        }
+        var text = Regex.Replace(clean.ToString(), @" {2,}", " ").Trim();
+        text = Email.Replace(Scrub(text, home), "[email removed]");
+        if (text.Length > MaxCommentLength) text = text[..MaxCommentLength].TrimEnd() + "...";
+        return text;
     }
 
     public static CrashRecord Capture(string kind, object? error, string version, string channel, string os, string arch, string? home = null)
@@ -122,6 +150,7 @@ public static class CrashReporter
 
         var extra = new Dictionary<string, string> { ["kind"] = r.Kind, ["architecture"] = r.Arch };
         if (!string.IsNullOrWhiteSpace(r.Vin)) extra["vin"] = r.Vin;
+        if (!string.IsNullOrWhiteSpace(r.Comment)) extra["user_comment"] = r.Comment;
         var ev = new Dictionary<string, object>
         {
             ["event_id"] = eventId ?? Guid.NewGuid().ToString("N"),

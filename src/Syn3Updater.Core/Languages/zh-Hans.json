@@ -33,6 +33,8 @@
   "MessageBox.CrashReportVin": "\nIt also contains the VIN ({0}) of the car whose log you opened last, which helps with troubleshooting.",
   "MessageBox.CrashReportSent": "Thank you. The crash report was sent.",
   "MessageBox.CrashReportFailed": "The crash report could not be sent. It has been discarded and will not be retried.",
+  "MessageBox.CrashReportCommentTitle": "Add a comment (optional)",
+  "MessageBox.CrashReportComment": "What were you doing when it crashed? This is optional: leave it empty or cancel to send the report without a comment.\nPlease don't include passwords or personal details. Email addresses and your home folder are removed.",
   "MessageBox.DownloadPathChangeCopy": "您是否想把现有的文件从{0}移到{1}？",
   "MessageBox.CancelRegionMismatch": "当前的区域和您选择的区域不匹配，这可能无法正常使用！\n您要继续吗？",
   "MessageBox.CancelDownloadIsDrive": "下载路径和目标U盘相同，请更改下载路径或选择其他U盘。",

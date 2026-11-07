@@ -33,6 +33,8 @@
   "MessageBox.CrashReportVin": "\nIt also contains the VIN ({0}) of the car whose log you opened last, which helps with troubleshooting.",
   "MessageBox.CrashReportSent": "Thank you. The crash report was sent.",
   "MessageBox.CrashReportFailed": "The crash report could not be sent. It has been discarded and will not be retried.",
+  "MessageBox.CrashReportCommentTitle": "Add a comment (optional)",
+  "MessageBox.CrashReportComment": "What were you doing when it crashed? This is optional: leave it empty or cancel to send the report without a comment.\nPlease don't include passwords or personal details. Email addresses and your home folder are removed.",
   "MessageBox.DownloadPathChangeCopy": "Wilt U bestaande bestanden verplaatsen van {0} naar {1}",
   "MessageBox.CancelRegionMismatch": "Huidige regio en nieuwe regio zijn niet dezelfde, dit werkt mogelijk niet!\nWenst U toch door te gaan?",
   "MessageBox.CancelDownloadIsDrive": "Het downloadpad en de USB-stick zijn hetzelfde, verander uw downloadpad of selecteer een andere USB-stick.",

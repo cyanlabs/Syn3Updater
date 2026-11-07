@@ -117,6 +117,34 @@ public class CrashReporterTests : IDisposable
         Assert.Equal("WF0TEST1234567890", doc.RootElement.GetProperty("extra").GetProperty("vin").GetString());
     }
 
+    [Theory]
+    [InlineData(null, "")] [InlineData("", "")] [InlineData("   \t\n ", "")]
+    [InlineData("  it   crashed\r\nwhen I clicked   Start  ", "it crashed when I clicked Start")]
+    [InlineData("mail me at someone@example.com please", "mail me at [email removed] please")]
+    [InlineData("zero\u0000width\u200Bchars\u0007 gone", "zerowidthchars gone")]
+    public void SanitizeComment_CleansWhitespaceControlCharsAndEmails(string? input, string expected) =>
+        Assert.Equal(expected, CrashReporter.SanitizeComment(input, @"C:\Users\scott"));
+
+    [Fact]
+    public void SanitizeComment_RemovesTheHomeFolder_AndCapsTheLength()
+    {
+        Assert.Equal(@"saved to ~\Downloads", CrashReporter.SanitizeComment(@"saved to C:\Users\scott\Downloads", @"C:\Users\scott"));
+        var long_ = CrashReporter.SanitizeComment(new string('a', 2000));
+        Assert.Equal(CrashReporter.MaxCommentLength + 3, long_.Length);
+        Assert.EndsWith("...", long_);
+    }
+
+    [Fact]
+    public void Event_CarriesTheComment_OnlyWhenThereIsOne()
+    {
+        var r = new CrashRecord { Time = "t", Type = "E", Message = "m", Version = "3.0.0", Channel = "Stable" };
+        using (var none = JsonDocument.Parse(CrashReporter.BuildEventJson(r)))
+            Assert.False(none.RootElement.GetProperty("extra").TryGetProperty("user_comment", out _));
+        r.Comment = "it crashed when I clicked Start";
+        using var with = JsonDocument.Parse(CrashReporter.BuildEventJson(r));
+        Assert.Equal("it crashed when I clicked Start", with.RootElement.GetProperty("extra").GetProperty("user_comment").GetString());
+    }
+
     [Fact]
     public async Task Send_PostsToTheStoreUrl_WithTheKey_AndReportsSuccess()
     {
