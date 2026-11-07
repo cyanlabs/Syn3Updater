@@ -235,6 +235,24 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Windows, at every start: removes files older versions left in the install folder (see <see cref="LegacyCleanup"/>). Best effort, runs in the background and never throws.</summary>
+    /// <param name="windows">Tests pass true to run the logic off Windows.</param>
+    internal static void CleanUpLegacyFiles(bool? windows = null)
+    {
+        try
+        {
+            if (!(windows ?? OperatingSystem.IsWindows()) || Ctx.Install.Kind != InstallKind.WindowsFolder) return;
+            LegacyCleanup.Run(Ctx.Install.AppDir, LauncherVersionOf, Ctx.Log.Info);
+        }
+        catch (Exception e) { Ctx.Log.Error("Could not remove old leftover files: " + e.GetType().Name + ": " + e.Message); }
+    }
+
+    private static SemVer? LauncherVersionOf(string path)
+    {
+        try { return SemVer.Parse(System.Diagnostics.FileVersionInfo.GetVersionInfo(path).ProductVersion); }
+        catch (Exception e) when (e is IOException or FileNotFoundException or UnauthorizedAccessException) { return null; }
+    }
+
     /// <summary>After an update: shows the new version's release notes once. Also removes what the update left behind.</summary>
     public async Task OnStartedAsync()
     {
@@ -246,6 +264,7 @@ public partial class MainWindowViewModel : ObservableObject
             catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Ctx.Log.Error("Could not clean up after an update: " + e.Message); }
         }
         _ = Task.Run(MigrateLauncherShortcuts);
+        _ = Task.Run(() => CleanUpLegacyFiles());
         var m = Ctx.Main;
         if (m.WhatsNewVersion == null) return;
         var version = m.WhatsNewVersion; var notes = m.WhatsNewNotes;
