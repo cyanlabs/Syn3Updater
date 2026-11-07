@@ -40,7 +40,8 @@ public class WindowsFormatTests
         Assert.DoesNotContain(cmd.Calls, c => c.StartsWith("diskpart"));
         var script = cmd.Calls.Single(c => c.Contains("Clear-Disk"));
         Assert.Contains("$n = 2;", script); Assert.Contains("$keep = 'E'", script);
-        Assert.Contains("Initialize-Disk -Number $n -PartitionStyle MBR", script);
+        Assert.Contains("if ($style -eq 'RAW') { Initialize-Disk -Number $n -PartitionStyle MBR }", script);
+        Assert.Contains("elseif ($style -ne 'MBR') { Set-Disk -Number $n -PartitionStyle MBR -Confirm:$false }", script);
         Assert.Contains("-FileSystem exFAT", script); Assert.Contains("-NewFileSystemLabel 'CYANLABS'", script);
         Assert.Contains("BusType -ne 'USB'", script); Assert.Contains("IsSystem", script);          // the script re-checks it is a removable disk itself
     }
@@ -119,6 +120,14 @@ public class WindowsFormatTests
         var (svc, _) = Make((_, _) => new ProcessResult(1, "", "Disk 2 is no longer the drive you selected (it is now Samsung SSD); refusing to format it."));
         var e = await Assert.ThrowsAsync<Cyanlabs.Syn3Updater.Core.Drives.FormatException>(() => svc.FormatAsync(new DriveInfoModel { DeviceId = "2", Name = "SanDisk", SizeBytes = 32000000000 }, Log));
         Assert.Contains("no longer the drive you selected", e.Message); Assert.Contains("Samsung SSD", e.Message);
+    }
+
+    [Fact]
+    public void FormatScript_OnlyInitializesRawDisks_AndAlwaysLeavesMbr()
+    {
+        Assert.Contains("$style = [string](Get-Disk -Number $n).PartitionStyle", WindowsDriveService.FormatScript);
+        Assert.Contains("if ($style -eq 'RAW') { Initialize-Disk -Number $n -PartitionStyle MBR }", WindowsDriveService.FormatScript);
+        Assert.Contains("elseif ($style -ne 'MBR') { Set-Disk -Number $n -PartitionStyle MBR -Confirm:$false }", WindowsDriveService.FormatScript);
     }
 
     [Theory]
