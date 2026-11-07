@@ -29,7 +29,7 @@
   "Settings.Theme": "Téma",
   "MessageBox.DisclaimerNotAccepted": "Pred pokračovaním si prečítajte a prijmite zodpovednosti. Pokiaľ nebudete súhlasiť s podmienkami, nebudete môcť pokračovať.",
   "MessageBox.CrashReportTitle": "Odoslať hlásenie o páde?",
-  "MessageBox.CrashReportAsk": "Syn3 Updater sa naposledy neočakávane ukončil.\n\n{0}\n\nOdoslať hlásenie o páde vývojárom, aby pomohlo chybu opraviť?\n\nHlásenie obsahuje chybu a miesto, kde nastala, a tiež diagnostické údaje (verziu aplikácie, kanál aktualizácií a operačný systém). Môže obsahovať aj VIN vášho auta, ak ste otvorili jeho záznam.{1}\n\nVaše používateľské meno a domovský priečinok sa z hlásenia odstránia. Nič sa neodošle, ak nekliknete na „Ano“.",
+  "MessageBox.CrashReportAsk": "Syn3 Updater sa naposledy neočakávane ukončil.\n\n{0}\n\nOdoslať hlásenie o páde vývojárom, aby pomohlo chybu opraviť?\n\nHlásenie obsahuje chybu a miesto, kde nastala, a tiež diagnostické údaje (verziu aplikácie, kanál aktualizácií a operačný systém). Môže obsahovať aj VIN vášho auta, ak ste otvorili jeho záznam.{1}\n\nVaše používateľské meno a domovský priečinok sa z hlásenia odstránia.\n\nNič sa neodošle, ak nekliknete na „Ano“.",
   "MessageBox.CrashReportVin": "\nToto hlásenie obsahuje VIN {0}.",
   "MessageBox.CrashReportSent": "Ďakujeme. Hlásenie o páde bolo odoslané.",
   "MessageBox.CrashReportFailed": "Hlásenie o páde sa nepodarilo odoslať. Bolo zahodené a nebude sa odosielať znova.",

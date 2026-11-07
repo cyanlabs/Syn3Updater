@@ -29,7 +29,7 @@
   "Settings.Theme": "Tema",
   "MessageBox.DisclaimerNotAccepted": "Devam etmeden önce lütfen sorumluluk reddini okuyun ve kabul edin. Şartları kabul etmediğiniz sürece devam edemezsiniz.",
   "MessageBox.CrashReportTitle": "Çökme raporu gönderilsin mi?",
-  "MessageBox.CrashReportAsk": "Syn3 Updater geçen sefer beklenmedik şekilde kapandı.\n\n{0}\n\nDüzeltilmesine yardımcı olmak için geliştiricilere bir çökme raporu gönderilsin mi?\n\nRapor, hatayı ve oluştuğu yeri, ayrıca tanılama verilerini (uygulama sürümü, güncelleme kanalı ve işletim sistemi) içerir. Aracınızın günlüğünü açtıysanız aracın VIN numarasını da içerebilir.{1}\n\nKullanıcı adınız ve ana klasörünüz rapordan kaldırılır. “Evet” seçeneğine tıklamadığınız sürece hiçbir şey gönderilmez.",
+  "MessageBox.CrashReportAsk": "Syn3 Updater geçen sefer beklenmedik şekilde kapandı.\n\n{0}\n\nDüzeltilmesine yardımcı olmak için geliştiricilere bir çökme raporu gönderilsin mi?\n\nRapor, hatayı ve oluştuğu yeri, ayrıca tanılama verilerini (uygulama sürümü, güncelleme kanalı ve işletim sistemi) içerir. Aracınızın günlüğünü açtıysanız aracın VIN numarasını da içerebilir.{1}\n\nKullanıcı adınız ve ana klasörünüz rapordan kaldırılır.\n\n“Evet” seçeneğine tıklamadığınız sürece hiçbir şey gönderilmez.",
   "MessageBox.CrashReportVin": "\nBu rapor şu VIN numarasını içerir: {0}.",
   "MessageBox.CrashReportSent": "Teşekkürler. Çökme raporu gönderildi.",
   "MessageBox.CrashReportFailed": "Çökme raporu gönderilemedi. Silindi ve yeniden denenmeyecek.",

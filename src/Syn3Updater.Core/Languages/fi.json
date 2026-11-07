@@ -29,7 +29,7 @@
   "Settings.Theme": "Syn3 päivittäjän teema",
   "MessageBox.DisclaimerNotAccepted": "Lue ja hyväksy vastuuvapauslauseke ennen jatkamista. Et voi jatkaa, ellet hyväksy ehtoja.",
   "MessageBox.CrashReportTitle": "Lähetetäänkö kaatumisraportti?",
-  "MessageBox.CrashReportAsk": "Syn3 Updater sulkeutui odottamattomasti viime kerralla.\n\n{0}\n\nLähetetäänkö kaatumisraportti kehittäjille virheen korjaamisen avuksi?\n\nRaportti sisältää virheen ja sen esiintymiskohdan sekä diagnostiikkatietoja (sovelluksen versio, päivityskanava ja käyttöjärjestelmä). Se voi sisältää myös autosi VIN-tunnuksen, jos olet avannut sen lokin.{1}\n\nKäyttäjänimesi ja kotikansiosi poistetaan raportista. Mitään ei lähetetä, ellet napsauta ”Yes”.",
+  "MessageBox.CrashReportAsk": "Syn3 Updater sulkeutui odottamattomasti viime kerralla.\n\n{0}\n\nLähetetäänkö kaatumisraportti kehittäjille virheen korjaamisen avuksi?\n\nRaportti sisältää virheen ja sen esiintymiskohdan sekä diagnostiikkatietoja (sovelluksen versio, päivityskanava ja käyttöjärjestelmä). Se voi sisältää myös autosi VIN-tunnuksen, jos olet avannut sen lokin.{1}\n\nKäyttäjänimesi ja kotikansiosi poistetaan raportista.\n\nMitään ei lähetetä, ellet napsauta ”Yes”.",
   "MessageBox.CrashReportVin": "\nTämä raportti sisältää VIN-tunnuksen {0}.",
   "MessageBox.CrashReportSent": "Kiitos. Kaatumisraportti lähetettiin.",
   "MessageBox.CrashReportFailed": "Kaatumisraporttia ei voitu lähettää. Se on hylätty, eikä sitä yritetä uudelleen.",

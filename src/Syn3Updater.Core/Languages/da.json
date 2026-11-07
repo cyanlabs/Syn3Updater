@@ -29,7 +29,7 @@
   "Settings.Theme": "Tema",
   "MessageBox.DisclaimerNotAccepted": "Læs og accepter ansvarsfraskrivelsen, inden du fortsætter. Du kan ikke fortsætte, medmindre du accepterer vilkårene.",
   "MessageBox.CrashReportTitle": "Send en nedbrudsrapport?",
-  "MessageBox.CrashReportAsk": "Syn3 Updater lukkede uventet sidste gang.\n\n{0}\n\nVil du sende en nedbrudsrapport til udviklerne for at hjælpe med at rette det?\n\nRapporten indeholder fejlen og hvor den opstod samt diagnosticeringsdata (appversion, opdateringskanal og operativsystem). Den kan også indeholde bilens VIN, hvis du har åbnet en log fra den.{1}\n\nDit brugernavn og din hjemmemappe fjernes fra rapporten. Der sendes intet, medmindre du klikker på ”Ja”.",
+  "MessageBox.CrashReportAsk": "Syn3 Updater lukkede uventet sidste gang.\n\n{0}\n\nVil du sende en nedbrudsrapport til udviklerne for at hjælpe med at rette det?\n\nRapporten indeholder fejlen og hvor den opstod samt diagnosticeringsdata (appversion, opdateringskanal og operativsystem). Den kan også indeholde bilens VIN, hvis du har åbnet en log fra den.{1}\n\nDit brugernavn og din hjemmemappe fjernes fra rapporten.\n\nDer sendes intet, medmindre du klikker på ”Ja”.",
   "MessageBox.CrashReportVin": "\nDenne rapport indeholder VIN {0}.",
   "MessageBox.CrashReportSent": "Tak. Nedbrudsrapporten blev sendt.",
   "MessageBox.CrashReportFailed": "Nedbrudsrapporten kunne ikke sendes. Den er kasseret og forsøges ikke igen.",

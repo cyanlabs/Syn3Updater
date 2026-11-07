@@ -29,7 +29,7 @@
   "Settings.Theme": "Syn3 Updater tema",
   "MessageBox.DisclaimerNotAccepted": "Les og godta ansvarsfraskrivelsen før du fortsetter. Du vil ikke kunne fortsette med mindre du godtar vilkårene.",
   "MessageBox.CrashReportTitle": "Send en krasjrapport?",
-  "MessageBox.CrashReportAsk": "Syn3 Updater ble uventet lukket forrige gang.\n\n{0}\n\nVil du sende en krasjrapport til utviklerne for å hjelpe med å rette feilen?\n\nRapporten inneholder feilen og hvor den oppstod, samt diagnostikkdata (appversjon, oppdateringskanal og operativsystem). Den kan også inneholde bilens VIN hvis du har åpnet en logg fra den.{1}\n\nBrukernavnet ditt og hjemmemappen din fjernes fra rapporten. Ingenting sendes med mindre du klikker «Yes».",
+  "MessageBox.CrashReportAsk": "Syn3 Updater ble uventet lukket forrige gang.\n\n{0}\n\nVil du sende en krasjrapport til utviklerne for å hjelpe med å rette feilen?\n\nRapporten inneholder feilen og hvor den oppstod, samt diagnostikkdata (appversjon, oppdateringskanal og operativsystem). Den kan også inneholde bilens VIN hvis du har åpnet en logg fra den.{1}\n\nBrukernavnet ditt og hjemmemappen din fjernes fra rapporten.\n\nIngenting sendes med mindre du klikker «Yes».",
   "MessageBox.CrashReportVin": "\nDenne rapporten inneholder VIN {0}.",
   "MessageBox.CrashReportSent": "Takk. Krasjrapporten ble sendt.",
   "MessageBox.CrashReportFailed": "Krasjrapporten kunne ikke sendes. Den er forkastet og blir ikke forsøkt sendt på nytt.",

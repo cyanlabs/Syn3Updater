@@ -29,7 +29,7 @@
   "Settings.Theme": "主题",
   "MessageBox.DisclaimerNotAccepted": "请在继续之前阅读并接受免责声明。除非您同意这些条款，否则您将无法继续。",
   "MessageBox.CrashReportTitle": "发送崩溃报告？",
-  "MessageBox.CrashReportAsk": "Syn3 Updater 上次意外关闭。\n\n{0}\n\n是否向开发者发送崩溃报告以帮助修复？\n\n报告包含错误及其发生位置，以及诊断数据（应用版本、更新渠道和操作系统）。如果您打开过爱车的日志，报告还可能包含该车的 VIN。{1}\n\n您的用户名和主目录会从报告中移除。只有在您点击“是”后才会发送任何内容。",
+  "MessageBox.CrashReportAsk": "Syn3 Updater 上次意外关闭。\n\n{0}\n\n是否向开发者发送崩溃报告以帮助修复？\n\n报告包含错误及其发生位置，以及诊断数据（应用版本、更新渠道和操作系统）。如果您打开过爱车的日志，报告还可能包含该车的 VIN。{1}\n\n您的用户名和主目录会从报告中移除。\n\n只有在您点击“是”后才会发送任何内容。",
   "MessageBox.CrashReportVin": "\n此报告包含 VIN {0}。",
   "MessageBox.CrashReportSent": "谢谢。崩溃报告已发送。",
   "MessageBox.CrashReportFailed": "无法发送崩溃报告。该报告已被丢弃，不会重试。",

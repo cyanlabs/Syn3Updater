@@ -29,7 +29,7 @@
   "Settings.Theme": "Thema",
   "MessageBox.DisclaimerNotAccepted": "Bitte lies und akzeptiere den Haftungsausschluss, vor dem Fortfahren. Ohne Zustimmung kann die Anwendung nicht genutzt werden",
   "MessageBox.CrashReportTitle": "Absturzbericht senden?",
-  "MessageBox.CrashReportAsk": "Syn3 Updater wurde beim letzten Mal unerwartet beendet.\n\n{0}\n\nMöchtest du einen Absturzbericht an die Entwickler senden, damit der Fehler behoben werden kann?\n\nDer Bericht enthält den Fehler und wo er aufgetreten ist sowie Diagnosedaten (App-Version, Update-Kanal und Betriebssystem). Er kann außerdem die Fahrgestellnummer (VIN) deines Fahrzeugs enthalten, wenn du ein Protokoll davon geöffnet hast.{1}\n\nDein Benutzername und dein Home-Ordner werden aus dem Bericht entfernt. Es wird nichts gesendet, solange du nicht auf „Ja“ klickst.",
+  "MessageBox.CrashReportAsk": "Syn3 Updater wurde beim letzten Mal unerwartet beendet.\n\n{0}\n\nMöchtest du einen Absturzbericht an die Entwickler senden, damit der Fehler behoben werden kann?\n\nDer Bericht enthält den Fehler und wo er aufgetreten ist sowie Diagnosedaten (App-Version, Update-Kanal und Betriebssystem). Er kann außerdem die Fahrgestellnummer (VIN) deines Fahrzeugs enthalten, wenn du ein Protokoll davon geöffnet hast.{1}\n\nDein Benutzername und dein Home-Ordner werden aus dem Bericht entfernt.\n\nEs wird nichts gesendet, solange du nicht auf „Ja“ klickst.",
   "MessageBox.CrashReportVin": "\nDieser Bericht enthält die VIN {0}.",
   "MessageBox.CrashReportSent": "Danke. Der Absturzbericht wurde gesendet.",
   "MessageBox.CrashReportFailed": "Der Absturzbericht konnte nicht gesendet werden. Er wurde verworfen und wird nicht erneut versucht.",

@@ -29,7 +29,7 @@
   "Settings.Theme": "Tema",
   "MessageBox.DisclaimerNotAccepted": "Läs och godkänn ansvarsfriskrivningen innan du fortsätter. Du kommer inte att kunna fortsätta om du inte godkänner villkoren.",
   "MessageBox.CrashReportTitle": "Skicka en kraschrapport?",
-  "MessageBox.CrashReportAsk": "Syn3 Updater stängdes oväntat förra gången.\n\n{0}\n\nVill du skicka en kraschrapport till utvecklarna för att hjälpa till att åtgärda felet?\n\nRapporten innehåller felet och var det uppstod, samt diagnostikdata (appversion, uppdateringskanal och operativsystem). Den kan även innehålla bilens VIN om du har öppnat en logg från den.{1}\n\nDitt användarnamn och din hemmapp tas bort från rapporten. Inget skickas om du inte klickar på ”Ja”.",
+  "MessageBox.CrashReportAsk": "Syn3 Updater stängdes oväntat förra gången.\n\n{0}\n\nVill du skicka en kraschrapport till utvecklarna för att hjälpa till att åtgärda felet?\n\nRapporten innehåller felet och var det uppstod, samt diagnostikdata (appversion, uppdateringskanal och operativsystem). Den kan även innehålla bilens VIN om du har öppnat en logg från den.{1}\n\nDitt användarnamn och din hemmapp tas bort från rapporten.\n\nInget skickas om du inte klickar på ”Ja”.",
   "MessageBox.CrashReportVin": "\nDen här rapporten innehåller VIN {0}.",
   "MessageBox.CrashReportSent": "Tack. Kraschrapporten skickades.",
   "MessageBox.CrashReportFailed": "Kraschrapporten kunde inte skickas. Den har kasserats och försöks inte igen.",

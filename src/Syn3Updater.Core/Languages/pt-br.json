@@ -29,7 +29,7 @@
   "Settings.Theme": "Tema",
   "MessageBox.DisclaimerNotAccepted": "Favor ler e aceitar a responsabilidade antes de continuar. Você não poderá continuar se não aceitar os termos.",
   "MessageBox.CrashReportTitle": "Enviar um relatório de falha?",
-  "MessageBox.CrashReportAsk": "O Syn3 Updater foi fechado inesperadamente da última vez.\n\n{0}\n\nEnviar um relatório de falha aos desenvolvedores para ajudar a corrigir o problema?\n\nO relatório contém o erro e onde ele ocorreu, além de dados de diagnóstico (versão do aplicativo, canal de atualização e sistema operacional). Ele também pode incluir o VIN do seu carro se você tiver aberto um log dele.{1}\n\nSeu nome de usuário e sua pasta pessoal são removidos do relatório. Nada é enviado se você não clicar em “Sim”.",
+  "MessageBox.CrashReportAsk": "O Syn3 Updater foi fechado inesperadamente da última vez.\n\n{0}\n\nEnviar um relatório de falha aos desenvolvedores para ajudar a corrigir o problema?\n\nO relatório contém o erro e onde ele ocorreu, além de dados de diagnóstico (versão do aplicativo, canal de atualização e sistema operacional). Ele também pode incluir o VIN do seu carro se você tiver aberto um log dele.{1}\n\nSeu nome de usuário e sua pasta pessoal são removidos do relatório.\n\nNada é enviado se você não clicar em “Sim”.",
   "MessageBox.CrashReportVin": "\nEste relatório inclui o VIN {0}.",
   "MessageBox.CrashReportSent": "Obrigado. O relatório de falha foi enviado.",
   "MessageBox.CrashReportFailed": "Não foi possível enviar o relatório de falha. Ele foi descartado e não será tentado novamente.",

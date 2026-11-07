@@ -29,7 +29,7 @@
   "Settings.Theme": "Chủ đề",
   "MessageBox.DisclaimerNotAccepted": "Vui lòng đọc và chấp nhận tuyên bố từ chối trách nhiệm trước khi tiếp tục. Bạn sẽ không thể tiếp tục trừ khi bạn đồng ý với các điều khoản.",
   "MessageBox.CrashReportTitle": "Gửi báo cáo sự cố?",
-  "MessageBox.CrashReportAsk": "Syn3 Updater đã đóng đột ngột lần trước.\n\n{0}\n\nGửi báo cáo sự cố cho các nhà phát triển để giúp khắc phục?\n\nBáo cáo chứa lỗi và nơi xảy ra lỗi, cùng dữ liệu chẩn đoán (phiên bản ứng dụng, kênh cập nhật và hệ điều hành). Báo cáo cũng có thể bao gồm số VIN của xe nếu bạn đã mở nhật ký của xe.{1}\n\nTên người dùng và thư mục chính của bạn được xóa khỏi báo cáo. Sẽ không có gì được gửi nếu bạn không nhấp vào “Đúng”.",
+  "MessageBox.CrashReportAsk": "Syn3 Updater đã đóng đột ngột lần trước.\n\n{0}\n\nGửi báo cáo sự cố cho các nhà phát triển để giúp khắc phục?\n\nBáo cáo chứa lỗi và nơi xảy ra lỗi, cùng dữ liệu chẩn đoán (phiên bản ứng dụng, kênh cập nhật và hệ điều hành). Báo cáo cũng có thể bao gồm số VIN của xe nếu bạn đã mở nhật ký của xe.{1}\n\nTên người dùng và thư mục chính của bạn được xóa khỏi báo cáo.\n\nSẽ không có gì được gửi nếu bạn không nhấp vào “Đúng”.",
   "MessageBox.CrashReportVin": "\nBáo cáo này bao gồm số VIN {0}.",
   "MessageBox.CrashReportSent": "Cảm ơn bạn. Báo cáo sự cố đã được gửi.",
   "MessageBox.CrashReportFailed": "Không thể gửi báo cáo sự cố. Báo cáo đã bị hủy và sẽ không được thử lại.",

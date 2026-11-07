@@ -29,7 +29,7 @@
   "Settings.Theme": "Tema",
   "MessageBox.DisclaimerNotAccepted": "Prije nastavka pročitajte i prihvatite izjavu o odricanju odgovornosti. Nećete moći nastaviti ako se ne složite s uvjetima.",
   "MessageBox.CrashReportTitle": "Poslati izvješće o rušenju?",
-  "MessageBox.CrashReportAsk": "Syn3 Updater se prošli put neočekivano zatvorio.\n\n{0}\n\nŽelite li poslati izvješće o rušenju razvojnim programerima kako bi pomogli u ispravljanju pogreške?\n\nIzvješće sadrži pogrešku i mjesto na kojem se dogodila te dijagnostičke podatke (verziju aplikacije, kanal ažuriranja i operacijski sustav). Može sadržavati i VIN vašeg automobila ako ste otvorili njegov zapisnik.{1}\n\nVaše korisničko ime i matična mapa uklanjaju se iz izvješća. Ništa se ne šalje ako ne kliknete „Da”.",
+  "MessageBox.CrashReportAsk": "Syn3 Updater se prošli put neočekivano zatvorio.\n\n{0}\n\nŽelite li poslati izvješće o rušenju razvojnim programerima kako bi pomogli u ispravljanju pogreške?\n\nIzvješće sadrži pogrešku i mjesto na kojem se dogodila te dijagnostičke podatke (verziju aplikacije, kanal ažuriranja i operacijski sustav). Može sadržavati i VIN vašeg automobila ako ste otvorili njegov zapisnik.{1}\n\nVaše korisničko ime i matična mapa uklanjaju se iz izvješća.\n\nNišta se ne šalje ako ne kliknete „Da”.",
   "MessageBox.CrashReportVin": "\nOvo izvješće sadrži VIN {0}.",
   "MessageBox.CrashReportSent": "Hvala. Izvješće o rušenju je poslano.",
   "MessageBox.CrashReportFailed": "Izvješće o rušenju nije moglo biti poslano. Odbačeno je i neće se ponovno pokušati.",

@@ -29,7 +29,7 @@
   "Settings.Theme": "MOTYW",
   "MessageBox.DisclaimerNotAccepted": "Przed kontynuowaniem przeczytaj i zaakceptuj wARUNKI. Nie będziesz mógł kontynuować, jeśli nie wyrazisz zgody na warunki",
   "MessageBox.CrashReportTitle": "Wysłać raport o awarii?",
-  "MessageBox.CrashReportAsk": "Syn3 Updater zamknął się nieoczekiwanie ostatnim razem.\n\n{0}\n\nWysłać raport o awarii do twórców, aby pomóc w naprawieniu błędu?\n\nRaport zawiera błąd i miejsce jego wystąpienia oraz dane diagnostyczne (wersję aplikacji, kanał aktualizacji i system operacyjny). Może też zawierać numer VIN twojego samochodu, jeśli otworzyłeś(-aś) jego dziennik.{1}\n\nTwoja nazwa użytkownika i folder domowy są usuwane z raportu. Nic nie zostanie wysłane, jeśli nie klikniesz „TAK”.",
+  "MessageBox.CrashReportAsk": "Syn3 Updater zamknął się nieoczekiwanie ostatnim razem.\n\n{0}\n\nWysłać raport o awarii do twórców, aby pomóc w naprawieniu błędu?\n\nRaport zawiera błąd i miejsce jego wystąpienia oraz dane diagnostyczne (wersję aplikacji, kanał aktualizacji i system operacyjny). Może też zawierać numer VIN twojego samochodu, jeśli otworzyłeś(-aś) jego dziennik.{1}\n\nTwoja nazwa użytkownika i folder domowy są usuwane z raportu.\n\nNic nie zostanie wysłane, jeśli nie klikniesz „TAK”.",
   "MessageBox.CrashReportVin": "\nTen raport zawiera numer VIN {0}.",
   "MessageBox.CrashReportSent": "Dziękujemy. Raport o awarii został wysłany.",
   "MessageBox.CrashReportFailed": "Nie udało się wysłać raportu o awarii. Został odrzucony i nie będzie ponawiany.",

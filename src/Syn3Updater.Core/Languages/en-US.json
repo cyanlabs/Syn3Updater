@@ -29,7 +29,7 @@
   "Settings.Theme": "Syn3 Updater Theme",
   "MessageBox.DisclaimerNotAccepted": "Please read and accept the disclaimer before continuing. You will not be able to continue unless you agree to the terms.",
   "MessageBox.CrashReportTitle": "Send a crash report?",
-  "MessageBox.CrashReportAsk": "Syn3 Updater closed unexpectedly last time.\n\n{0}\n\nSend a crash report to the developers to help fix it?\n\nThe report contains the error and where it happened, plus diagnostic data (app version, update channel and operating system). It may also include your car's VIN if you have opened a log from it.{1}\n\nYour user name and home folder are removed from the report. Nothing is sent unless you click Yes.",
+  "MessageBox.CrashReportAsk": "Syn3 Updater closed unexpectedly last time.\n\n{0}\n\nSend a crash report to the developers to help fix it?\n\nThe report contains the error and where it happened, plus diagnostic data (app version, update channel and operating system). It may also include your car's VIN if you have opened a log from it.{1}\n\nYour user name and home folder are removed from the report.\n\nNothing is sent unless you click Yes.",
   "MessageBox.CrashReportVin": "\nThis report includes the VIN {0}.",
   "MessageBox.CrashReportSent": "Thank you. The crash report was sent.",
   "MessageBox.CrashReportFailed": "The crash report could not be sent. It has been discarded and will not be retried.",

@@ -29,7 +29,7 @@
   "Settings.Theme": "Tema",
   "MessageBox.DisclaimerNotAccepted": "Si prega di leggere e accettare i termini prima di continuare. Non potrai continuare se non accetti i termini.",
   "MessageBox.CrashReportTitle": "Inviare un rapporto di arresto anomalo?",
-  "MessageBox.CrashReportAsk": "Syn3 Updater si è chiuso in modo imprevisto l'ultima volta.\n\n{0}\n\nInviare un rapporto di arresto anomalo agli sviluppatori per aiutare a risolvere il problema?\n\nIl rapporto contiene l'errore e dove si è verificato, oltre ai dati di diagnostica (versione dell'app, canale di aggiornamento e sistema operativo). Può includere anche il VIN della tua auto se ne hai aperto un registro.{1}\n\nIl tuo nome utente e la tua cartella personale vengono rimossi dal rapporto. Non viene inviato nulla se non fai clic su «Si».",
+  "MessageBox.CrashReportAsk": "Syn3 Updater si è chiuso in modo imprevisto l'ultima volta.\n\n{0}\n\nInviare un rapporto di arresto anomalo agli sviluppatori per aiutare a risolvere il problema?\n\nIl rapporto contiene l'errore e dove si è verificato, oltre ai dati di diagnostica (versione dell'app, canale di aggiornamento e sistema operativo). Può includere anche il VIN della tua auto se ne hai aperto un registro.{1}\n\nIl tuo nome utente e la tua cartella personale vengono rimossi dal rapporto.\n\nNon viene inviato nulla se non fai clic su «Si».",
   "MessageBox.CrashReportVin": "\nQuesto rapporto include il VIN {0}.",
   "MessageBox.CrashReportSent": "Grazie. Il rapporto è stato inviato.",
   "MessageBox.CrashReportFailed": "Impossibile inviare il rapporto di arresto anomalo. È stato scartato e non verrà ritentato.",
