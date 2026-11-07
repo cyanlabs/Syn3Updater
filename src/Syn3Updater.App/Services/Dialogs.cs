@@ -30,6 +30,9 @@ public static class Dialogs
     public static Window? MainWindow => DialogsImpl.MainWindow;
 
     public static Task Error(string message) => Backend.Show(message, Ctx.T("String.Error"), new[] { Ctx.T("String.OK") }, false, true, 0);
+    /// <summary>An error with one extra button next to OK; true when that button was pressed.</summary>
+    public static async Task<bool> Error(string message, string actionLabel) =>
+        await Backend.Show(message, Ctx.T("String.Error"), new[] { Ctx.T("String.OK"), actionLabel }, false, true, 0) == 1;
     public static Task Info(string message, string? title = null) => Backend.Show(message, title ?? Ctx.T("String.Notice"), new[] { Ctx.T("String.OK") }, false, false, 0);
 
     /// <summary>Yes/No question. Returns true for yes.</summary>

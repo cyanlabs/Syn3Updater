@@ -211,6 +211,8 @@ public class InterrogatorFixtureTests
         Assert.Equal("SYNC 3 manufactured before 2020", en["Utility.ResultNotMy20"]);
         Assert.Equal("No model in the log: treating this SYNC 3 as manufactured in 2020 or newer, to be safe", en["Utility.ResultModelUnknown"]);
         Assert.Equal("Could not check the manufacture year (the CyanLabs servers did not answer)", en["Utility.ResultMy20Unknown"]);
+        Assert.Equal("Syn3 Updater was unable to reach the CyanLabs servers, so it could not check the manufacture year of this SYNC 3.\n\nCheck your internet connection.\n\nThen check status.cyanlabs.net. If CyanLabs has a known problem, try again later.\n\nIf your connection works and the status page shows everything is online, please report this on our forum (community.cyanlabs.net) or Discord.\n\nOpen the log again once the servers are reachable.", en["Utility.My20CheckFailed"]);
+        Assert.Equal("Syn3 Updater was unable to reach the CyanLabs servers.\n\nCheck your internet connection.\n\nThen check status.cyanlabs.net. If CyanLabs has a known problem, try again later.\n\nIf your connection works and the status page shows everything is online, please report this on our forum (community.cyanlabs.net) or Discord and include the details below.\n\nDetails: {0}", en["Home.BackendRequired"]);
     }
 
     [AvaloniaTheory]
@@ -236,6 +238,18 @@ public class InterrogatorFixtureTests
         Assert.True(u.HasLog); Assert.Null(Ctx.Profile.My20v2);                              // nothing was decided, nothing was changed
         Assert.Equal(Ctx.T("Utility.ResultMy20Unknown"), u.ResVerdict);
         Assert.DoesNotContain(env.Dialogs.Messages, m => m == Ctx.T("MessageBox.My20Found") || m == Ctx.T("MessageBox.My20NotFound"));     // the popup does not claim either
+        Assert.Contains(env.Dialogs.Messages, m => m == Ctx.T("Utility.My20CheckFailed") && m.Contains("status.cyanlabs.net"));            // it says what to check
+        Assert.Contains(env.Dialogs.Shown, d => d.Buttons.SequenceEqual(new[] { Ctx.T("String.OK"), Ctx.T("Home.OpenStatusPage") }));       // with a button for the status page
+        Assert.Empty(env.Dialogs.Opened);                                                                                                  // (not pressed)
+    }
+
+    [AvaloniaFact]
+    public async Task OpeningALog_WhenTheServerCannotBeReached_TheStatusButtonOpensTheStatusPage()
+    {
+        using var env = new AppEnv(); var u = env.Main.Utility; Ctx.Profile.My20v2 = null;
+        env.Api.Offline = true; env.Dialogs.Choices.Enqueue(1);                       // the user presses "Open status page"
+        env.Dialogs.FileToPick = Fixture("My20.xml"); await u.ParseLogCommand.ExecuteAsync(null);
+        Assert.Equal(new[] { "https://status.cyanlabs.net" }, env.Dialogs.Opened);
     }
 
     [Fact]

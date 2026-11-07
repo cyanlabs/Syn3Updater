@@ -192,8 +192,13 @@ public partial class UtilityViewModel : PageViewModel
             ShowResult(r, friendly, logIsMy20);
             HasLog = true;
             // the popup is about the log that was just opened
+            if (r.ModelKnown && logIsMy20 == null)                      // the server could not be asked: say what to check, with a button for the status page
+            {
+                if (await Dialogs.Error(Ctx.T("Utility.My20CheckFailed"), Ctx.T("Home.OpenStatusPage"))) await Dialogs.OpenUrl(ApiEndpoints.StatusPage);
+                return;
+            }
             await Dialogs.Info(!r.ModelKnown ? Ctx.T("MessageBox.LogUtilityNoModelFound") + "\n\n" + Ctx.T("Utility.ModelUnknownProtected")
-                : logIsMy20 switch { true => Ctx.T("MessageBox.My20Found"), false => Ctx.T("MessageBox.My20NotFound"), null => Ctx.T("Utility.ResultMy20Unknown") });
+                : Ctx.T(logIsMy20 == true ? "MessageBox.My20Found" : "MessageBox.My20NotFound"));
         }
         catch (InterrogatorException e) when (e.Message == "MODEL_NOT_FOUND") { await Dialogs.Error(Ctx.T("MessageBox.LogUtilityNoModelFound")); }
         catch (InterrogatorException) { await Dialogs.Error(Ctx.T("MessageBox.LogUtilityInvalidFile")); }
