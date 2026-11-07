@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Help with using Syn3 Updater, or with your car
+    url: https://community.cyanlabs.net
+    about: Questions about updates, maps, MEM_ERR and the APIM are best asked on the CyanLabs forum.
+  - name: Is CyanLabs down?
+    url: https://status.cyanlabs.net
+    about: If the app says there is no connection to CyanLabs, check the status page first.
+  - name: Guide and documentation
+    url: https://cyanlabs.net/docs/Syn3Updater
+    about: How to use Syn3 Updater, step by step.
