@@ -36,6 +36,9 @@ public enum UpdateRoute
 
 public sealed record InstallInfo(InstallKind Kind, string AppDir, UpdateRoute Route, string Reason)
 {
+    /// <summary>One English line for logs, the Diagnostics page and bug reports: "LinuxTar: installed by install.sh in your own folder (updates: InPlace)".</summary>
+    public string Describe() => $"{Kind}: {Reason} (updates: {Route})";
+
     public bool CanSelfUpdate => Route == UpdateRoute.InPlace;
 }
 

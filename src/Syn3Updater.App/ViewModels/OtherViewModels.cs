@@ -178,16 +178,23 @@ public partial class AboutViewModel : PageViewModel
     public string Platform => Ctx.OsName();
     public string Runtime => System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription;
     public string DataFolder => Ctx.Paths.DataDir;
+    /// <summary>How this copy was installed, and whether it updates itself (see InstallDetector): the first thing to know when something about updating looks wrong.</summary>
+    public string InstalledAs => InstallText.Kind(Ctx.Install.Kind);
+    public string UpdateMethod => InstallText.Route(Ctx.Install.Route);
+    public string InstallFolder => Ctx.Install.AppDir;
     public string ProfileName => Ctx.Main.Profile;
     [ObservableProperty] private bool _accepted = Ctx.Main.DisclaimerAccepted;
     public bool NotAccepted => !Accepted;
 
     partial void OnAcceptedChanged(bool value) { Ctx.Main.DisclaimerAccepted = value; Ctx.Save(); OnPropertyChanged(nameof(NotAccepted)); }
 
+    public AboutViewModel() => Ctx.Loc.LanguageChanged += () => { OnPropertyChanged(nameof(InstalledAs)); OnPropertyChanged(nameof(UpdateMethod)); };
+
     public override void OnShown()
     {
         Accepted = Ctx.Main.DisclaimerAccepted;
         OnPropertyChanged(nameof(ProfileName)); OnPropertyChanged(nameof(DataFolder));
+        OnPropertyChanged(nameof(InstalledAs)); OnPropertyChanged(nameof(UpdateMethod)); OnPropertyChanged(nameof(InstallFolder));
     }
 
     [RelayCommand]

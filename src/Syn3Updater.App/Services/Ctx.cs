@@ -80,7 +80,7 @@ public static class Ctx
 
     /// <summary>Machine and environment facts for the app log, log.txt and the Diagnostics page.</summary>
     public static IReadOnlyList<KeyValuePair<string, string>> SystemFacts() =>
-        SystemInfo.Collect(Version, Branch, Paths.DataDir, Main.DownloadPath);
+        SystemInfo.Collect(Version, Branch, Paths.DataDir, Main.DownloadPath, installMethod: Install?.Describe());
 
     /// <summary>Swaps in a random browser User-Agent from the API, as the original does (best effort).</summary>
     public static async Task RandomizeUserAgentAsync()

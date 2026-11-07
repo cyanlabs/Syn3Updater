@@ -71,7 +71,7 @@ public class InstallDetectorTests : IDisposable
     }
 
     [Theory]
-    [InlineData("/opt/syn3updater")]
+    [InlineData("/opt/syn3updater-test-no-marker")]          // a path that cannot exist on any machine: the real /opt/syn3updater has a marker once the package is installed
     [InlineData("/usr/lib/syn3updater")]
     [InlineData("/usr/local/bin")]
     [InlineData("/snap/syn3updater/current")]
