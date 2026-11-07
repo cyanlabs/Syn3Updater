@@ -289,7 +289,7 @@
   "Settings.VersionFormat": "La versió ha de tenir un format com 3.4.20282 (Configuració > General > Quant a al cotxe).",
   "Settings.ResetConfirm": "Voleu restablir tots els ajustos (inclòs aquest perfil) als valors per defecte?",
   "Home.BackendRequired": "Syn3 Updater necessita una connexió amb el servidor per funcionar.\n\n{0}",
-  "Home.MapEsnLocked": "Bloquejat per ESN · només unitats anteriors a MY20",
+  "Home.MapEsnLocked": "Bloquejat per ESN · només per a SYNC 3 fabricat abans del 2020 (anterior a MY20)",
   "Home.MapEsnOpen": "No bloquejat per ESN",
   "Home.MapEsnBlockedOnlyMaps": "Bloquejat per ESN · requereix una versió completa, no «{0}»",
   "Diag.Intro": "Comprova que aquest ordinador té el que Syn3 Updater necessita per preparar una unitat USB. No es canvia res.",

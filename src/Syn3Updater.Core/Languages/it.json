@@ -289,7 +289,7 @@
   "Settings.VersionFormat": "La versione deve avere un formato come 3.4.20282 (Impostazioni > Generali > Info sull'auto).",
   "Settings.ResetConfirm": "Reimpostare tutte le impostazioni (incluso questo profilo) ai valori predefiniti?",
   "Home.BackendRequired": "Syn3 Updater richiede una connessione al server per funzionare.\n\n{0}",
-  "Home.MapEsnLocked": "Bloccata ESN · solo unità precedenti a MY20",
+  "Home.MapEsnLocked": "Bloccata ESN · solo per SYNC 3 prodotto prima del 2020 (pre-MY20)",
   "Home.MapEsnOpen": "Non bloccata ESN",
   "Home.MapEsnBlockedOnlyMaps": "Bloccata ESN · richiede una versione completa, non «{0}»",
   "Diag.Intro": "Verifica che questo computer abbia quanto serve a Syn3 Updater per preparare un'unità USB. Non viene modificato nulla.",

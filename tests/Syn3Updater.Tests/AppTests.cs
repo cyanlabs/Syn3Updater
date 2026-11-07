@@ -99,6 +99,7 @@ public class HomeFlowTests
         Assert.True(home.MapVersions[1].IsUnlocked); Assert.Equal(Ctx.T("Home.MapEsnOpen"), home.MapVersions[1].Detail); Assert.True(home.MapVersions[1].IsSelectable);
         var locked = home.MapVersions[2];
         Assert.True(locked.IsLocked); Assert.Equal(lockedIsBlocked, locked.Blocked);
+        Assert.Equal("ESN locked · only for SYNC 3 made before 2020 (pre-MY20)", locked.Detail); Assert.Equal("Not ESN locked", home.MapVersions[1].Detail);   // (the English wording)
         Assert.Equal(Ctx.T("Home.MapEsnLocked"), locked.Detail);                         // the same line whether or not it can be picked: a dimmed map says why by looking blocked
     }
 

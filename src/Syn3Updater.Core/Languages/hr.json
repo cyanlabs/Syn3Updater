@@ -289,7 +289,7 @@
   "Settings.VersionFormat": "Verzija mora izgledati kao 3.4.20282 (Postavke > Općenito > O sustavu u automobilu).",
   "Settings.ResetConfirm": "Vratiti sve postavke (uključujući ovaj profil) na zadane vrijednosti?",
   "Home.BackendRequired": "Syn3 Updater za rad zahtijeva vezu s poslužiteljem.\n\n{0}",
-  "Home.MapEsnLocked": "ESN zaključano · samo jedinice prije MY20",
+  "Home.MapEsnLocked": "ESN zaključano · samo za SYNC 3 proizveden prije 2020. (prije MY20)",
   "Home.MapEsnOpen": "Nije ESN zaključano",
   "Home.MapEsnBlockedOnlyMaps": "ESN zaključano · zahtijeva potpuno izdanje, ne „{0}”",
   "Diag.Intro": "Provjerava ima li ovo računalo sve što Syn3 Updater treba za pripremu USB pogona. Ništa se ne mijenja.",

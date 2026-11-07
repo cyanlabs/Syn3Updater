@@ -289,7 +289,7 @@
   "Settings.VersionFormat": "Version on näytettävä muodossa 3.4.20282 (Asetukset > Yleiset > Tietoja autossa).",
   "Settings.ResetConfirm": "Palautetaanko kaikki asetukset (myös tämä profiili) oletusarvoihin?",
   "Home.BackendRequired": "Syn3 Updater tarvitsee toimiakseen yhteyden palvelimeen.\n\n{0}",
-  "Home.MapEsnLocked": "ESN-lukittu · vain ennen MY20:tä valmistetut laitteet",
+  "Home.MapEsnLocked": "ESN-lukittu · vain ennen vuotta 2020 valmistetulle SYNC 3:lle (ennen MY20:tä)",
   "Home.MapEsnOpen": "Ei ESN-lukittu",
   "Home.MapEsnBlockedOnlyMaps": "ESN-lukittu · vaatii täyden version, ei ”{0}”",
   "Diag.Intro": "Tarkistaa, että tietokoneellasi on kaikki, mitä Syn3 Updater tarvitsee USB-aseman valmisteluun. Mitään ei muuteta.",

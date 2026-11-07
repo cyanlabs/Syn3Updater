@@ -289,7 +289,7 @@
   "Settings.VersionFormat": "版本必須類似 3.4.20282（車上的 設定 > 一般 > 關於）。",
   "Settings.ResetConfirm": "將所有設定（包括此設定檔）重設為預設值？",
   "Home.BackendRequired": "Syn3 Updater 需要連線到伺服器才能運作。\n\n{0}",
-  "Home.MapEsnLocked": "已鎖定 ESN · 僅限 MY20 之前的裝置",
+  "Home.MapEsnLocked": "已鎖定 ESN · 僅限 2020 年之前生產的 SYNC 3（MY20 之前）",
   "Home.MapEsnOpen": "未鎖定 ESN",
   "Home.MapEsnBlockedOnlyMaps": "已鎖定 ESN · 需要完整版本，而不是「{0}」",
   "Diag.Intro": "檢查這台電腦是否具備 Syn3 Updater 準備 USB 磁碟機所需的條件。不會變更任何內容。",
