@@ -63,6 +63,21 @@ public static class CrashReporter
 
     public static string PendingPath(string dataDir) => Path.Combine(dataDir, PendingFile);
 
+    /// <summary>
+    /// True for an error that is only the desktop's DBus failing in the background: Avalonia (input method, global menu, portals) calls services over DBus, and when one
+    /// is missing or busy the call fails inside a task nobody awaits. The app carries on, so it is not a crash and is never offered for sending (it is still written to crash.txt).
+    /// Only when every error in the tree comes from Tmds.DBus; a mix with one of our own errors is still reported.
+    /// </summary>
+    public static bool IsDesktopDBusNoise(object? error)
+    {
+        static bool Noise(Exception e) => e switch
+        {
+            AggregateException a => a.InnerExceptions.Count > 0 && a.InnerExceptions.All(Noise),
+            _ => e.GetType().FullName?.StartsWith("Tmds.DBus.", StringComparison.Ordinal) == true && (e.InnerException == null || Noise(e.InnerException)),
+        };
+        return error is Exception ex && Noise(ex);
+    }
+
     /// <summary>Replaces the home folder (and with it the user name) by "~" so a report holds no personal paths.</summary>
     public static string Scrub(string? text, string? home = null)
     {

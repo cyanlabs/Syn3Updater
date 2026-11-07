@@ -16,6 +16,20 @@ public class CrashReporterTests : IDisposable
         catch (Exception e) { return e; }
     }
 
+    [Fact]
+    public void DesktopDBusFailures_AreNotCrashes_ButOurOwnErrorsStillAre()
+    {
+        var dbus = new Tmds.DBus.Protocol.DBusException("org.freedesktop.DBus.Error.ServiceUnknown: The name is not activatable");
+        Assert.True(CrashReporter.IsDesktopDBusNoise(dbus));
+        Assert.True(CrashReporter.IsDesktopDBusNoise(new AggregateException(dbus)));                                   // how an unobserved task exception arrives
+        Assert.True(CrashReporter.IsDesktopDBusNoise(new AggregateException(dbus, new Tmds.DBus.Protocol.DBusException("x"))));
+        Assert.False(CrashReporter.IsDesktopDBusNoise(new AggregateException(dbus, new InvalidOperationException("ours"))));   // one real error in the mix: report it
+        Assert.False(CrashReporter.IsDesktopDBusNoise(new InvalidOperationException("ours", dbus)));
+        Assert.False(CrashReporter.IsDesktopDBusNoise(new AggregateException()));
+        Assert.False(CrashReporter.IsDesktopDBusNoise(null));
+        Assert.False(CrashReporter.IsDesktopDBusNoise("a string"));
+    }
+
     [Theory]
     [InlineData("https://537f041b73184330a56f8fc1dcc4c140@glitchtip.cyanlabs.net/1", "537f041b73184330a56f8fc1dcc4c140", "https://glitchtip.cyanlabs.net/api/1/store/")]
     [InlineData("https://key@sentry.example.com:9000/42", "key", "https://sentry.example.com:9000/api/42/store/")]
