@@ -72,7 +72,7 @@ public partial class MainWindowViewModel
                 var body = Ctx.T("App.ForcedManualBody", req.Version, plan.Instructions ?? "") + extra;
                 var choice = await Dialogs.Show(body, title, new[] { Ctx.T("App.UpdateCopyCommand"), Ctx.T("App.UpdateView"), Ctx.T("App.ForcedQuit") }, 0);
                 if (choice == 2) { UpdateRestart.Quit(); return; }
-                if (choice == 0) await Dialogs.SetClipboard(plan.Instructions ?? page); else if (choice == 1) await Dialogs.OpenUrl(page);
+                if (choice == 0) await Dialogs.SetClipboard(InstallDetector.PrimaryCommand(plan.Instructions) ?? page); else if (choice == 1) await Dialogs.OpenUrl(page);
                 continue;                                                                      // still below the minimum: ask again
             }
             else

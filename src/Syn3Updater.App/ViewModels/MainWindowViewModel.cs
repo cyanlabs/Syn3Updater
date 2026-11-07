@@ -159,7 +159,7 @@ public partial class MainWindowViewModel : ObservableObject
         var command = plan.Instructions ?? "";
         var choice = await Dialogs.Show(Ctx.T("App.UpdateHowToBody", Update.Version, command), Ctx.T("App.UpdateHowToTitle", Update.Version),
             new[] { Ctx.T("String.OK"), Ctx.T("App.UpdateCopyCommand"), Ctx.T("App.UpdateView") }, 0);
-        if (choice == 1) await Dialogs.SetClipboard(command);
+        if (choice == 1) await Dialogs.SetClipboard(InstallDetector.PrimaryCommand(command) ?? Update.Url);
         else if (choice == 2) await Dialogs.OpenUrl(Update.Url);
     }
 

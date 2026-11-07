@@ -190,10 +190,31 @@ public class InstallDetectorTests : IDisposable
     {
         Assert.Equal("sudo apt install ./a.deb", InstallDetector.ManualInstructions(InstallKind.LinuxDeb, "a.deb"));
         Assert.StartsWith("sudo dnf install ./a.rpm", InstallDetector.ManualInstructions(InstallKind.LinuxRpm, "a.rpm"));
+        Assert.Contains("sudo zypper install ./a.rpm", InstallDetector.ManualInstructions(InstallKind.LinuxRpm, "a.rpm"));
         Assert.Contains("yay -Syu syn3updater-bin", InstallDetector.ManualInstructions(InstallKind.LinuxPacman, null));
         Assert.Contains("pacman -U", InstallDetector.ManualInstructions(InstallKind.LinuxPacman, "a.pkg.tar.zst"));
         Assert.Contains("github.com/CyanLabs/Syn3Updater/releases", InstallDetector.ManualInstructions(InstallKind.LinuxPortable, null));
     }
+
+    [Fact]
+    public void Each_command_is_on_its_own_line_and_nothing_is_run_together_in_brackets()
+    {
+        var arch = InstallDetector.ManualInstructions(InstallKind.LinuxPacman, "a.pkg.tar.zst").Split('\n');
+        Assert.Equal(2, arch.Length);
+        Assert.StartsWith("yay -Syu syn3updater-bin", arch[0]); Assert.StartsWith("sudo pacman -U a.pkg.tar.zst", arch[1]);
+        Assert.DoesNotContain("(", string.Concat(arch));
+    }
+
+    [Theory]
+    [InlineData(InstallKind.LinuxDeb, "sudo apt install ./a.deb")]
+    [InlineData(InstallKind.LinuxRpm, "sudo dnf install ./a.rpm")]
+    [InlineData(InstallKind.LinuxPacman, "yay -Syu syn3updater-bin")]
+    public void Copy_command_copies_only_the_first_command_without_its_note(InstallKind kind, string expected) =>
+        Assert.Equal(expected, InstallDetector.PrimaryCommand(InstallDetector.ManualInstructions(kind, "a" + (kind == InstallKind.LinuxDeb ? ".deb" : ".rpm"))));
+
+    [Fact]
+    public void A_sentence_is_not_offered_as_a_command_to_copy() =>
+        Assert.Null(InstallDetector.PrimaryCommand(InstallDetector.ManualInstructions(InstallKind.LinuxPortable, null)));
 
     [Fact]
     public void The_running_test_process_is_detected_without_throwing()
