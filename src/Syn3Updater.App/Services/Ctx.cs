@@ -28,8 +28,7 @@ public static class Ctx
     /// <summary>What to do about a release that was found (default: check its signed manifest with <see cref="UpdatePlanner"/>; tests replace it).</summary>
     public static Func<UpdateInfo, Task<UpdatePlan>> PlanUpdate { get; set; } =
         info => UpdatePlanner.PlanAsync(info, Install, Version, UpdateChannel, ReleaseManifest.CurrentOs(), ReleaseManifest.CurrentArch());
-    /// <summary>The last update policy the backend gave, kept for when it cannot be reached.</summary>
-    public static string PolicyCacheFile => Path.Combine(Paths.DataDir, "update-policy.json");
+
     public static string UpdateDir => Path.Combine(Paths.DataDir, "updates");
 
     public static MainSettings Main => Store.Main;

@@ -24,8 +24,7 @@ public partial class MainWindowViewModel
         {
             if (Ctx.Install.Kind == InstallKind.Development) return;                         // developers are never locked out of their own build
             var os = ReleaseManifest.CurrentOs(); var channel = Ctx.UpdateChannel;
-            var policy = await PolicySource.GetAsync(async ct => UpdatePolicy.FromApi(await Ctx.Api.GetUpdatePolicy(ct), DateTimeOffset.UtcNow),
-                Ctx.PolicyCacheFile, DateTimeOffset.UtcNow, TimeSpan.FromSeconds(8), Ctx.Log.Info);
+            var policy = await PolicySource.GetAsync(async ct => UpdatePolicy.FromApi(await Ctx.Api.GetUpdatePolicy(ct), DateTimeOffset.UtcNow), TimeSpan.FromSeconds(8), Ctx.Log.Info);
             var req = policy?.MinimumFor(channel, os);
             if (req == null) return;
             if (SemVer.Parse(Ctx.Version) is { } running && SemVer.Parse(req.Version)!.CompareTo(running) <= 0) return;       // meets the minimum: no need to look for releases

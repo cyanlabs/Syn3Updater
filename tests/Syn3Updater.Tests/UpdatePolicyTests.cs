@@ -7,11 +7,8 @@ using static Syn3Updater.Tests.UpdateTestSupport;
 
 namespace Syn3Updater.Tests;
 
-public class UpdatePolicyTests : IDisposable
+public class UpdatePolicyTests
 {
-    private readonly TempDir _t = new();
-    private string Cache => _t.Sub("cache", "update-policy.json");
-    public void Dispose() => _t.Dispose();
     private static readonly DateTimeOffset Now = new(2026, 11, 7, 12, 0, 0, TimeSpan.Zero);
 
     private static UpdatePolicy Policy(params PolicyRow[] rows) => new(Now, rows);
@@ -106,35 +103,13 @@ public class UpdatePolicyTests : IDisposable
     [Fact] public void Beta_and_nightly_builds_are_forced_by_their_own_rows() { Assert.True(Decide(Policy(Row(UpdateChannel.Beta, all: "3.1.0-beta.3")), "3.1.0-beta.1", "3.1.0-beta.4", UpdateChannel.Beta).Required); Assert.False(Decide(Policy(Row(UpdateChannel.Stable, all: "3.1.0-beta.3")), "3.1.0-beta.1", "3.1.0-beta.4", UpdateChannel.Beta).Required); }
     [Fact] public void The_OS_decides() { var p = Policy(Row(win: "3.0.2")); Assert.True(Decide(p, os: UpdateOs.Windows).Required); Assert.False(Decide(p, os: UpdateOs.Linux).Required); }
 
-    // ---- the cache and the offline behaviour ----
+    // ---- the live fetch ----
 
     [Fact]
-    public void The_cache_round_trips_and_a_missing_or_broken_file_reads_as_nothing()
-    {
-        var p = Policy(Row(all: "3.0.2", win: "3.0.4", msg: "m"), Row(UpdateChannel.Beta, on: false));
-        p.Save(Cache);
-        var back = UpdatePolicy.Load(Cache)!;
-        Assert.Equal(p.Rows, back.Rows); Assert.Equal(Now, back.FetchedAt);
-        Assert.Null(UpdatePolicy.Load(_t.Sub("none.json")));
-        File.WriteAllText(_t.Sub("bad.json"), "{{{"); Assert.Null(UpdatePolicy.Load(_t.Sub("bad.json")));
-        File.WriteAllText(_t.Sub("odd.json"), "[1,2]"); Assert.Null(UpdatePolicy.Load(_t.Sub("odd.json")));
-    }
-
-    [Fact]
-    public async Task A_live_policy_is_used_and_cached()
+    public async Task A_live_policy_is_returned()
     {
         var live = Policy(Row(all: "3.0.2"));
-        var got = await PolicySource.GetAsync(_ => Task.FromResult(live), Cache, Now, TimeSpan.FromSeconds(5));
-        Assert.Same(live, got); Assert.NotNull(UpdatePolicy.Load(Cache));
-    }
-
-    [Fact]
-    public async Task When_the_backend_cannot_be_reached_the_cached_policy_still_applies()
-    {
-        Policy(Row(all: "3.0.2")).Save(Cache); var logs = new List<string>();
-        var got = await PolicySource.GetAsync(_ => throw new ApiException("down"), Cache, Now.AddDays(3), TimeSpan.FromSeconds(5), logs.Add);
-        Assert.Equal("3.0.2", got!.MinimumFor(UpdateChannel.Stable, UpdateOs.Linux)!.Version);
-        Assert.Contains(logs, l => l.Contains("cached"));
+        Assert.Same(live, await PolicySource.GetAsync(_ => Task.FromResult(live), TimeSpan.FromSeconds(5)));
     }
 
     public static IEnumerable<object[]> Failures() => new[]
@@ -144,40 +119,26 @@ public class UpdatePolicyTests : IDisposable
     };
 
     [Theory, MemberData(nameof(Failures))]
-    public async Task Every_kind_of_network_failure_falls_back_to_the_cache(Func<Exception> failure)
+    public async Task Every_kind_of_failure_means_no_policy_and_so_nothing_is_forced(Func<Exception> failure)
     {
-        Policy(Row(all: "3.0.2")).Save(Cache);
-        Assert.NotNull(await PolicySource.GetAsync(_ => throw failure(), Cache, Now, TimeSpan.FromSeconds(5)));
-    }
-
-    [Fact]
-    public async Task With_no_cache_an_unreachable_policy_forces_nothing()
-    {
-        var got = await PolicySource.GetAsync(_ => throw new HttpRequestException("offline"), Cache, Now, TimeSpan.FromSeconds(5));
-        Assert.Null(got);
+        var logs = new List<string>();
+        var got = await PolicySource.GetAsync(_ => throw failure(), TimeSpan.FromSeconds(5), logs.Add);
+        Assert.Null(got); Assert.Contains(logs, l => l.Contains("nothing is forced"));
         Assert.False(ForcedUpdate.Evaluate(got, "3.0.0", UpdateChannel.Stable, UpdateOs.Linux, "3.0.4").Required);
     }
 
     [Fact]
-    public async Task A_cache_that_is_too_old_is_not_believed()
+    public async Task A_slow_backend_is_given_up_on_after_the_timeout()
     {
-        Policy(Row(all: "3.0.2")).Save(Cache);
-        Assert.Null(await PolicySource.GetAsync(_ => throw new ApiException("down"), Cache, Now + PolicySource.MaxCacheAge + TimeSpan.FromDays(1), TimeSpan.FromSeconds(5)));
-        Assert.NotNull(await PolicySource.GetAsync(_ => throw new ApiException("down"), Cache, Now + PolicySource.MaxCacheAge - TimeSpan.FromDays(1), TimeSpan.FromSeconds(5)));
-    }
-
-    [Fact]
-    public async Task A_slow_backend_is_given_up_on_after_the_timeout_and_the_cache_is_used()
-    {
-        Policy(Row(all: "3.0.2")).Save(Cache);
-        var got = await PolicySource.GetAsync(async ct => { await Task.Delay(TimeSpan.FromSeconds(30), ct); return Policy(); }, Cache, Now, TimeSpan.FromMilliseconds(150));
-        Assert.Equal("3.0.2", got!.MinimumFor(UpdateChannel.Stable, UpdateOs.Linux)!.Version);
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        Assert.Null(await PolicySource.GetAsync(async ct => { await Task.Delay(TimeSpan.FromSeconds(30), ct); return Policy(); }, TimeSpan.FromMilliseconds(150)));
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(10));
     }
 
     [Fact]
     public async Task The_caller_giving_up_is_not_hidden_as_a_network_failure()
     {
         using var cts = new CancellationTokenSource(); cts.Cancel();
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => PolicySource.GetAsync(async ct => { await Task.Delay(1000, ct); return Policy(); }, Cache, Now, TimeSpan.FromSeconds(5), null, cts.Token));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => PolicySource.GetAsync(async ct => { await Task.Delay(1000, ct); return Policy(); }, TimeSpan.FromSeconds(5), null, cts.Token));
     }
 }

@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Cyanlabs.Syn3Updater.Core.Models;
 
 namespace Cyanlabs.Syn3Updater.Core.Services.Updates;
@@ -38,39 +37,6 @@ public sealed class UpdatePolicy
         }
         return best == null ? null : new PolicyRequirement(best, string.IsNullOrWhiteSpace(row.Message) ? null : row.Message.Trim());
     }
-
-    // ---- the cached copy ----
-
-    public void Save(string path)
-    {
-        var o = new JsonObject
-        {
-            ["fetchedAt"] = FetchedAt.ToString("o"),
-            ["rows"] = new JsonArray(Rows.Select(r => (JsonNode)new JsonObject
-            {
-                ["channel"] = r.Channel.ToString(), ["enabled"] = r.Enabled, ["minAll"] = r.MinAll, ["minWindows"] = r.MinWindows, ["minLinux"] = r.MinLinux, ["minMac"] = r.MinMac, ["message"] = r.Message
-            }).ToArray())
-        };
-        try { Directory.CreateDirectory(Path.GetDirectoryName(path)!); File.WriteAllText(path, o.ToJsonString()); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { /* the cache is a convenience */ }
-    }
-
-    public static UpdatePolicy? Load(string path)
-    {
-        try
-        {
-            if (!File.Exists(path) || JsonNode.Parse(File.ReadAllText(path)) is not JsonObject o || o["rows"] is not JsonArray arr) return null;
-            var rows = new List<PolicyRow>();
-            foreach (var n in arr)
-            {
-                if (n is not JsonObject r || !Enum.TryParse<UpdateChannel>(r["channel"]?.GetValue<string>(), false, out var ch) || !Enum.IsDefined(ch)) continue;
-                rows.Add(new PolicyRow(ch, r["enabled"]?.GetValue<bool>() ?? false, r["minAll"]?.GetValue<string>(), r["minWindows"]?.GetValue<string>(),
-                    r["minLinux"]?.GetValue<string>(), r["minMac"]?.GetValue<string>(), r["message"]?.GetValue<string>()));
-            }
-            return new UpdatePolicy(DateTimeOffset.TryParse(o["fetchedAt"]?.GetValue<string>(), out var at) ? at : default, rows);
-        }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException or InvalidOperationException or FormatException) { return null; }
-    }
 }
 
 public sealed record ForceDecision(bool Required, PolicyRequirement? Requirement, string Reason);
@@ -99,31 +65,21 @@ public static class ForcedUpdate
 
 public static class PolicySource
 {
-    public static readonly TimeSpan MaxCacheAge = TimeSpan.FromDays(60);
-
     /// <summary>
-    /// The policy to apply: the live one (and the cache is refreshed), or when the backend cannot be reached the cached one, unless it is too old to be believed. Never throws for network problems.
-    /// With neither, null: an unreachable policy never forces anything by itself.
+    /// The live policy, or null when it cannot be fetched in time. Never throws for network problems. Nothing is remembered: with the backend unreachable the app cannot do anything
+    /// useful anyway (it says so itself), and a stale copy could only force an update the maintainers have since withdrawn. A policy that fails to load while the rest of the backend works
+    /// (a misconfigured table, say) must not lock anyone out, so no policy means nothing is forced; the next start asks again.
     /// </summary>
-    public static async Task<UpdatePolicy?> GetAsync(Func<CancellationToken, Task<UpdatePolicy>> fetch, string cacheFile, DateTimeOffset now, TimeSpan timeout, Action<string>? log = null, CancellationToken ct = default)
+    public static async Task<UpdatePolicy?> GetAsync(Func<CancellationToken, Task<UpdatePolicy>> fetch, TimeSpan timeout, Action<string>? log = null, CancellationToken ct = default)
     {
         log ??= _ => { };
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct); cts.CancelAfter(timeout);
-        try
-        {
-            var live = await fetch(cts.Token);
-            live.Save(cacheFile);
-            return live;
-        }
+        try { return await fetch(cts.Token); }
         catch (Exception e) when (e is ApiException or HttpRequestException or TaskCanceledException or OperationCanceledException or JsonException)
         {
             if (ct.IsCancellationRequested) throw;
-            log("The update policy could not be fetched: " + e.Message);
+            log("The update policy could not be fetched, so nothing is forced: " + e.Message);
+            return null;
         }
-        var cached = UpdatePolicy.Load(cacheFile);
-        if (cached == null) { log("No cached update policy: nothing is forced"); return null; }
-        if (now - cached.FetchedAt > MaxCacheAge) { log("The cached update policy is too old to use"); return null; }
-        log($"Using the update policy cached on {cached.FetchedAt:yyyy-MM-dd}");
-        return cached;
     }
 }

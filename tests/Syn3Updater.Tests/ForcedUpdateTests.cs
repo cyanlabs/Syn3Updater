@@ -189,30 +189,23 @@ public class ForcedUpdateTests
     }
 
     [AvaloniaFact]
-    public async Task With_the_backend_down_the_cached_policy_still_forces()
+    public async Task With_the_backend_down_nothing_is_forced_the_app_cannot_do_anything_without_it_anyway()
     {
         using var e = new Env(); e.Install();
-        new UpdatePolicy(DateTimeOffset.UtcNow.AddDays(-2), new[] { new PolicyRow(UpdateChannel.Stable, true, "3.0.5", null, null, null, null) }).Save(Ctx.PolicyCacheFile);
         e.Serve(raw: () => throw new HttpRequestException("offline"));
         await e.App.Main.EnforceMinimumAsync();
-        Assert.Single(e.Started);
+        Assert.Empty(e.Started); Assert.Empty(e.App.Dialogs.Shown); Assert.False(e.App.Main.ForcedUpdateActive); Assert.Empty(e.Releases.Requests);
+        Assert.Contains(Ctx.Log.Lines, l => l.Contains("nothing is forced"));
     }
 
     [AvaloniaFact]
-    public async Task With_the_backend_down_and_nothing_cached_nothing_is_forced()
+    public async Task The_next_start_asks_again_so_a_fixed_backend_enforces_normally()
     {
-        using var e = new Env(); e.Install(); File.Delete(Ctx.PolicyCacheFile);
+        using var e = new Env(); e.Install();
         e.Serve(raw: () => throw new HttpRequestException("offline"));
-        await e.App.Main.EnforceMinimumAsync();
-        Assert.Empty(e.Started); Assert.Empty(e.App.Dialogs.Shown); Assert.False(e.App.Main.ForcedUpdateActive);
-    }
-
-    [AvaloniaFact]
-    public async Task A_live_answer_is_cached_for_the_next_time()
-    {
-        using var e = new Env(); e.Install(); File.Delete(Ctx.PolicyCacheFile);
-        await e.App.Main.EnforceMinimumAsync();
-        Assert.Equal("3.0.5", UpdatePolicy.Load(Ctx.PolicyCacheFile)!.MinimumFor(UpdateChannel.Stable, UpdateOs.Linux)!.Version);
+        await e.App.Main.EnforceMinimumAsync(); Assert.Empty(e.Started);
+        e.Serve();                                                  // the backend is back
+        await e.App.Main.EnforceMinimumAsync(); Assert.Single(e.Started);
     }
 
     [AvaloniaFact]

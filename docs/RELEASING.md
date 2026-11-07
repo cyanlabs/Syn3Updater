@@ -89,7 +89,7 @@ Safety rules, so a mistake here cannot lock people out:
 
 - A minimum **above the newest published release** on that channel is ignored (logged as such): publish the release first, then raise the minimum.
 - It is checked **only at launch and never while a download or USB run is in progress**; a development run is never forced.
-- The policy is cached (60 days). With the backend down the cached policy still applies; with no cache nothing is forced.
+- The policy is read live at every start and not kept: with the backend unreachable nothing is forced (the app cannot do anything without the backend anyway, and says so), so a stale copy can never force an update that has since been withdrawn.
 - Only a release whose signed manifest verifies is ever installed, so a wrong row can at worst force an update to a genuine release.
 - `scripts/directus-create-update-policy.sh` creates the collection (idempotent, `--dry-run` by default); values are validated as versions when saved.
 
