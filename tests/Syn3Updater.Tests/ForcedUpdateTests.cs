@@ -76,6 +76,21 @@ public class ForcedUpdateTests
     }
 
     [AvaloniaFact]
+    public async Task The_startup_check_still_running_does_not_make_the_required_update_report_that_it_could_not_be_downloaded()
+    {
+        if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
+        using var e = new Env(); var installed = e.Install();
+        var real = Ctx.PlanUpdate; var calls = 0;
+        Ctx.PlanUpdate = async i => { var first = Interlocked.Increment(ref calls) == 1; if (first) await Task.Delay(400); return await real(i); };      // the startup check is slow to plan
+        var startup = e.App.Main.CheckForUpdateAsync();           // App.axaml.cs starts this at launch and does not wait for it
+        await Task.Delay(50);
+        await e.App.Main.EnforceMinimumAsync().WaitAsync(TimeSpan.FromSeconds(20));       // ...and the window opening then enforces the minimum (a limit, so a regression fails instead of hanging)
+        await startup.WaitAsync(TimeSpan.FromSeconds(20));
+        Assert.Empty(e.App.Dialogs.Shown);                        // no "could not be downloaded" question: the plan was there
+        Assert.Single(e.Started); Assert.Equal("NEW", File.ReadAllText(Path.Combine(installed.Install.AppDir, "Syn3Updater")));
+    }
+
+    [AvaloniaFact]
     public async Task The_overlay_text_says_what_is_being_installed_and_carries_the_maintainers_message()
     {
         if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
