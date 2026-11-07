@@ -171,10 +171,10 @@ public class ForcedUpdateTests
     }
 
     [AvaloniaFact]
-    public async Task When_the_release_cannot_be_checked_the_user_is_told_and_can_try_again_or_quit()
+    public async Task When_the_network_fails_while_checking_the_release_the_user_is_told_and_can_try_again_or_quit()
     {
         using var e = new Env(); var (plan, _, _, _) = e.Inner.Scenario();
-        e.Plan(UpdatePlan.Notify(plan.Install, "the signed manifest could not be downloaded"));
+        e.Plan(UpdatePlan.Notify(plan.Install, "the signed manifest could not be downloaded", null, transient: true));      // temporary: trying again may work
         e.App.Dialogs.Choices.Enqueue(0);          // Try again (still offline)
         e.App.Dialogs.Choices.Enqueue(2);          // Quit
         await e.App.Main.EnforceMinimumAsync();
@@ -183,13 +183,18 @@ public class ForcedUpdateTests
     }
 
     [AvaloniaFact]
-    public async Task A_release_whose_signature_was_rejected_is_never_installed_even_when_required()
+    public async Task A_minimum_that_can_never_be_met_from_here_does_not_lock_anyone_out()
     {
-        using var e = new Env(); var (plan, _, _, _) = e.Inner.Scenario();
-        e.Plan(UpdatePlan.Reject(plan.Install, "manifest signature rejected"));
-        e.App.Dialogs.Choices.Enqueue(2);
-        await e.App.Main.EnforceMinimumAsync();
-        Assert.Empty(e.Started); Assert.Equal(1, e.Quits); Assert.Equal(0, e.Downloads);
+        // the newest release meets the minimum by version number, but it has no signed manifest, no file for this system, or it failed verification: nothing the user could do would satisfy it
+        foreach (var plan in new Func<InstallInfo, UpdatePlan>[]
+                 { i => UpdatePlan.Notify(i, "this release has no signed manifest"), i => UpdatePlan.Notify(i, "this release has no file for this system"), i => UpdatePlan.Reject(i, "manifest signature rejected") })
+        {
+            using var e = new Env(); var (p, _, _, _) = e.Inner.Scenario();
+            e.Plan(plan(p.Install));
+            await e.App.Main.EnforceMinimumAsync();
+            Assert.Empty(e.App.Dialogs.Shown); Assert.Empty(e.Started); Assert.Equal(0, e.Quits); Assert.False(e.App.Main.ForcedUpdateActive); Assert.Equal(0, e.Downloads);
+            Assert.Contains(Ctx.Log.Lines, l => l.Contains("not forced"));
+        }
     }
 
     [AvaloniaFact]

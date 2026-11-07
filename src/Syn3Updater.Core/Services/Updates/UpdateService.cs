@@ -15,9 +15,10 @@ public enum PlanKind
     Rejected
 }
 
-public sealed record UpdatePlan(PlanKind Kind, ReleaseManifest? Manifest, ManifestAsset? Asset, InstallInfo Install, string? Instructions = null, string? Reason = null)
+/// <param name="Transient">For a NotifyOnly plan: the reason is temporary (the network), so trying again may give an installable plan. A permanent reason (no manifest, no file for this system) never will.</param>
+public sealed record UpdatePlan(PlanKind Kind, ReleaseManifest? Manifest, ManifestAsset? Asset, InstallInfo Install, string? Instructions = null, string? Reason = null, bool Transient = false)
 {
-    public static UpdatePlan Notify(InstallInfo i, string reason, ReleaseManifest? m = null) => new(PlanKind.NotifyOnly, m, null, i, null, reason);
+    public static UpdatePlan Notify(InstallInfo i, string reason, ReleaseManifest? m = null, bool transient = false) => new(PlanKind.NotifyOnly, m, null, i, null, reason, transient);
     public static UpdatePlan Reject(InstallInfo i, string reason) => new(PlanKind.Rejected, null, null, i, null, reason);
 }
 
@@ -56,10 +57,11 @@ public sealed class UpdateService
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException or IOException or InvalidOperationException)
         {
             if (ct.IsCancellationRequested) throw;
-            return UpdatePlan.Notify(install, "the signed manifest could not be downloaded: " + e.Message);
+            return UpdatePlan.Notify(install, "the signed manifest could not be downloaded: " + e.Message, null, transient: true);
         }
 
-        if (!string.Equals(manifest.Version, info.Version, StringComparison.OrdinalIgnoreCase)) return UpdatePlan.Reject(install, $"the manifest is for {manifest.Version}, not {info.Version}");
+        // as versions, not text: a release published under the legacy tag 3.0.0.0 is announced as "3.0.0.0" while its manifest says "3.0.0", and they are the same version
+        if (SemVer.Parse(manifest.Version) is not { } mv || SemVer.Parse(info.Version) is not { } iv || mv.CompareTo(iv) != 0) return UpdatePlan.Reject(install, $"the manifest is for {manifest.Version}, not {info.Version}");
         if (!ManifestTrust.MayInstall(manifest, current, wanted, info.Switch)) return UpdatePlan.Reject(install, $"{manifest.Version} is not an update for {current} on the {wanted} channel");
 
         var kind = KindFor(install.Kind);

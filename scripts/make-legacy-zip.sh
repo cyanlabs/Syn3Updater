@@ -10,7 +10,7 @@ unzip -q "$WIN" -d "$WORK/in"
 inner="$(find "$WORK/in" -mindepth 1 -maxdepth 1 -type d | head -n1)"
 [[ -n "$inner" && -f "$inner/Syn3Updater.exe" && -f "$inner/Launcher.exe" ]] || { echo "$WIN has no Syn3Updater.exe and Launcher.exe inside one folder" >&2; exit 1; }
 rm -f "$OUT"
-( cd "$inner" && zip -q -j "$OUT" ./* )
+( cd "$inner" && zip -q -j "$OUT" ./* .install-method )
 # Launcher.exe is the stub, a program of its own and not a copy of the app (the v2 Launcher renames its own Launcher.exe away and relies on this one being there)
 here="$(cd "$(dirname "$0")/.." && pwd)"
 [[ "$(unzip -p "$OUT" Syn3Updater.exe | sha256sum | cut -d' ' -f1)" != "$(unzip -p "$OUT" Launcher.exe | sha256sum | cut -d' ' -f1)" ]] || { echo "Syn3Updater.exe and Launcher.exe are the same file" >&2; exit 1; }

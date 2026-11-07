@@ -127,9 +127,46 @@ public class InstallDetectorTests : IDisposable
     [Fact]
     public void Windows_folders_update_in_place_when_writable()
     {
-        var info = InstallDetector.Detect(UpdateOs.Windows, Dir("win"), "C:\\x\\Syn3Updater.exe", null);
+        var info = InstallDetector.Detect(UpdateOs.Windows, Dir("win", "zip"), "C:\\x\\Syn3Updater.exe", null);
         Assert.Equal(InstallKind.WindowsFolder, info.Kind);
         Assert.True(info.CanSelfUpdate);
+    }
+
+    [Theory]
+    [InlineData("marker")] [InlineData("manifest")] [InlineData("launcher")]
+    public void A_Windows_folder_is_an_install_only_with_evidence_of_one(string evidence)
+    {
+        var d = Dir("win-" + evidence, evidence == "marker" ? "zip" : null);
+        if (evidence == "manifest") File.WriteAllText(Path.Combine(d, "install-manifest.json"), "{}");
+        if (evidence == "launcher") File.WriteAllText(Path.Combine(d, "Launcher.exe"), "x");        // what the v2 installer and an older Launcher put beside the program
+        var info = InstallDetector.Detect(UpdateOs.Windows, d, "C:\\x\\Syn3Updater.exe", null);
+        Assert.Equal(InstallKind.WindowsFolder, info.Kind); Assert.True(info.CanSelfUpdate);
+    }
+
+    [Fact]
+    public void A_lone_Syn3Updater_exe_copied_to_the_Desktop_or_Downloads_is_never_rewritten()
+    {
+        var d = Dir("Desktop");                                      // writable, no marker, no manifest, no Launcher: nothing installed this
+        File.WriteAllText(Path.Combine(d, "Syn3Updater.exe"), "x"); File.WriteAllText(Path.Combine(d, "somebody-elses.dll"), "x");
+        var info = InstallDetector.Detect(UpdateOs.Windows, d, "C:\\Users\\me\\Desktop\\Syn3Updater.exe", null);
+        Assert.Equal(InstallKind.WindowsPortable, info.Kind); Assert.Equal(UpdateRoute.Manual, info.Route); Assert.False(info.CanSelfUpdate);
+        Assert.False(UpdateService.DefaultCanApply(info));
+    }
+
+    [Theory]
+    [InlineData("x/bin/Release/net10.0", true)] [InlineData("x/bin/Debug/net10.0", true)] [InlineData("x/obj/foo", false)] [InlineData("x/Syn3 Updater.app/Contents/MacOS", false)] [InlineData("x/app", false)]
+    public void A_build_output_folder_is_a_development_run_even_when_started_by_dotnet_run_or_an_IDE(string rel, bool dev)
+    {
+        var d = Dir(rel.Replace('/', Path.DirectorySeparatorChar)); File.WriteAllText(Path.Combine(d, "Syn3Updater.dll"), "x");         // the apphost's own .dll beside it: a published release has none
+        var info = InstallDetector.Detect(UpdateOs.Linux, d, Path.Combine(d, "Syn3Updater"), "/home/u");
+        Assert.Equal(dev, info.Kind == InstallKind.Development); if (dev) Assert.Equal(UpdateRoute.None, info.Route);
+    }
+
+    [Fact]
+    public void A_published_release_in_a_folder_called_bin_is_not_mistaken_for_a_build_output()
+    {
+        var d = Dir("bin/Release/net10.0");                          // looks like a build folder but has no Syn3Updater.dll: a single-file release put there
+        Assert.NotEqual(InstallKind.Development, InstallDetector.Detect(UpdateOs.Linux, d, Path.Combine(d, "Syn3Updater"), "/home/u").Kind);
     }
 
     [Fact]

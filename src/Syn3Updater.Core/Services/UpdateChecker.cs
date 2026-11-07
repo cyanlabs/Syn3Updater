@@ -20,6 +20,13 @@ public static class Channels
         return v.Pre.StartsWith("nightly", StringComparison.OrdinalIgnoreCase) ? UpdateChannel.Nightly : UpdateChannel.Beta;
     }
 
+    /// <summary>
+    /// Which releases someone following <paramref name="wanted"/> is offered: Stable only full releases, Beta full releases and pre-releases (everything but nightlies), Nightly only nightlies.
+    /// The same rule <see cref="UpdateChecker.Pick"/> applies, so a release it finds is never refused for being on the wrong channel.
+    /// </summary>
+    public static bool Accepts(UpdateChannel wanted, UpdateChannel release) =>
+        wanted switch { UpdateChannel.Stable => release == UpdateChannel.Stable, UpdateChannel.Beta => release != UpdateChannel.Nightly, _ => release == UpdateChannel.Nightly };
+
     /// <summary>The channel saved in settings; anything missing or unknown means "the channel of the build that is running".</summary>
     public static UpdateChannel Parse(string? saved, string runningVersion) =>
         Enum.TryParse<UpdateChannel>(saved, ignoreCase: true, out var c) && Enum.IsDefined(c) ? c : Of(runningVersion);

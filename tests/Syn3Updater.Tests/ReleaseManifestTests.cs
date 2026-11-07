@@ -215,3 +215,37 @@ public class ReleaseManifestTests
         Assert.Equal(UpdateKeys.Trusted[1].PublicKey, backup.PublicKey);
     }
 }
+
+public class ReviewFindingsPlanningTests
+{
+    private static ReleaseManifest M(string version, string channel) => ReleaseManifest.Parse(System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(new
+    {
+        schema = 1, version, channel, published = "2026-11-07T00:00:00Z", notes = "", assets = new[] { new { os = "linux", arch = "x64", kind = "targz", name = "a.tar.gz", url = "https://github.com/CyanLabs/Syn3Updater/releases/download/v1/a.tar.gz", size = 10, sha256 = new string('a', 64) } }
+    }));
+
+    [Theory]
+    [InlineData(UpdateChannel.Stable, UpdateChannel.Stable, true)] [InlineData(UpdateChannel.Stable, UpdateChannel.Beta, false)] [InlineData(UpdateChannel.Stable, UpdateChannel.Nightly, false)]
+    [InlineData(UpdateChannel.Beta, UpdateChannel.Stable, true)] [InlineData(UpdateChannel.Beta, UpdateChannel.Beta, true)] [InlineData(UpdateChannel.Beta, UpdateChannel.Nightly, false)]
+    [InlineData(UpdateChannel.Nightly, UpdateChannel.Stable, false)] [InlineData(UpdateChannel.Nightly, UpdateChannel.Beta, false)] [InlineData(UpdateChannel.Nightly, UpdateChannel.Nightly, true)]
+    public void A_followed_channel_accepts_the_releases_the_update_check_offers_for_it(UpdateChannel wanted, UpdateChannel release, bool expected) => Assert.Equal(expected, Channels.Accepts(wanted, release));
+
+    [Fact]
+    public void Every_release_the_update_check_offers_is_a_release_the_planner_accepts()
+    {
+        foreach (var wanted in new[] { UpdateChannel.Stable, UpdateChannel.Beta, UpdateChannel.Nightly })
+            foreach (var (tag, version) in new[] { ("v3.0.0", "3.0.0"), ("v3.1.0-beta.2", "3.1.0-beta.2"), ("nightly", "3.1.0-nightly.20261108.5") })
+            {
+                var json = System.Text.Json.JsonSerializer.Serialize(new[] { new { tag_name = tag, name = "Syn3 Updater " + version, prerelease = version.Contains('-'), draft = false, html_url = "u" } });
+                var offered = UpdateChecker.Pick(json, "2.0.0", wanted) is not null;
+                var m = M(version, Channels.Of(version).ToString());
+                Assert.True(!offered || ManifestTrust.MayInstall(m, "2.0.0", wanted, false), $"{wanted} is offered {version} but the planner would refuse it");
+            }
+    }
+
+    [Fact]
+    public void A_beta_user_is_offered_the_stable_release_to_install()
+    {
+        Assert.True(ManifestTrust.MayInstall(M("3.0.0", "Stable"), "3.0.0-test9", UpdateChannel.Beta, false));
+        Assert.False(ManifestTrust.MayInstall(M("3.0.0", "Stable"), "3.0.0-test9", UpdateChannel.Nightly, false));
+    }
+}

@@ -10,6 +10,7 @@ public interface ISwapFileSystem
     void MoveFile(string source, string destination, bool overwrite);
     void DeleteFile(string path);
     void DeleteDirectory(string path);
+    void WriteAllText(string path, string text);
 }
 
 public sealed class RealSwapFileSystem : ISwapFileSystem
@@ -19,11 +20,25 @@ public sealed class RealSwapFileSystem : ISwapFileSystem
     public void CreateDirectory(string path) => Directory.CreateDirectory(path);
     public void MoveFile(string source, string destination, bool overwrite)
     {
-        if (overwrite && File.Exists(destination)) File.Delete(destination);
+        if (overwrite && File.Exists(destination))
+        {
+            try { File.Delete(destination); }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // a running program cannot be deleted but can be renamed: put it aside (the next start removes it) instead of failing
+                File.Move(destination, destination + "." + Guid.NewGuid().ToString("N") + DisplacedSuffix);
+            }
+        }
         File.Move(source, destination);
     }
     public void DeleteFile(string path) => File.Delete(path);
     public void DeleteDirectory(string path) => Directory.Delete(path, true);
+    public void WriteAllText(string path, string text) => File.WriteAllText(path, text);
+
+    /// <summary>Ends the name of a file that was in the way (a running program) and was renamed aside; see <see cref="IsDisplaced"/>.</summary>
+    public const string DisplacedSuffix = ".old";
+    private static readonly System.Text.RegularExpressions.Regex DisplacedName = new(@"\.[0-9a-f]{32}\.old$", System.Text.RegularExpressions.RegexOptions.Compiled);
+    public static bool IsDisplaced(string path) => DisplacedName.IsMatch(path);
 }
 
 /// <summary>Files can be briefly locked (antivirus scans, an app still closing). Those are retried before giving up.</summary>

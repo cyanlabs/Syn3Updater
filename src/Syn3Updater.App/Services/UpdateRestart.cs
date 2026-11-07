@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Cyanlabs.Syn3Updater.Core.Services;
 
 namespace Cyanlabs.Syn3Updater.App.Services;
 
@@ -15,11 +16,16 @@ public static class UpdateRestart
     /// <returns>False when the new program could not be started (this one then keeps running).</returns>
     public static bool Restart(string exe)
     {
-        AppLaunch.Primary?.Dispose();
+        AppLaunch.Primary?.Dispose();                               // the new program must find the lock free, or it would hand its message to this one and exit
         AppLaunch.Primary = null;
-        if (!Starter(exe)) return false;
-        Quit();
-        return true;
+        if (Starter(exe)) { Quit(); return true; }
+        // it did not start (antivirus, a locked file): this program carries on, so it takes the lock back and is again the one copy that handles links and later launches
+        if (AppLaunch.PipeName != null && SingleInstance.TryBecomePrimary(AppLaunch.PipeName) is { } again)
+        {
+            AppLaunch.Primary = again;
+            if (AppLaunch.OnMessage != null) again.Listen(AppLaunch.OnMessage);
+        }
+        return false;
     }
 
     private static bool DefaultStart(string exe)

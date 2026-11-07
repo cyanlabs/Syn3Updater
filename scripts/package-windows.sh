@@ -13,6 +13,8 @@ OUT="$(cd "$OUT" && pwd)"
 dotnet publish src/Syn3Updater.App -c Release -r "$RID" --self-contained \
   -p:Version="$VERSION" -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o "$STAGE"
 cp LICENSE "$STAGE/"
+# tells the app this folder is an install it may update in place (a Syn3Updater.exe copied somewhere on its own has no such file and is never rewritten)
+printf 'zip\n' > "$STAGE/.install-method"
 # TEMPORARY (remove a few months after 3.0.0.0, see docs/RELEASING.md): Launcher.exe is now a stub that starts Syn3Updater.exe. The v2 installer pointed the Desktop and Start Menu shortcuts
 # and the syn3updater:// handler at it, and the v2 Launcher needs a file of that name in a package. It also undoes an update that was cut short before starting the app.
 LAUNCHER_OUT="$(mktemp -d)"

@@ -104,6 +104,29 @@ public class WindowsInstallerTests : IDisposable
         Assert.Equal("NEW-APP", File.ReadAllText(exe));
     }
 
+    [Fact]
+    public async Task On_windows_an_interrupted_update_is_rolled_back_even_over_a_program_that_is_running()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        var (plan, _) = Scenario(); var dir = plan.Install.AppDir; var exe = Path.Combine(dir, "Syn3Updater.exe");
+        File.Copy(Path.Combine(Environment.SystemDirectory, "cmd.exe"), exe, overwrite: true);
+        using var running = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, "/c ping -n 120 127.0.0.1 >nul") { UseShellExecute = false, CreateNoWindow = true })!;
+        try
+        {
+            await Task.Delay(1000); Assert.False(running.HasExited);
+            var backup = Path.Combine(dir, InstallTransaction.BackupDirName); Directory.CreateDirectory(backup);       // an update cut short: the original is in the backup, no COMPLETE marker
+            File.WriteAllText(Path.Combine(backup, "Syn3Updater.exe"), "ORIGINAL");
+            Assert.True(InstallTransaction.Recover(dir));                                                             // runs inside the running program, which cannot be deleted
+            Assert.Equal("ORIGINAL", File.ReadAllText(exe));
+            Assert.False(Directory.Exists(backup));
+            Assert.False(running.HasExited);
+            Assert.Single(Directory.GetFiles(dir, "*.old"));                                                          // the running one was renamed aside
+        }
+        finally { try { running.Kill(true); running.WaitForExit(5000); } catch (InvalidOperationException) { } }
+        InstallTransaction.Recover(dir);
+        Assert.Empty(Directory.GetFiles(dir, "*.old"));                                                               // and is removed once it has exited
+    }
+
     [Theory]
     [InlineData("v3.1.0", "v3.1.0")] [InlineData("2.99.99.7", "2.99.99.7")] [InlineData("nightly", "nightly")]
     public void The_release_tag_is_read_from_the_download_address(string tag, string expected) => Assert.Equal(expected, ReleaseManifest.TagOf(Scenario(tag: tag).Plan.Asset!));
@@ -128,6 +151,47 @@ public class WindowsInstallerTests : IDisposable
         Assert.True(UpdateService.DefaultCanApply(new InstallInfo(InstallKind.LinuxTar, "/x", UpdateRoute.InPlace, "")));
         foreach (var k in new[] { InstallKind.LinuxDeb, InstallKind.LinuxRpm, InstallKind.LinuxPacman, InstallKind.LinuxPortable, InstallKind.MacApp, InstallKind.Development })
             Assert.False(UpdateService.DefaultCanApply(new InstallInfo(k, "/x", UpdateRoute.InPlace, "")));
+    }
+}
+
+public class UpdateRestartLockTests
+{
+    private static (string Name, List<string> Got) Primary()
+    {
+        var name = "syn3-restart-test-" + Guid.NewGuid().ToString("N")[..12]; var got = new List<string>();
+        AppLaunch.Primary = SingleInstance.TryBecomePrimary(name); AppLaunch.PipeName = name; AppLaunch.OnMessage = m => { lock (got) got.Add(m); };
+        AppLaunch.Primary!.Listen(AppLaunch.OnMessage);
+        return (name, got);
+    }
+    private static void Reset() { AppLaunch.Primary?.Dispose(); AppLaunch.Primary = null; AppLaunch.PipeName = null; AppLaunch.OnMessage = null; UpdateRestart.Starter = null!; UpdateRestart.Quit = null!; }
+
+    [Fact]
+    public void The_lock_is_free_while_the_new_program_starts_so_it_does_not_hand_its_message_to_this_one_and_exit()
+    {
+        var (name, _) = Primary(); var quits = 0; bool? freeWhenStarting = null;
+        try
+        {
+            UpdateRestart.Quit = () => quits++;
+            UpdateRestart.Starter = _ => { using var probe = SingleInstance.TryBecomePrimary(name); freeWhenStarting = probe != null; return true; };
+            Assert.True(UpdateRestart.Restart("/x")); Assert.True(freeWhenStarting); Assert.Equal(1, quits);
+        }
+        finally { Reset(); }
+    }
+
+    [Fact]
+    public async Task If_the_new_program_cannot_be_started_this_one_takes_the_lock_back_and_still_receives_links()
+    {
+        var (name, got) = Primary(); var quits = 0;
+        try
+        {
+            UpdateRestart.Quit = () => quits++; UpdateRestart.Starter = _ => false;
+            Assert.False(UpdateRestart.Restart("/x"));
+            Assert.Equal(0, quits); Assert.NotNull(AppLaunch.Primary);
+            using (var second = SingleInstance.TryBecomePrimary(name)) Assert.Null(second);          // a later launch cannot become a second copy
+            Assert.True(await SingleInstance.TrySendAsync(name, "syn3updater://?region=NA"));          // it hands its link to this copy, as it always did
+            await AppEnv.Until(() => { lock (got) return got.Contains("syn3updater://?region=NA"); }, 5000);
+        }
+        finally { Reset(); }
     }
 }
 

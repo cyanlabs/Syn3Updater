@@ -162,6 +162,7 @@ public class WindowsApplierTests : IDisposable
         private readonly RealSwapFileSystem _r = new(); private readonly Action _hook; private bool _done;
         public HookFileSystem(Action hook) => _hook = hook;
         public bool FileExists(string p) => _r.FileExists(p); public bool DirectoryExists(string p) => _r.DirectoryExists(p); public void CreateDirectory(string p) => _r.CreateDirectory(p);
+        public void WriteAllText(string p, string t) => _r.WriteAllText(p, t);
         public void DeleteFile(string p) => _r.DeleteFile(p); public void DeleteDirectory(string p) => _r.DeleteDirectory(p);
         public void MoveFile(string s, string d, bool o) { if (!_done) { _done = true; _hook(); } _r.MoveFile(s, d, o); }
     }

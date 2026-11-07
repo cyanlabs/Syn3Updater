@@ -58,7 +58,7 @@ jobs:
       - name: Check what is inside
         run: |
           set -euo pipefail
-          want="Launcher.exe Launcher.Core.dll FluentWPF.dll Newtonsoft.Json.dll Syn3Updater.exe LICENSE README.txt"
+          want=".install-method Launcher.exe Launcher.Core.dll FluentWPF.dll Newtonsoft.Json.dll Syn3Updater.exe LICENSE README.txt"
           nested="$(unzip -Z1 artifacts/Syn3Updater-0.0.0-check-win-x64.zip | sed 's#^[^/]*/##' | grep -v '^$' | sort | tr '\n' ' ')"
           flat="$(unzip -Z1 artifacts/2.99.99.1.zip | sort | tr '\n' ' ')"
           # shellcheck disable=SC2086

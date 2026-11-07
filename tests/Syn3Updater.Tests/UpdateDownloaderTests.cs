@@ -158,6 +158,58 @@ public class UpdateDownloaderTests : IDisposable
         Assert.False(File.Exists(Path.Combine(_dir, "Syn3Updater-3.1.0-linux-x64.tar.gz")));
     }
 
+    [Fact]
+    public async Task A_connection_that_goes_silent_is_given_up_on_and_the_partial_file_is_kept_for_the_next_try()
+    {
+        var h = new FuncHandler(_ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(new StallingStream(Data[..1500])) });
+        var dl = new UpdateDownloader(new HttpClient(h), _ => long.MaxValue, TimeSpan.FromMilliseconds(300));
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var ex = await Assert.ThrowsAsync<IOException>(() => dl.DownloadAsync(Asset(Data), _dir));
+        Assert.Contains("stalled", ex.Message); Assert.True(sw.Elapsed < TimeSpan.FromSeconds(15));
+        Assert.Equal(1500, new FileInfo(Path.Combine(_dir, "Syn3Updater-3.1.0-linux-x64.tar.gz.part")).Length);       // what arrived is kept, so the next try continues from there
+        // and the next try, with a working connection, continues from it
+        Assert.Equal(Data, await File.ReadAllBytesAsync(await Dl(Server(Data)).DownloadAsync(Asset(Data), _dir)));
+    }
+
+    [Fact]
+    public async Task A_slow_but_steady_connection_is_not_mistaken_for_a_stalled_one()
+    {
+        var h = new FuncHandler(_ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(new TricklingStream(Data)) });
+        var dl = new UpdateDownloader(new HttpClient(h), _ => long.MaxValue, TimeSpan.FromMilliseconds(400));            // total time exceeds the idle limit, but data keeps arriving
+        Assert.Equal(Data, await File.ReadAllBytesAsync(await dl.DownloadAsync(Asset(Data), _dir)));
+    }
+
+    private sealed class StallingStream : Stream
+    {
+        private readonly byte[] _d; private int _p;
+        public StallingStream(byte[] d) => _d = d;
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken ct = default)
+        {
+            if (_p >= _d.Length) { await Task.Delay(Timeout.Infinite, ct); return 0; }              // the connection dies silently: no data, no close
+            var n = Math.Min(buffer.Length, _d.Length - _p); _d.AsMemory(_p, n).CopyTo(buffer); _p += n; return n;
+        }
+        public override bool CanRead => true; public override bool CanSeek => false; public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException(); public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() { } public override int Read(byte[] b, int o, int c) => throw new NotSupportedException();
+        public override long Seek(long o, SeekOrigin s) => throw new NotSupportedException(); public override void SetLength(long v) => throw new NotSupportedException(); public override void Write(byte[] b, int o, int c) => throw new NotSupportedException();
+    }
+
+    private sealed class TricklingStream : Stream
+    {
+        private readonly byte[] _d; private int _p;
+        public TricklingStream(byte[] d) => _d = d;
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken ct = default)
+        {
+            if (_p >= _d.Length) return 0;
+            await Task.Delay(150, ct);
+            var n = Math.Min(Math.Min(buffer.Length, 500), _d.Length - _p); _d.AsMemory(_p, n).CopyTo(buffer); _p += n; return n;
+        }
+        public override bool CanRead => true; public override bool CanSeek => false; public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException(); public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() { } public override int Read(byte[] b, int o, int c) => throw new NotSupportedException();
+        public override long Seek(long o, SeekOrigin s) => throw new NotSupportedException(); public override void SetLength(long v) => throw new NotSupportedException(); public override void Write(byte[] b, int o, int c) => throw new NotSupportedException();
+    }
+
     private sealed class SlowStream : Stream
     {
         private readonly byte[] _d; private readonly CancellationTokenSource _c; private int _p;

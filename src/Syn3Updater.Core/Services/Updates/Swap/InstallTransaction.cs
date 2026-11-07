@@ -29,7 +29,14 @@ public sealed class InstallTransaction
     {
         foreach (var f in newFiles) SafePath.Require(f);
         foreach (var f in staleFiles) SafePath.Require(f);
-        if (_fs.DirectoryExists(_backup)) _retry.Run(() => _fs.DeleteDirectory(_backup));
+        if (_fs.DirectoryExists(_backup))
+        {
+            // the backup of an earlier update that is still there (its old program was still running): clear it the safe way, never with a delete that can take its marker first
+            bool cleared;
+            if (File.Exists(Path.Combine(_backup, CompleteMarker))) cleared = TryRemoveBackup(_backup, _fs, _retry);
+            else { try { _retry.Run(() => _fs.DeleteDirectory(_backup)); cleared = true; } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { cleared = false; } }
+            if (!cleared) throw new InstallException("The old files of the previous update are still in use. Restart Syn3 Updater and try again.");
+        }
         _fs.CreateDirectory(_backup);
 
         var backedUp = new List<string>(); var placed = new List<string>();
@@ -56,8 +63,16 @@ public sealed class InstallTransaction
 
         foreach (var rel in staleFiles) PruneEmptyParents(rel);       // folders the removed files leave empty
 
-        // everything is in place: the backup is no longer needed. Deleting it can fail while an old copy is still running; Recover() cleans up next time.
-        try { _fs.CreateDirectory(_backup); File.WriteAllText(Path.Combine(_backup, CompleteMarker), DateTime.UtcNow.ToString("o")); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+        // everything is in place: mark the update complete. Without the marker the next start would take the backup for an interrupted update and roll this one back, so if it cannot be
+        // written the update is not finished: undo it now, while that is still easy.
+        try { _fs.CreateDirectory(_backup); _retry.Run(() => _fs.WriteAllText(Path.Combine(_backup, CompleteMarker), DateTime.UtcNow.ToString("o"))); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            var restored = Rollback(placed, backedUp);
+            throw new InstallException(restored
+                ? $"The update could not be completed ({e.Message}). Your previous version was restored."
+                : $"The update could not be completed ({e.Message}) and some files could not be restored. Reinstall Syn3 Updater if it does not start.", e);
+        }
         try { if (_fs.DirectoryExists(stagingDir)) _fs.DeleteDirectory(stagingDir); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
         TryRemoveBackup(_backup, _fs, new RetryPolicy(1, 0));                  // the old program is usually still running from in there: whatever cannot go yet is left, with the marker, for the next start
     }
@@ -115,7 +130,19 @@ public sealed class InstallTransaction
             else TryRemoveBackup(backup, fs, retry);                          // a finished update: just the old program's leftovers, never the marker before the rest
         }
         try { if (fs.DirectoryExists(staging)) fs.DeleteDirectory(staging); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+        RemoveDisplaced(installDir);
         return rolledBack;
+    }
+
+    /// <summary>Deletes the files that a rollback renamed aside because they were running; one that still is running stays for the next start.</summary>
+    private static void RemoveDisplaced(string installDir)
+    {
+        try
+        {
+            foreach (var f in Directory.EnumerateFiles(installDir, "*.old", SearchOption.AllDirectories).Where(RealSwapFileSystem.IsDisplaced).ToList())
+                try { File.Delete(f); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
     }
 
     private void PruneEmptyParents(string rel)

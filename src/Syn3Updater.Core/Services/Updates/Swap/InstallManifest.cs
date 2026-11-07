@@ -38,7 +38,7 @@ public static class StalePlanner
     /// <summary>
     /// Files in the install folder that the new version does not ship and that should therefore go.
     /// With a manifest: exactly the previously installed files that are no longer part of the package.
-    /// Without one (an install made by the old v2 launcher): the old launcher's own rule, every .dll and the Languages folder.
+    /// Without one (an install made by the old v2 launcher): the old launcher's own rule, the .dll files next to the program and the Languages folder.
     /// Files the updater never installed (user files, the app's own data) are never listed, and nothing outside the install folder ever is.
     /// </summary>
     public static IReadOnlyList<string> Compute(string installDir, InstallManifest? previous, IEnumerable<string> newFiles)
@@ -47,9 +47,10 @@ public static class StalePlanner
         IEnumerable<string> candidates;
         if (previous is { Files.Count: > 0 }) candidates = previous.Files.Where(SafePath.IsSafeRelative);
         else
+            // what the v2 layout had: DLLs next to the program and the Languages folder. Never a DLL in a sub-folder (those belong to something else), however it came to be here.
             candidates = PackageStager.ListFiles(installDir)
                 .Where(f => !f.StartsWith(InstallTransaction.BackupDirName + "/", StringComparison.OrdinalIgnoreCase) && !f.StartsWith(InstallTransaction.StagingDirName + "/", StringComparison.OrdinalIgnoreCase))
-                .Where(f => f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) || f.StartsWith("Languages/", StringComparison.OrdinalIgnoreCase));
+                .Where(f => (!f.Contains('/') && f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) || f.StartsWith("Languages/", StringComparison.OrdinalIgnoreCase));
         return candidates.Where(f => !keep.Contains(f) && File.Exists(Path.Combine(installDir, f.Replace('/', Path.DirectorySeparatorChar)))).ToList();
     }
 }

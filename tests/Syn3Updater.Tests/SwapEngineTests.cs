@@ -30,6 +30,8 @@ internal sealed class FaultyFileSystem : ISwapFileSystem
     public int MoveFailuresLeft { get; set; }
     public int DeleteDirFailuresLeft { get; set; }
     public Func<string, bool> FailDeleteFile { get; set; } = _ => false;
+    public Func<string, bool> FailWrite { get; set; } = _ => false;
+    public void WriteAllText(string p, string t) { if (FailWrite(p)) throw new IOException("cannot write (simulated)"); _real.WriteAllText(p, t); }
     public int MoveCalls { get; private set; }
     public bool FileExists(string p) => _real.FileExists(p);
     public bool DirectoryExists(string p) => _real.DirectoryExists(p);
@@ -342,6 +344,83 @@ public class TransactionTests
             Stage(staging, ("Syn3Updater.exe", "new"));
             new InstallTransaction(install).Apply(staging, new[] { "Syn3Updater.exe" }, new[] { "Languages/en-US.json" });
             Assert.False(Directory.Exists(Path.Combine(install, "Languages")));
+        }
+    }
+}
+
+public class ReviewFindingsSwapTests
+{
+    private static (TempDir root, string install, string staging) Setup(params (string, string)[] installed)
+    {
+        var t = new TempDir(); var install = t.Sub("install"); var staging = Path.Combine(install, InstallTransaction.StagingDirName);
+        Directory.CreateDirectory(install);
+        foreach (var (p, c) in installed) { Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(install, p))!); File.WriteAllText(Path.Combine(install, p), c); }
+        return (t, install, staging);
+    }
+    private static void Stage(string staging, params (string, string)[] files) { foreach (var (p, c) in files) { var f = Path.Combine(staging, p); Directory.CreateDirectory(Path.GetDirectoryName(f)!); File.WriteAllText(f, c); } }
+
+    [Fact]
+    public void Without_a_manifest_only_dlls_beside_the_program_and_the_Languages_folder_are_stale_never_dlls_in_sub_folders()
+    {
+        using var t = new TempDir();
+        foreach (var f in new[] { "Syn3Updater.exe", "old.dll", "Languages/en-US.json", "tools/Other.dll", "OtherApp/lib/x.dll", "Downloads/readme.dll" })
+        { Directory.CreateDirectory(Path.GetDirectoryName(t.Sub(f.Split('/')))!); File.WriteAllText(t.Sub(f.Split('/')), "x"); }
+        var stale = StalePlanner.Compute(t.Path, null, new[] { "Syn3Updater.exe" });
+        Assert.Equal(new[] { "Languages/en-US.json", "old.dll" }, stale.OrderBy(s => s, StringComparer.Ordinal));          // the other programs' DLLs are untouched
+    }
+
+    [Fact]
+    public void Files_that_cannot_be_deleted_because_they_are_running_are_renamed_aside_and_removed_at_the_next_start()
+    {
+        using var t = new TempDir(); var f = t.Sub("Syn3Updater.exe"); File.WriteAllText(f, "current");
+        var aside = f + "." + new string('a', 32) + ".old"; File.WriteAllText(aside, "was running"); File.WriteAllText(t.Sub("keep.old"), "not ours");
+        Assert.True(RealSwapFileSystem.IsDisplaced(aside)); Assert.False(RealSwapFileSystem.IsDisplaced(t.Sub("keep.old")));
+        Assert.False(InstallTransaction.Recover(t.Path));
+        Assert.False(File.Exists(aside)); Assert.True(File.Exists(t.Sub("keep.old"))); Assert.Equal("current", File.ReadAllText(f));
+    }
+
+    [Fact]
+    public void A_leftover_backup_of_a_finished_update_that_is_still_locked_blocks_the_next_update_and_keeps_its_marker()
+    {
+        var (t, install, staging) = Setup(("Syn3Updater.exe", "current"));
+        using (t)
+        {
+            var backup = Path.Combine(install, InstallTransaction.BackupDirName); Directory.CreateDirectory(backup);
+            File.WriteAllText(Path.Combine(backup, "Syn3Updater.exe"), "old, still running"); File.WriteAllText(Path.Combine(backup, "COMPLETE"), "x");
+            Stage(staging, ("Syn3Updater.exe", "newer"));
+            var fs = new FaultyFileSystem { FailDeleteFile = p => p.EndsWith("Syn3Updater.exe") && p.Contains(InstallTransaction.BackupDirName) };
+            Assert.Throws<InstallException>(() => new InstallTransaction(install, fs, new RetryPolicy(1, 0)).Apply(staging, new[] { "Syn3Updater.exe" }, Array.Empty<string>()));
+            Assert.True(File.Exists(Path.Combine(backup, "COMPLETE")), "the marker was removed: the next start would roll the CURRENT version back to the old one");
+            Assert.Equal("current", File.ReadAllText(Path.Combine(install, "Syn3Updater.exe")));        // nothing was touched
+            Assert.False(InstallTransaction.Recover(install, fs, new RetryPolicy(1, 0))); Assert.Equal("current", File.ReadAllText(Path.Combine(install, "Syn3Updater.exe")));
+        }
+    }
+
+    [Fact]
+    public void If_the_completion_marker_cannot_be_written_the_update_is_undone_not_left_to_be_rolled_back_later()
+    {
+        var (t, install, staging) = Setup(("Syn3Updater.exe", "old-app"), ("Launcher.exe", "old-launcher"));
+        using (t)
+        {
+            Stage(staging, ("Syn3Updater.exe", "new-app"), ("Launcher.exe", "new-launcher"));
+            var fs = new FaultyFileSystem { FailWrite = p => p.EndsWith("COMPLETE") };
+            var ex = Assert.Throws<InstallException>(() => new InstallTransaction(install, fs, new RetryPolicy(2, 0)).Apply(staging, new[] { "Syn3Updater.exe", "Launcher.exe" }, Array.Empty<string>()));
+            Assert.Contains("previous version was restored", ex.Message);
+            Assert.Equal("old-app", File.ReadAllText(Path.Combine(install, "Syn3Updater.exe"))); Assert.Equal("old-launcher", File.ReadAllText(Path.Combine(install, "Launcher.exe")));
+            Assert.False(Directory.Exists(Path.Combine(install, InstallTransaction.BackupDirName)));
+        }
+    }
+
+    [Fact]
+    public void A_marker_write_that_succeeds_on_a_retry_completes_the_update_normally()
+    {
+        var (t, install, staging) = Setup(("Syn3Updater.exe", "old"));
+        using (t)
+        {
+            Stage(staging, ("Syn3Updater.exe", "new")); var failures = 2;
+            var fs = new FaultyFileSystem { FailWrite = p => p.EndsWith("COMPLETE") && failures-- > 0 };
+            new InstallTransaction(install, fs, new RetryPolicy(5, 0)).Apply(staging, new[] { "Syn3Updater.exe" }, Array.Empty<string>());
+            Assert.Equal("new", File.ReadAllText(Path.Combine(install, "Syn3Updater.exe")));
         }
     }
 }

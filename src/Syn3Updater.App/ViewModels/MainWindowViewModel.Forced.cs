@@ -33,6 +33,13 @@ public partial class MainWindowViewModel
             var decision = ForcedUpdate.Evaluate(policy, Ctx.Version, channel, os, Update?.Version);
             Ctx.Log.Info("Update policy: " + decision.Reason);
             if (!decision.Required) return;
+            // a minimum that can never be met from here must not lock anyone out: no signed manifest, nothing for this system, a release that failed verification.
+            // (Installable and manual plans are met by updating; a temporary network failure is retried by the dialog.)
+            if (Plan is { Kind: PlanKind.Rejected } || Plan is { Kind: PlanKind.NotifyOnly, Transient: false })
+            {
+                Ctx.Log.Error($"The update policy requires {decision.Requirement!.Version} but the newest release cannot be installed or explained ({Plan.Reason}): not forced");
+                return;
+            }
             if (Workflow.Busy) { Ctx.Log.Info("A job is running: the required update waits for the next start"); return; }
             await RunRequiredUpdateAsync(decision.Requirement!);
         }

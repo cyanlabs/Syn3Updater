@@ -7,6 +7,8 @@ public enum InstallKind
     Development,
     /// <summary>A Windows folder (the zip, with the Launcher beside the program).</summary>
     WindowsFolder,
+    /// <summary>Syn3Updater.exe on its own in some folder (copied to the Desktop or Downloads, say): nothing installed it, so the app must not treat the folder as its own and rewrite it.</summary>
+    WindowsPortable,
     /// <summary>Linux tar.gz installed by its install.sh, in the user's own data folder.</summary>
     LinuxTar,
     LinuxDeb,
@@ -56,6 +58,7 @@ public static class InstallDetector
     {
         if (processPath != null && Path.GetFileNameWithoutExtension(processPath.Replace('\\', '/')).Equals("dotnet", StringComparison.OrdinalIgnoreCase))
             return new(InstallKind.Development, appDir, UpdateRoute.None, "running through the dotnet host, not an installed copy");
+        if (IsBuildOutput(appDir)) return new(InstallKind.Development, appDir, UpdateRoute.None, "running from a build output folder (dotnet run, an IDE), not an installed copy");
         return os switch
         {
             UpdateOs.Windows => Windows(appDir),
@@ -72,9 +75,22 @@ public static class InstallDetector
         return Detect(ReleaseManifest.CurrentOs(), dir, exe, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), Environment.GetEnvironmentVariable("XDG_DATA_HOME"));
     }
 
-    private static InstallInfo Windows(string dir) =>
-        IsWritable(dir) ? new(InstallKind.WindowsFolder, dir, UpdateRoute.InPlace, "a Windows folder install")
-                        : new(InstallKind.WindowsFolder, dir, UpdateRoute.Manual, $"{dir} cannot be written to");
+    private static readonly System.Text.RegularExpressions.Regex BuildFolder = new(@"[/\\]bin[/\\](Debug|Release)[/\\]net\d", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>bin/Debug|Release/net*/ with the program's own .dll beside the apphost: what <c>dotnet run</c> and an IDE start. (A published release is one file, or an app bundle outside bin/.)</summary>
+    private static bool IsBuildOutput(string dir) => BuildFolder.IsMatch(dir) && File.Exists(Path.Combine(dir, "Syn3Updater.dll"));
+
+    /// <summary>
+    /// The Windows zip, or a folder an older Launcher installed into. Whether the app may rewrite the folder needs EVIDENCE that it is an install: the zip carries a marker, an update leaves
+    /// an install-manifest.json, and the old Launcher put Launcher.exe beside the program. A lone Syn3Updater.exe copied somewhere has none, and must never have its folder rewritten.
+    /// </summary>
+    private static InstallInfo Windows(string dir)
+    {
+        var evidence = ReadMarker(dir) == "zip" || File.Exists(Path.Combine(dir, "install-manifest.json")) || File.Exists(Path.Combine(dir, "Launcher.exe"));
+        if (!evidence) return new(InstallKind.WindowsPortable, dir, UpdateRoute.Manual, "run from a folder that nothing installed (a copied Syn3Updater.exe): download the new version");
+        return IsWritable(dir) ? new(InstallKind.WindowsFolder, dir, UpdateRoute.InPlace, "a Windows folder install")
+                               : new(InstallKind.WindowsFolder, dir, UpdateRoute.Manual, $"{dir} cannot be written to");
+    }
 
     private static InstallInfo Mac(string dir, bool supported)
     {

@@ -125,7 +125,7 @@ public static class ManifestTrust
     {
         var running = SemVer.Parse(current); var target = SemVer.Parse(m.Version);
         if (running == null || target == null) return false;
-        if (m.Channel != wanted) return false;
+        if (!Channels.Accepts(wanted, m.Channel)) return false;
         return target.CompareTo(running) > 0 || (explicitSwitch && Channels.Of(current) != m.Channel && target.CompareTo(running) != 0);
     }
 

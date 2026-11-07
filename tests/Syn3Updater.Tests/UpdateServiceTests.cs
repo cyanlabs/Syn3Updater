@@ -146,6 +146,15 @@ public class UpdateServiceTests
     }
 
     [Theory]
+    [InlineData("3.1.0.0-beta.2")] [InlineData("v3.1.0-beta.2")] [InlineData("3.1.0-beta.2")]
+    public async Task The_announced_version_matches_the_manifest_as_a_version_not_as_text(string announced)
+    {
+        // a release published under the legacy tag 3.0.0.0 is announced as "3.0.0.0" while its manifest says "3.0.0"
+        var p = await Plan(Svc(), Inst(InstallKind.LinuxTar, UpdateRoute.InPlace), Info(version: announced));
+        Assert.Equal(PlanKind.Install, p.Kind);
+    }
+
+    [Theory]
     [InlineData("3.1.0-beta.2")]          // already running it
     [InlineData("3.1.0")]                 // running something newer
     [InlineData("3.2.0-beta.1")]

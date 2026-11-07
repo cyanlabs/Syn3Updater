@@ -12,8 +12,11 @@ public sealed class UpdateDownloader
 {
     private readonly HttpClient _http;
     private readonly Func<string, long> _freeSpace;
+    private readonly TimeSpan _idle;
 
-    public UpdateDownloader(HttpClient http, Func<string, long>? freeSpace = null) { _http = http; _freeSpace = freeSpace ?? FreeSpaceOf; }
+    /// <param name="idleTimeout">How long the connection may stay silent before the download is given up (the partial file is kept, so trying again continues it). Without this a connection
+    /// that dies without being closed would leave the update waiting forever.</param>
+    public UpdateDownloader(HttpClient http, Func<string, long>? freeSpace = null, TimeSpan? idleTimeout = null) { _http = http; _freeSpace = freeSpace ?? FreeSpaceOf; _idle = idleTimeout ?? TimeSpan.FromSeconds(60); }
 
     /// <returns>The path of the verified file inside <paramref name="dir"/>.</returns>
     public async Task<string> DownloadAsync(ManifestAsset asset, string dir, IProgress<double>? progress = null, CancellationToken ct = default)
@@ -58,20 +61,30 @@ public sealed class UpdateDownloader
     /// <summary>False when the server cannot serve this range (the caller then starts again from nothing).</summary>
     private async Task<bool> TryFetchAsync(ManifestAsset asset, string part, long start, IProgress<double>? progress, CancellationToken ct)
     {
+        using var idle = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        idle.CancelAfter(_idle);
+        try { return await FetchAsync(asset, part, start, progress, idle, ct); }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { throw new IOException($"the download stalled: no data for {(int)_idle.TotalSeconds} seconds"); }
+    }
+
+    private async Task<bool> FetchAsync(ManifestAsset asset, string part, long start, IProgress<double>? progress, CancellationTokenSource idle, CancellationToken ct)
+    {
         using var req = new HttpRequestMessage(HttpMethod.Get, asset.Url);
         if (start > 0) req.Headers.Range = new RangeHeaderValue(start, null);
-        using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
+        using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, idle.Token);
         if (resp.StatusCode == HttpStatusCode.RequestedRangeNotSatisfiable) return false;
         resp.EnsureSuccessStatusCode();
         // a redirect must not leave https
         if (resp.RequestMessage?.RequestUri is { } final && final.Scheme != Uri.UriSchemeHttps) throw new HttpRequestException("the download was redirected away from https");
         var resumed = resp.StatusCode == HttpStatusCode.PartialContent && start > 0;
         if (!resumed) start = 0;                                  // a plain 200 sends the whole file
-        await using var src = await resp.Content.ReadAsStreamAsync(ct);
+        await using var src = await resp.Content.ReadAsStreamAsync(idle.Token);
         await using var dst = new FileStream(part, resumed ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.None);
         var buf = new byte[81920]; long done = start; int n;
-        while ((n = await src.ReadAsync(buf, ct)) > 0)
+        idle.CancelAfter(_idle);
+        while ((n = await src.ReadAsync(buf, idle.Token)) > 0)
         {
+            idle.CancelAfter(_idle);                                    // data arrived: the silence timer starts again
             done += n;
             if (done > asset.Size) throw new InvalidDataException($"{asset.Name} is larger than the signed manifest says");
             await dst.WriteAsync(buf.AsMemory(0, n), ct);
