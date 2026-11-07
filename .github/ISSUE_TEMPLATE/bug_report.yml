@@ -10,10 +10,10 @@ body:
 
         **Before you start**
         - Is CyanLabs up? Check [status.cyanlabs.net](https://status.cyanlabs.net). If the app shows "No connection to CyanLabs" it is usually that, not a bug.
-        - Open **Diagnostics** in the app (sidebar) and use **Copy report**. It checks the tools and permissions your system needs and tells you how to fix what fails.
+        - In the app go to **About**, then press **Diagnostics** at the bottom, and use **Copy report**. It checks the tools and permissions your system needs and tells you how to fix what fails.
         - Search the [existing issues](https://github.com/cyanlabs/Syn3Updater/issues?q=is%3Aissue) first, and ask for help with using the app or with your car on the [forum](https://community.cyanlabs.net).
 
-        > **Your APIM comes first.** If the unit shows MEM_ERR, will not boot or is in a state you do not understand, **do not keep retrying**: ask on the forum before you try again.
+        > **Problems with your car are not app bugs.** If the unit shows MEM_ERR, will not boot or is in a state you do not understand, please post on the [forum](https://community.cyanlabs.net) and not here, and **do not keep retrying** until you have asked.
 
   - type: checkboxes
     id: checks
@@ -227,7 +227,7 @@ body:
     id: diagnostics
     attributes:
       label: Diagnostics report
-      description: Sidebar > Diagnostics > **Copy report**, then paste it here.
+      description: Sidebar > About > **Diagnostics** (the button at the bottom) > **Copy report**, then paste it here.
       render: text
 
   - type: textarea
