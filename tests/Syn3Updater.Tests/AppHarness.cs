@@ -125,7 +125,7 @@ public sealed class FakeCyanLabs : DelegatingHandler
         if (q.Contains("releases(sort")) return Json("""{"data":{"releases":[{"name":"Sync 3.4.26057","notes":"**Big** release","version":"3.4.26057","feedbackurl":"https://forum/x","regions":["NA"]}]}}""");
         if (q.Contains("releases(limit")) return Json("{\"data\":{\"releases\":[{\"name\":\"Sync 3.4.26057\",\"ivsus\":[{\"ivsu\":" + Ivsu("APP1", "APPS") + "},{\"ivsu\":" + Ivsu("VOICE1", "VOICE") + "}]}]}}");
         if (q.Contains("notices")) return Json("""{"data":{"notices":[{"id":"1","title":"Important","notice":"Read **this**","important":true,"date_created":"2025-01-02"},{"id":"2","title":"Other","notice":"fyi","important":false,"date_created":"2025-01-01"}]}}""");
-        if (q.Contains("my20models")) return Json("""{"data":{"my20models":[{"model":"LB5T-14G371"}]}}""");
+        if (q.Contains("my20models")) return Json("""{"data":{"my20models":[{"model":"LB5T-14G371"},{"model":"5U5T-14G371"}]}}""");
         if (q.Contains("useragents")) return Json("""{"data":{"useragents":[{"useragent":"UA/[PLACEHOLDER]","min":"1","max":"5"}]}}""");
         if (q.Contains("ivsu(limit: 1, filter: {name")) return Json("""{"data":{"ivsu":[{"version":"3.4.20282"}]}}""");
         return Json("""{"data":{}}""");

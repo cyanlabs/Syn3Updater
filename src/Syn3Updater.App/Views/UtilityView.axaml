@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:d="using:Cyanlabs.Syn3Updater.Core.Drives" xmlns:m="using:Cyanlabs.Syn3Updater.Core.Models" x:Class="Cyanlabs.Syn3Updater.App.Views.UtilityView">
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" xmlns:ctl="using:Cyanlabs.Syn3Updater.App.Controls" xmlns:d="using:Cyanlabs.Syn3Updater.Core.Drives" xmlns:m="using:Cyanlabs.Syn3Updater.Core.Models" x:Class="Cyanlabs.Syn3Updater.App.Views.UtilityView">
   <ScrollViewer HorizontalScrollBarVisibility="Disabled">
     <StackPanel MaxWidth="880" Spacing="16" Margin="28,28,28,24">
       <TextBlock Text="{svc:T Main.Utility}" Classes="title" />
@@ -69,17 +69,68 @@
             </Border>
           </Grid>
 
-          <StackPanel Spacing="12" IsVisible="{Binding HasLog}">
-            <Grid ColumnDefinitions="140,*,140,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="10">
-              <TextBlock Grid.Row="0" Text="VIN" Classes="label" /><TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ResVin}" Classes="mono" />
-              <TextBlock Grid.Row="0" Grid.Column="2" Text="{svc:T App.Model}" Classes="label" /><TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding ResModel}" Classes="mono" />
-              <TextBlock Grid.Row="1" Text="{svc:T Utility.APIMType}" Classes="label" /><TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ResType}" />
-              <TextBlock Grid.Row="1" Grid.Column="2" Text="{svc:T Utility.APIMSize}" Classes="label" /><TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding ResSize}" />
-              <TextBlock Grid.Row="2" Text="{svc:T Utility.APIMFree}" Classes="label" /><TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ResFree}" />
-              <TextBlock Grid.Row="2" Grid.Column="2" Text="{svc:T App.Version}" Classes="label" /><TextBlock Grid.Row="2" Grid.Column="3" Text="{Binding ResVersion}" TextWrapping="Wrap" />
-            </Grid>
-            <Expander Header="{svc:T App.Partitions}"><TextBox Text="{Binding LogPartitions}" IsReadOnly="True" AcceptsReturn="True" Classes="mono" Height="200" FontSize="12" /></Expander>
-            <Expander Header="{svc:T App.AsBuilt}"><TextBox Text="{Binding LogAsBuilt}" IsReadOnly="True" AcceptsReturn="True" Classes="mono" Height="200" FontSize="12" /></Expander>
+          <!-- the result: the verdict first, then the facts, then the long lists folded away -->
+          <StackPanel Spacing="14" IsVisible="{Binding HasLog}">
+            <Border Background="{Binding ResBackground}" CornerRadius="12" Padding="16,14">
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                <PathIcon Data="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z" Foreground="{Binding ResBrush}" Width="28" Height="28" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{Binding ResVerdict}" Foreground="{Binding ResBrush}" FontSize="17" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" />
+              </Grid>
+            </Border>
+
+            <ItemsControl ItemsSource="{Binding Facts}">
+              <!-- as many columns as fit, each tile stretched so the rows always fill the column -->
+              <ItemsControl.ItemsPanel><ItemsPanelTemplate><ctl:AdaptiveColumns MinItemWidth="240" Spacing="10" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:FactItem">
+                  <Border Classes="card" Padding="14,10">
+                    <StackPanel Spacing="2">
+                      <TextBlock Text="{Binding Label}" Classes="label" />
+                      <TextBlock Text="{Binding Value}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Expander Header="{svc:T App.Partitions}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+              <StackPanel Spacing="16" Margin="4,8,4,4">
+                <ItemsControl ItemsSource="{Binding PartitionRows}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="vm:PartitionRow">
+                      <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="4" Margin="0,0,0,10">
+                        <TextBlock Text="{Binding Path}" Classes="mono" FontSize="12.5" />
+                        <TextBlock Grid.Column="1" Text="{Binding Summary}" Classes="label" VerticalAlignment="Center" />
+                        <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" Minimum="0" Maximum="1" Value="{Binding Used}" Height="4" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <StackPanel Spacing="8">
+                  <TextBlock Text="{svc:T Utility.PackagesTitle}" FontWeight="SemiBold" />
+                  <ItemsControl ItemsSource="{Binding PackageRows}">
+                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate><Border Classes="chip" Margin="0,0,6,6"><TextBlock Text="{Binding}" Classes="mono" /></Border></DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </StackPanel>
+            </Expander>
+
+            <Expander Header="{svc:T App.AsBuilt}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+              <ItemsControl ItemsSource="{Binding AsBuiltRows}" Margin="4,8,4,4">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:AsBuiltRow">
+                    <Grid ColumnDefinitions="64,*" Margin="0,0,0,4">
+                      <TextBlock Text="{Binding Id}" Classes="mono" FontSize="12.5" Foreground="{DynamicResource Brand}" />
+                      <TextBlock Grid.Column="1" Text="{Binding Value}" Classes="mono" FontSize="12.5" TextWrapping="Wrap" Opacity="{Binding Opacity}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Expander>
+
             <StackPanel Orientation="Horizontal" Spacing="8">
               <Button Content="{svc:T Utility.CopyAsBuilt}" Command="{Binding CopyAsBuiltCommand}" />
               <Button Content="{svc:T Utility.ViewAsBuilt}" Command="{Binding ViewAsBuiltCommand}" />

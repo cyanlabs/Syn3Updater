@@ -9,6 +9,13 @@ using Cyanlabs.Syn3Updater.Core.Services;
 
 namespace Cyanlabs.Syn3Updater.App.ViewModels;
 
+/// <summary>One row of the Interrogator result: a label and its value ("—" when the log has none).</summary>
+public record FactItem(string Label, string Value, bool Mono);
+/// <summary>A partition: its path, "21M free of 3.7G", and how full it is (0 to 1) for the bar.</summary>
+public record PartitionRow(string Path, string Summary, double Used);
+/// <summary>An as-built block: its id (DE00) and value, dimmed when the unit reports none.</summary>
+public record AsBuiltRow(string Id, string Value, bool Blank) { public double Opacity => Blank ? 0.45 : 1; }
+
 public partial class UtilityViewModel : PageViewModel
 {
     public override string TitleKey => "Main.Utility";
@@ -25,6 +32,15 @@ public partial class UtilityViewModel : PageViewModel
     [ObservableProperty] private bool _hasLog;
     [ObservableProperty] private string _resVin = "", _resModel = "", _resType = "", _resSize = "", _resFree = "", _resVersion = "";
     [ObservableProperty] private string _apimModelInput = "";
+
+    // the result as it is shown: the verdict, the facts, and the lists behind the expanders
+    [ObservableProperty] private string _resVerdict = "";
+    [ObservableProperty] private Avalonia.Media.IBrush _resBrush = Avalonia.Media.Brushes.Gray;
+    [ObservableProperty] private Avalonia.Media.IBrush _resBackground = Avalonia.Media.Brushes.Transparent;
+    public ObservableCollection<FactItem> Facts { get; } = new();
+    public ObservableCollection<PartitionRow> PartitionRows { get; } = new();
+    public ObservableCollection<string> PackageRows { get; } = new();
+    public ObservableCollection<AsBuiltRow> AsBuiltRows { get; } = new();
 
     private InterrogatorResult? _parsed;
 
@@ -147,11 +163,13 @@ public partial class UtilityViewModel : PageViewModel
             var r = Interrogator.Parse(await File.ReadAllTextAsync(path));
             _parsed = r;
 
-            try
+            bool? logIsMy20 = null;                                    // what THIS log says; null = could not be decided
+            // No model in the log means the unit cannot be told apart from an MY20 one, and a wrong "not MY20" can brick the APIM: assume MY20, whatever the server says
+            if (!r.ModelKnown) { logIsMy20 = true; Ctx.Profile.My20v2 = true; }
+            else try
             {
-                foreach (var m in await Ctx.Api.GetMy20Models())
-                    if (r.ApimModel.StartsWith(m.Model)) Ctx.Profile.My20v2 = true;
-                if (Ctx.Profile.My20v2 != true) Ctx.Profile.My20v2 = false;
+                logIsMy20 = (await Ctx.Api.GetMy20Models()).Any(m => r.ApimModel.StartsWith(m.Model));
+                Ctx.Profile.My20v2 = logIsMy20;                                  // the log that was read last decides, in both directions (a log with no model never gets here: see above)
             }
             catch (ApiException) { /* offline: leave MY20 state alone */ }
 
@@ -171,12 +189,51 @@ public partial class UtilityViewModel : PageViewModel
             CrashReporter.CurrentVin = r.Vin;       // kept for a crash report, which is only sent if the user agrees
             ResVin = r.Vin; ResModel = r.ApimModel; ResType = r.Nav ? "Navigation" : "Non-Navigation";
             ResSize = $"{r.ApimSizeGb} GB"; ResFree = r.ApimFree; ResVersion = friendly is null ? "" : $"{friendly} ({r.SoftwareName})";
+            ShowResult(r, friendly, logIsMy20);
             HasLog = true;
-            await Dialogs.Info(Ctx.T(Ctx.Profile.My20v2 == true ? "MessageBox.My20Found" : "MessageBox.My20NotFound"));
+            // the popup is about the log that was just opened
+            await Dialogs.Info(!r.ModelKnown ? Ctx.T("MessageBox.LogUtilityNoModelFound") + "\n\n" + Ctx.T("Utility.ModelUnknownProtected")
+                : logIsMy20 switch { true => Ctx.T("MessageBox.My20Found"), false => Ctx.T("MessageBox.My20NotFound"), null => Ctx.T("Utility.ResultMy20Unknown") });
         }
         catch (InterrogatorException e) when (e.Message == "MODEL_NOT_FOUND") { await Dialogs.Error(Ctx.T("MessageBox.LogUtilityNoModelFound")); }
         catch (InterrogatorException) { await Dialogs.Error(Ctx.T("MessageBox.LogUtilityInvalidFile")); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { await Dialogs.Error(e.Message); }
+    }
+
+    /// <summary>Fills what the result card shows. The verdict is about the log that was opened (blue = it could not be decided, e.g. offline).</summary>
+    private void ShowResult(InterrogatorResult r, string? friendly, bool? logIsMy20)
+    {
+        var (text, colour) = logIsMy20 switch
+        {
+            // red = MY20 (Reformat and Downgrade are dangerous), green = not MY20 (everything is allowed), amber = nobody can tell from this log, blue = could not be decided
+            true when !r.ModelKnown => (Ctx.T("Utility.ResultModelUnknown"), "#e8a23a"),
+            true => (Ctx.T("Utility.ResultMy20"), "#ef6b62"),
+            false => (Ctx.T("Utility.ResultNotMy20"), "#3fb97a"),
+            null => (Ctx.T("Utility.ResultMy20Unknown"), "#5b9de6"),
+        };
+        var c = Avalonia.Media.Color.Parse(colour);
+        ResVerdict = text; ResBrush = new Avalonia.Media.SolidColorBrush(c);
+        ResBackground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromArgb(0x24, c.R, c.G, c.B));
+
+        string Or(string? s) => string.IsNullOrWhiteSpace(s) ? "—" : s;
+        Facts.Clear();
+        Facts.Add(new(Ctx.T("App.Model"), Or(r.ApimModel), true));
+        Facts.Add(new("VIN", Or(r.Vin), true));
+        Facts.Add(new(Ctx.T("Utility.APIMType"), r.Nav ? "Navigation" : "Non-Navigation", false));
+        Facts.Add(new(Ctx.T("Utility.APIMSize"), $"{r.ApimSizeGb} GB", false));
+        Facts.Add(new(Ctx.T("Utility.APIMFree"), Or(r.ApimFree), false));
+        Facts.Add(new(Ctx.T("App.Version"), friendly is null ? Or(r.SoftwareName) : $"{friendly} ({r.SoftwareName})", false));
+
+        PartitionRows.Clear();
+        foreach (var x in Interrogator.Usage(r)) PartitionRows.Add(new(x.Path, Ctx.T("Utility.FreeOf", x.Free, x.Total), x.Used));
+        PackageRows.Clear();
+        foreach (var p in Interrogator.PackageList(r)) PackageRows.Add(p);
+        AsBuiltRows.Clear();
+        foreach (var d in r.AsBuilt)
+        {
+            var v = d.Response.Trim();
+            AsBuiltRows.Add(new(d.Value, v.Length == 0 ? "—" : v.ToUpperInvariant(), v.Length == 0 || v.Equals("Blank", StringComparison.OrdinalIgnoreCase)));
+        }
     }
 
     [RelayCommand]
