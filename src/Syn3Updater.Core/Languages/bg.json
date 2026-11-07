@@ -291,7 +291,6 @@
   "Home.BackendRequired": "Syn3 Updater изисква връзка със сървъра, за да работи.\n\n{0}",
   "Home.MapEsnLocked": "Заключена с ESN · само за модули преди MY20",
   "Home.MapEsnOpen": "Не е заключена с ESN",
-  "Home.MapEsnBlockedMy20": "Заключена с ESN · несъвместимо с MY20",
   "Home.MapEsnBlockedOnlyMaps": "Заключена с ESN · недостъпна за „{0}“",
   "Diag.Intro": "Проверява дали този компютър има всичко, от което Syn3 Updater се нуждае, за да подготви USB устройство. Нищо не се променя.",
   "Diag.RunAgain": "Изпълни отново",

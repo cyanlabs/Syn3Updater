@@ -422,7 +422,8 @@ public partial class HomeViewModel : PageViewModel
                     m.IsEnabled = !esnBlocked;
                     var detail = !m.Esn ? Ctx.T("Home.MapEsnOpen")
                         : !esnBlocked ? Ctx.T("Home.MapEsnLocked")
-                        : p.My20v2 == true ? Ctx.T("Home.MapEsnBlockedMy20") : Ctx.T("Home.MapEsnBlockedOnlyMaps", Ctx.T("String.OnlyMaps"));
+                        : p.My20v2 == true ? Ctx.T("Home.MapEsnLocked")                          // dimmed and unpickable: the same line says why (MY20 units are not pre-MY20)
+                        : Ctx.T("Home.MapEsnBlockedOnlyMaps", Ctx.T("String.OnlyMaps"));
                     MapVersions.Add(new MapItem { Kind = MapChoice.MapPackage, Release = m, Display = m.Name, Esn = m.Esn, Blocked = esnBlocked, Detail = detail });
                 }
             }

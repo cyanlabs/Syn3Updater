@@ -291,7 +291,6 @@
   "Home.BackendRequired": "Syn3 Updater necesită o conexiune la server pentru a funcționa.\n\n{0}",
   "Home.MapEsnLocked": "Blocat ESN · doar unități dinainte de MY20",
   "Home.MapEsnOpen": "Fără blocare ESN",
-  "Home.MapEsnBlockedMy20": "Blocat ESN · incompatibil cu MY20",
   "Home.MapEsnBlockedOnlyMaps": "Blocat ESN · indisponibil pentru „{0}”",
   "Diag.Intro": "Verifică dacă acest computer are ce îi trebuie lui Syn3 Updater pentru a pregăti o unitate USB. Nu se modifică nimic.",
   "Diag.RunAgain": "Rulează din nou",

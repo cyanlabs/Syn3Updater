@@ -291,7 +291,6 @@
   "Home.BackendRequired": "Для работы Syn3 Updater требуется подключение к серверу.\n\n{0}",
   "Home.MapEsnLocked": "Привязана к ESN · только для блоков до MY20",
   "Home.MapEsnOpen": "Не привязана к ESN",
-  "Home.MapEsnBlockedMy20": "Привязана к ESN · несовместимо с MY20",
   "Home.MapEsnBlockedOnlyMaps": "Привязана к ESN · недоступна для «{0}»",
   "Diag.Intro": "Проверяет, есть ли на этом компьютере всё необходимое для подготовки USB-накопителя. Ничего не изменяется.",
   "Diag.RunAgain": "Запустить снова",

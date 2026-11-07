@@ -99,7 +99,7 @@ public class HomeFlowTests
         Assert.True(home.MapVersions[1].IsUnlocked); Assert.Equal(Ctx.T("Home.MapEsnOpen"), home.MapVersions[1].Detail); Assert.True(home.MapVersions[1].IsSelectable);
         var locked = home.MapVersions[2];
         Assert.True(locked.IsLocked); Assert.Equal(lockedIsBlocked, locked.Blocked);
-        Assert.Equal(lockedIsBlocked ? Ctx.T("Home.MapEsnBlockedMy20") : Ctx.T("Home.MapEsnLocked"), locked.Detail);
+        Assert.Equal(Ctx.T("Home.MapEsnLocked"), locked.Detail);                         // the same line whether or not it can be picked: a dimmed map says why by looking blocked
     }
 
     [AvaloniaFact]
@@ -124,7 +124,7 @@ public class HomeFlowTests
         home.SelectedRelease = home.Releases[1]; await AppEnv.Until(() => home.MapVersions.Count == 3);
         var esn = home.MapVersions[2];
         Assert.True(esn.Blocked); Assert.False(esn.IsSelectable); Assert.True(esn.IsLocked);                  // dimmed and unpickable in the list
-        Assert.Equal(Ctx.T("Home.MapEsnBlockedMy20"), esn.Detail);
+        Assert.Equal(Ctx.T("Home.MapEsnLocked"), esn.Detail);
         Assert.False(home.MapVersions[1].Blocked); Assert.True(home.MapVersions[1].IsUnlocked);
         home.SelectedMap = home.MapVersions[2];                                                            // (still refused if it is chosen some other way)
         await AppEnv.Until(() => env.Dialogs.Messages.Count > 0);

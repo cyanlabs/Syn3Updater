@@ -291,7 +291,6 @@
   "Home.BackendRequired": "Syn3 Updater kräver en anslutning till servern för att fungera.\n\n{0}",
   "Home.MapEsnLocked": "ESN-låst · endast enheter före MY20",
   "Home.MapEsnOpen": "Inte ESN-låst",
-  "Home.MapEsnBlockedMy20": "ESN-låst · inte kompatibel med MY20",
   "Home.MapEsnBlockedOnlyMaps": "ESN-låst · inte tillgänglig för ”{0}”",
   "Diag.Intro": "Kontrollerar att den här datorn har det Syn3 Updater behöver för att förbereda en USB-enhet. Ingenting ändras.",
   "Diag.RunAgain": "Kör igen",

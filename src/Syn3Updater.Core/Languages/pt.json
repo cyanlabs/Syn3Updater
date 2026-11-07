@@ -291,7 +291,6 @@
   "Home.BackendRequired": "O Syn3 Updater precisa de uma ligação com o servidor para funcionar.\n\n{0}",
   "Home.MapEsnLocked": "Bloqueado por ESN · apenas unidades anteriores ao MY20",
   "Home.MapEsnOpen": "Não bloqueado por ESN",
-  "Home.MapEsnBlockedMy20": "Bloqueado por ESN · não compatível com MY20",
   "Home.MapEsnBlockedOnlyMaps": "Bloqueado por ESN · indisponível para «{0}»",
   "Diag.Intro": "Verifica se este computador tem o que o Syn3 Updater precisa para preparar uma unidade USB. Nada é alterado.",
   "Diag.RunAgain": "Executar novamente",

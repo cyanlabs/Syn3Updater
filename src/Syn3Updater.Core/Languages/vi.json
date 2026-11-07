@@ -291,7 +291,6 @@
   "Home.BackendRequired": "Syn3 Updater cần kết nối với máy chủ để hoạt động.\n\n{0}",
   "Home.MapEsnLocked": "Khóa theo ESN · chỉ cho bộ trước MY20",
   "Home.MapEsnOpen": "Không khóa theo ESN",
-  "Home.MapEsnBlockedMy20": "Khóa theo ESN · không tương thích với MY20",
   "Home.MapEsnBlockedOnlyMaps": "Khóa theo ESN · không có cho “{0}”",
   "Diag.Intro": "Kiểm tra xem máy tính này có những gì Syn3 Updater cần để chuẩn bị ổ USB hay không. Không có gì bị thay đổi.",
   "Diag.RunAgain": "Chạy lại",

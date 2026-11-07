@@ -291,7 +291,6 @@
   "Home.BackendRequired": "Syn3 Updater heeft een verbinding met de server nodig om te werken.\n\n{0}",
   "Home.MapEsnLocked": "ESN-vergrendeld · alleen units van vóór MY20",
   "Home.MapEsnOpen": "Niet ESN-vergrendeld",
-  "Home.MapEsnBlockedMy20": "ESN-vergrendeld · niet compatibel met MY20",
   "Home.MapEsnBlockedOnlyMaps": "ESN-vergrendeld · niet beschikbaar voor ‘{0}’",
   "Diag.Intro": "Controleert of deze computer heeft wat Syn3 Updater nodig heeft om een USB-schijf voor te bereiden. Er wordt niets gewijzigd.",
   "Diag.RunAgain": "Opnieuw uitvoeren",

@@ -291,7 +291,6 @@
   "Home.BackendRequired": "Το Syn3 Updater απαιτεί σύνδεση με τον διακομιστή για να λειτουργήσει.\n\n{0}",
   "Home.MapEsnLocked": "Κλειδωμένο με ESN · μόνο μονάδες πριν το MY20",
   "Home.MapEsnOpen": "Δεν είναι κλειδωμένο με ESN",
-  "Home.MapEsnBlockedMy20": "Κλειδωμένο με ESN · δεν είναι συμβατό με MY20",
   "Home.MapEsnBlockedOnlyMaps": "Κλειδωμένο με ESN · μη διαθέσιμο για «{0}»",
   "Diag.Intro": "Ελέγχει ότι αυτός ο υπολογιστής διαθέτει ό,τι χρειάζεται το Syn3 Updater για την προετοιμασία μιας μονάδας USB. Τίποτα δεν αλλάζει.",
   "Diag.RunAgain": "Εκτέλεση ξανά",

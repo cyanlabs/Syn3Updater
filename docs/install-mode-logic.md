@@ -79,7 +79,7 @@ How the chart's boxes map to the app (v2 called the outcomes options A to H):
 | Below 3.2, not protected: Reformat | installed version under 3200000 | A |
 | Below 3.2, protected: Not possible | error shown, Start and Download only disabled | H |
 | Keep Maps / Non Nav: Autoinstall | the maps choice is "No maps", "Non-nav APIM" or "Keep existing maps" | B (below 3.4.19274), E (3.4.19274 or newer) |
-| Protected, ESN locked: Not possible | the ESN-locked map is dimmed and cannot be picked (its second line says "not compatible with MY20"); if one is already selected, error shown | C-ESN, F-ESN |
+| Protected, ESN locked: Not possible | the ESN-locked map is dimmed and cannot be picked (its second line says "pre-MY20 only"); if one is already selected, error shown | C-ESN, F-ESN |
 | Protected, ESN unlocked: Autoinstall | | C, F |
 | Not protected, Keep Existing (apps): Autoinstall / Not possible | the **"Only update maps"** release; ESN-locked maps are greyed out for it too | C, F |
 | Not protected, Update App Version: Reformat / Downgrade | a normal release with a map package; Downgrade from 3.4.19274 | D, G |
