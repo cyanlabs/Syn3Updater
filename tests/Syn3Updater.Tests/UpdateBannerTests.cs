@@ -61,6 +61,7 @@ public class UpdateBannerTests
         Assert.Equal(new[] { Path.Combine(appDir, "Syn3Updater") }, e.Started);
         Assert.Equal(1, e.Quits);
         Assert.Equal("3.1.0", Ctx.Main.WhatsNewVersion); Assert.Equal("Notes here", Ctx.Main.WhatsNewNotes);
+        Assert.Equal("https://github.com/CyanLabs/Syn3Updater/releases/tag/v3.1.0", Ctx.Main.WhatsNewUrl);          // kept for the "View release" button after the restart
         var asked = e.App.Dialogs.Shown.Single();
         Assert.Equal("Update to Syn3 Updater 3.1.0", asked.Title);
         Assert.Contains("Notes here", e.App.Dialogs.Messages.Single());
@@ -267,10 +268,33 @@ public class UpdateBannerTests
         await e.App.Main.OnStartedAsync();
         Assert.Equal("Faster updates.", e.App.Dialogs.Messages.Single());
         Assert.Equal($"Syn3 Updater was updated to {Ctx.Version}", e.App.Dialogs.Shown.Single().Title);
-        Assert.Null(Ctx.Main.WhatsNewVersion); Assert.Null(Ctx.Main.WhatsNewNotes);
+        Assert.Equal(new[] { "OK", "View release" }, e.App.Dialogs.Shown.Single().Buttons);
+        Assert.Null(Ctx.Main.WhatsNewVersion); Assert.Null(Ctx.Main.WhatsNewNotes); Assert.Null(Ctx.Main.WhatsNewUrl);
         await e.App.Main.OnStartedAsync();
         Assert.Single(e.App.Dialogs.Messages);
     }
+
+    [AvaloniaFact]
+    public async Task View_release_opens_that_versions_release_page_and_OK_opens_nothing()
+    {
+        using var e = new Env(); Ctx.Install = new InstallInfo(InstallKind.Development, "/x", UpdateRoute.None, "t");
+        Ctx.Main.WhatsNewVersion = Ctx.Version; Ctx.Main.WhatsNewNotes = "Faster updates."; Ctx.Main.WhatsNewUrl = "https://github.com/CyanLabs/Syn3Updater/releases/tag/v3.1.0";
+        e.App.Dialogs.Choices.Enqueue(1);                                   // View release
+        await e.App.Main.OnStartedAsync();
+        Assert.Equal(new[] { "https://github.com/CyanLabs/Syn3Updater/releases/tag/v3.1.0" }, e.App.Dialogs.Opened);
+        Ctx.Main.WhatsNewVersion = Ctx.Version; Ctx.Main.WhatsNewNotes = "More."; Ctx.Main.WhatsNewUrl = "https://github.com/CyanLabs/Syn3Updater/releases/tag/v3.1.0";
+        e.App.Dialogs.Choices.Enqueue(0);                                   // OK
+        await e.App.Main.OnStartedAsync();
+        Assert.Single(e.App.Dialogs.Opened);
+    }
+
+    [AvaloniaTheory]
+    [InlineData(null, "https://github.com/CyanLabs/Syn3Updater/releases")]                                           // saved by an older version: no address
+    [InlineData("https://evil.example/tag/v1", "https://github.com/CyanLabs/Syn3Updater/releases")]                    // anything outside this repository is not opened
+    [InlineData("http://github.com/CyanLabs/Syn3Updater/releases/tag/v1", "https://github.com/CyanLabs/Syn3Updater/releases")]
+    [InlineData("https://github.com/CyanLabs/Syn3Updater/releases/tag/v1", "https://github.com/CyanLabs/Syn3Updater/releases/tag/v1")]
+    public void Only_this_repositorys_release_pages_are_ever_opened_from_the_saved_address(string? saved, string opened) =>
+        Assert.Equal(opened, Cyanlabs.Syn3Updater.App.ViewModels.MainWindowViewModel.SafeReleaseUrl(saved));
 
     [AvaloniaFact]
     public async Task Notes_for_a_version_that_is_not_running_are_dropped_silently()
