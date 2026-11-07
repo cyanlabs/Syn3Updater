@@ -8,6 +8,7 @@ body:
       value: |
         Thanks for the idea. A good request says **what problem you have** before it says what to build.
 
+        - **Already requested?** Add a 👍 or a comment to the existing issue instead of opening a new one.
         - Something is broken? Use the **Bug report** form instead.
         - Need help with using the app or with your car? Ask on the [forum](https://community.cyanlabs.net).
         - **Wrong or missing translation?** Please fix it with a pull request: the texts are in [`src/Syn3Updater.Core/Languages`](https://github.com/cyanlabs/Syn3Updater/tree/main/src/Syn3Updater.Core/Languages), one JSON file per language (`en-US.json` is the reference). A new **language** is welcome as a request here.

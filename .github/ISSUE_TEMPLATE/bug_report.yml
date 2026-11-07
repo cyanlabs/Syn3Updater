@@ -11,6 +11,7 @@ body:
         **Before you start**
         - Is CyanLabs up? Check [status.cyanlabs.net](https://status.cyanlabs.net). If the app shows "No connection to CyanLabs" it is usually that, not a bug.
         - In the app go to **About**, then press **Diagnostics** at the bottom, and use **Copy report**. It checks the tools and permissions your system needs and tells you how to fix what fails.
+        - **Already reported?** If someone has the same problem, add a 👍 or a comment (with your logs) to their issue instead of opening a new one.
         - Search the [existing issues](https://github.com/cyanlabs/Syn3Updater/issues?q=is%3Aissue) first, and ask for help with using the app or with your car on the [forum](https://community.cyanlabs.net).
 
         > **A wrong or missing translation?** Please fix it with a pull request instead: the texts are in [`src/Syn3Updater.Core/Languages`](https://github.com/cyanlabs/Syn3Updater/tree/main/src/Syn3Updater.Core/Languages), one JSON file per language.
