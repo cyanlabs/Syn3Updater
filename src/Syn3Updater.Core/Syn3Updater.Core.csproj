@@ -3,6 +3,8 @@
     <RootNamespace>Cyanlabs.Syn3Updater.Core</RootNamespace>
     <!-- git-ignored file holding the API token; SYN3_API_TOKEN overrides it -->
     <ApiTokenFile>$(MSBuildThisFileDirectory)..\..\secrets\api-token.txt</ApiTokenFile>
+    <!-- optional: the crash report server's DSN (not a secret, but kept out of git); SYN3_SENTRY_DSN overrides it. No DSN = crash reports are never offered. -->
+    <SentryDsnFile>$(MSBuildThisFileDirectory)..\..\secrets\sentry-dsn.txt</SentryDsnFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
@@ -15,7 +17,14 @@
     <ReadLinesFromFile File="$(ApiTokenFile)" Condition="Exists('$(ApiTokenFile)')">
       <Output TaskParameter="Lines" ItemName="_TokenLine" />
     </ReadLinesFromFile>
+    <ReadLinesFromFile File="$(SentryDsnFile)" Condition="Exists('$(SentryDsnFile)')">
+      <Output TaskParameter="Lines" ItemName="_DsnLine" />
+    </ReadLinesFromFile>
     <PropertyGroup>
+      <_FileDsn>@(_DsnLine)</_FileDsn>
+      <_Dsn Condition="'$(SYN3_SENTRY_DSN)' != ''">$(SYN3_SENTRY_DSN)</_Dsn>
+      <_Dsn Condition="'$(_Dsn)' == ''">$(_FileDsn.Trim())</_Dsn>
+      <_Dsn Condition="$(_Dsn.StartsWith('paste-'))"></_Dsn>
       <_FileToken>@(_TokenLine)</_FileToken>
       <_Token Condition="'$(SYN3_API_TOKEN)' != ''">$(SYN3_API_TOKEN)</_Token>
       <_Token Condition="'$(_Token)' == ''">$(_FileToken.Trim())</_Token>
@@ -23,7 +32,7 @@
       <_SecretFile>$(IntermediateOutputPath)ApiSecret.g.cs</_SecretFile>
     </PropertyGroup>
     <WriteLinesToFile File="$(_SecretFile)" Overwrite="true"
-                      Lines="// &lt;auto-generated/&gt; from secrets/api-token.txt or SYN3_API_TOKEN - never committed%0Anamespace Cyanlabs.Syn3Updater.Core.Services%0A{%0A    internal static class ApiSecret%0A    {%0A        public const string Token = &quot;$(_Token)&quot;%3B%0A    }%0A}%0A" />
+                      Lines="// &lt;auto-generated/&gt; from secrets/api-token.txt, secrets/sentry-dsn.txt or the environment - never committed%0Anamespace Cyanlabs.Syn3Updater.Core.Services%0A{%0A    internal static class ApiSecret%0A    {%0A        public const string Token = &quot;$(_Token)&quot;%3B%0A        public const string SentryDsn = &quot;$(_Dsn)&quot;%3B%0A    }%0A}%0A" />
     <ItemGroup>
       <Compile Include="$(_SecretFile)" />
       <FileWrites Include="$(_SecretFile)" />

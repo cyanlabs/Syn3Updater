@@ -168,6 +168,7 @@ public partial class UtilityViewModel : PageViewModel
 
             if (r.ApimSizeGb == 0) { await Dialogs.Error(Ctx.T("MessageBox.LogUtilityIncompatibleVersion", friendly ?? "")); return; }
             (LogDetails, LogPartitions, LogAsBuilt) = Interrogator.Describe(r, friendly);
+            CrashReporter.CurrentVin = r.Vin;       // kept for a crash report, which is only sent if the user agrees
             ResVin = r.Vin; ResModel = r.ApimModel; ResType = r.Nav ? "Navigation" : "Non-Navigation";
             ResSize = $"{r.ApimSizeGb} GB"; ResFree = r.ApimFree; ResVersion = friendly is null ? "" : $"{friendly} ({r.SoftwareName})";
             HasLog = true;

@@ -39,6 +39,9 @@ internal static class Program
                 File.AppendAllText(Path.Combine(dir, "crash.txt"),
                     $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {kind} on {System.Runtime.InteropServices.RuntimeInformation.OSDescription} " +
                     $"({System.Runtime.InteropServices.RuntimeInformation.OSArchitecture}){Environment.NewLine}{error}{Environment.NewLine}{Environment.NewLine}");
+                // remembered so the next start can offer to send it (only if the user agrees; see CrashReports)
+                CrashReporter.SavePending(dir, CrashReporter.Capture(kind, error, Ctx.Version, Ctx.Branch,
+                    System.Runtime.InteropServices.RuntimeInformation.OSDescription, System.Runtime.InteropServices.RuntimeInformation.OSArchitecture.ToString()));
             }
             catch { /* nothing more we can do */ }
         }
