@@ -45,8 +45,15 @@ public sealed class WindowsShortcutStore : IShortcutStore
         foreach (var s in subs) foreach (var f in Walk(s, depth - 1)) yield return f;
     }
 
+    private static void RequireCom()
+    {
+        // the runtime's own feature switch (BuiltInComInteropSupport in the project file): a clear message instead of its generic one
+        if (AppContext.TryGetSwitch("System.Runtime.InteropServices.BuiltInComInterop.IsSupported", out var enabled) && !enabled) throw new NotSupportedException("built-in COM is switched off in this build (BuiltInComInteropSupport must be true in Syn3Updater.App.csproj)");
+    }
+
     public ShortcutInfo? Read(string path)
     {
+        RequireCom();
         var link = (IShellLinkW)new ShellLink();
         try
         {
@@ -65,6 +72,7 @@ public sealed class WindowsShortcutStore : IShortcutStore
     /// <summary>Makes a new shortcut (used by tests and nothing else: the migration only edits shortcuts that already exist).</summary>
     internal void Create(string path, ShortcutInfo info)
     {
+        RequireCom();
         var link = (IShellLinkW)new ShellLink();
         try
         {
@@ -77,6 +85,7 @@ public sealed class WindowsShortcutStore : IShortcutStore
 
     public void Write(string path, ShortcutInfo info)
     {
+        RequireCom();
         var link = (IShellLinkW)new ShellLink();
         try
         {

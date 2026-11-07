@@ -11,8 +11,9 @@ internal sealed class FakeShortcuts : IShortcutStore
     public HashSet<string> FailWrite { get; } = new();
     public HashSet<string> Unreadable { get; } = new();
     public bool FailList { get; set; }
+    public Exception? ReadThrows { get; set; }
     public IEnumerable<string> FindShortcuts() => FailList ? throw new UnauthorizedAccessException("denied") : Items.Keys.ToList();
-    public ShortcutInfo? Read(string p) => Unreadable.Contains(p) ? null : Items[p];
+    public ShortcutInfo? Read(string p) => ReadThrows != null ? throw ReadThrows : Unreadable.Contains(p) ? null : Items[p];
     public void Write(string p, ShortcutInfo i) { if (FailWrite.Contains(p)) throw new UnauthorizedAccessException("denied"); Items[p] = i; Written.Add(p); }
 }
 
@@ -151,6 +152,28 @@ public class LauncherMigrationTests : IDisposable
         var s = new FakeShortcuts(); s.Items["a.lnk"] = Lnk(Launcher); var p = new FakeProtocol { Command = Launcher + " %1" };
         var r = LauncherMigration.Run(Install, s, p);
         Assert.Empty(s.Written); Assert.False(r.ProtocolFixed); Assert.False(r.Complete);
+    }
+
+    [Theory]
+    [InlineData(typeof(NotSupportedException))] [InlineData(typeof(InvalidCastException))] [InlineData(typeof(InvalidOperationException))] [InlineData(typeof(System.Runtime.InteropServices.COMException))]
+    public void Whatever_a_shortcut_store_throws_is_logged_never_thrown_and_the_run_is_incomplete_so_it_is_tried_again_next_start(Type exception)
+    {
+        Present(); var s = new FakeShortcuts { ReadThrows = (Exception)Activator.CreateInstance(exception, "boom")! }; s.Items["a.lnk"] = Lnk(Launcher); var log = new List<string>();
+        var r = LauncherMigration.Run(Install, s, new FakeProtocol { Command = Launcher + " %1" }, log.Add);        // does not throw
+        Assert.False(r.Complete); Assert.Empty(r.Shortcuts); Assert.True(r.ProtocolFixed);                          // the handler is still repaired
+        Assert.Contains(log, l => l.Contains("a.lnk") && l.Contains(exception.Name));
+    }
+
+    /// <summary>
+    /// The published app must keep built-in COM: the shortcut migration needs it. With BuiltInComInteropSupport=false (an Avalonia template default) it threw NotSupportedException in the real app
+    /// on every start (a crash report each time), while every test passed because the test host has COM. The CI job "windows-self-replace" also checks the real published program end to end.
+    /// </summary>
+    [Fact]
+    public void The_app_project_keeps_built_in_COM_enabled()
+    {
+        var csproj = File.ReadAllText(UpdateTestSupport.FindRepoFile(Path.Combine("src", "Syn3Updater.App", "Syn3Updater.App.csproj")));
+        Assert.DoesNotContain("<BuiltInComInteropSupport>false</BuiltInComInteropSupport>", csproj);
+        Assert.Contains("<BuiltInComInteropSupport>true</BuiltInComInteropSupport>", csproj);
     }
 
     // ---- the real Windows implementations: these run on the Windows CI runner and are skipped elsewhere ----

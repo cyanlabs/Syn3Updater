@@ -229,9 +229,9 @@ public partial class MainWindowViewModel : ObservableObject
             var r = LauncherMigration.Run(Ctx.Install.AppDir, new Core.Services.Updates.Windows.WindowsShortcutStore(), new Core.Services.Updates.Windows.WindowsProtocolStore(), Ctx.Log.Info);
             if (r.Complete) { Ctx.Main.LauncherMigratedFor = Ctx.Install.AppDir; Ctx.Save(); }
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Runtime.InteropServices.COMException or System.Security.SecurityException)
+        catch (Exception e)                                          // runs on a background thread nobody awaits: an exception here would surface as a crash report, so nothing may escape
         {
-            Ctx.Log.Error("Could not point the shortcuts at Syn3Updater.exe: " + e.Message);
+            Ctx.Log.Error("Could not point the shortcuts at Syn3Updater.exe: " + e.GetType().Name + ": " + e.Message);
         }
     }
 

@@ -93,4 +93,25 @@ jobs:
           Stop-Process -Id $p.Id -Force; $p.WaitForExit()
           Remove-Item $old                                        # once it has exited the old file goes
           if (Test-Path $old) { throw "the old file is still there after the program exited" }
+      # The published app must be able to retarget a Windows shortcut. The shortcut code uses built-in COM, which an Avalonia template default (BuiltInComInteropSupport=false) switches off in
+      # the real program while every test still passes (the test host has COM): this runs the real single-file program against a real shortcut.
+      - name: The published app retargets a Launcher shortcut
+        shell: pwsh
+        run: |
+          $env:SYN3_DATA_DIR = Join-Path $env:RUNNER_TEMP 'syn3data-migrate'
+          $dir = Join-Path $PWD 'out-migrate'; Copy-Item (Join-Path $PWD 'out') $dir -Recurse
+          Set-Content (Join-Path $dir '.install-method') 'zip'              # what the Windows zip carries: evidence that this folder is an install
+          $exe = Join-Path $dir 'Syn3Updater.exe'; $launcher = Join-Path $dir 'Launcher.exe'
+          $lnk = Join-Path $env:PUBLIC 'Desktop\Syn3Updater-CI.lnk'
+          $sh = New-Object -ComObject WScript.Shell
+          $l = $sh.CreateShortcut($lnk); $l.TargetPath = $launcher; $l.Description = 'CI'; $l.Save()   # what the v2 installer made
+          $p = Start-Process $exe -PassThru
+          $target = ''
+          for ($i = 0; $i -lt 45; $i++) { Start-Sleep -Seconds 2; $target = $sh.CreateShortcut($lnk).TargetPath; if ($target -like '*Syn3Updater.exe') { break } }
+          if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force; $p.WaitForExit() }
+          Start-Sleep -Seconds 2
+          foreach ($f in 'applog.txt','crash.txt') { $path = Join-Path $env:SYN3_DATA_DIR $f; if (Test-Path $path) { "--- $f"; Get-Content $path -Tail 25 } }
+          Remove-Item $lnk -ErrorAction SilentlyContinue
+          if ($target -notlike '*Syn3Updater.exe') { throw "the shortcut still points at '$target': the published app could not retarget it (see the log above)" }
+          "the shortcut was retargeted to $target"
 

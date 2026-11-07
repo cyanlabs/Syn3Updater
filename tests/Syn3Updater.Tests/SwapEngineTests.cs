@@ -31,6 +31,10 @@ internal sealed class FaultyFileSystem : ISwapFileSystem
     public int DeleteDirFailuresLeft { get; set; }
     public Func<string, bool> FailDeleteFile { get; set; } = _ => false;
     public Func<string, bool> FailWrite { get; set; } = _ => false;
+    public DateTime? BackupCreated { get; set; }
+    public DateTime? ManifestWritten { get; set; }
+    public DateTime GetCreationTimeUtc(string p) => BackupCreated ?? _real.GetCreationTimeUtc(p);
+    public DateTime GetLastWriteTimeUtc(string p) => ManifestWritten ?? _real.GetLastWriteTimeUtc(p);
     public void WriteAllText(string p, string t) { if (FailWrite(p)) throw new IOException("cannot write (simulated)"); _real.WriteAllText(p, t); }
     public int MoveCalls { get; private set; }
     public bool FileExists(string p) => _real.FileExists(p);
@@ -424,3 +428,88 @@ public class ReviewFindingsSwapTests
         }
     }
 }
+
+/// <summary>The v2 -> v3 hop through the old hybrid Launcher: its own files are locked while it installs, so its one-shot backup delete removes the COMPLETE marker and leaves them behind.</summary>
+public class LostMarkerRecoverTests
+{
+    private static readonly DateTime Now = new(2026, 11, 7, 19, 30, 0, DateTimeKind.Utc);
+
+    private static (TempDir t, string install, string backup) Hop(bool withManifest)
+    {
+        var t = new TempDir(); var install = t.Sub("install"); Directory.CreateDirectory(install);
+        File.WriteAllText(Path.Combine(install, "Syn3Updater.exe"), "NEW-APP"); File.WriteAllText(Path.Combine(install, "Launcher.exe"), "NEW-STUB");
+        if (withManifest) File.WriteAllText(Path.Combine(install, "install-manifest.json"), "{\"Version\":\"2.99.99.12\",\"Files\":[\"Launcher.exe\",\"Syn3Updater.exe\"]}");
+        var backup = Path.Combine(install, InstallTransaction.BackupDirName); Directory.CreateDirectory(backup);
+        File.WriteAllText(Path.Combine(backup, "Launcher.exe"), "OLD-LAUNCHER (was locked)"); File.WriteAllText(Path.Combine(backup, "FluentWPF.dll"), "OLD-DLL (was locked)");     // no COMPLETE: the old engine deleted it
+        return (t, install, backup);
+    }
+
+    [Fact]
+    public void An_update_that_finished_but_lost_its_marker_is_not_rolled_back_over_the_new_files()
+    {
+        var (t, install, backup) = Hop(withManifest: true);
+        using (t)
+        {
+            var fs = new FaultyFileSystem { BackupCreated = Now, ManifestWritten = Now.AddSeconds(2) };          // the manifest was written after the backup folder was created: the update completed
+            Assert.False(InstallTransaction.Recover(install, fs, new RetryPolicy(1, 0)));
+            Assert.Equal("NEW-STUB", File.ReadAllText(Path.Combine(install, "Launcher.exe")));                    // the new stub stays
+            Assert.False(File.Exists(Path.Combine(install, "FluentWPF.dll")));                                    // and the old library is not put back
+            Assert.False(Directory.Exists(backup));                                                               // the leftovers are simply removed
+        }
+    }
+
+    [Fact]
+    public void A_genuinely_interrupted_update_is_still_rolled_back_even_with_an_old_manifest_present()
+    {
+        var (t, install, backup) = Hop(withManifest: true);
+        using (t)
+        {
+            var fs = new FaultyFileSystem { BackupCreated = Now, ManifestWritten = Now.AddMinutes(-30) };         // the manifest is the PREVIOUS update's: this one never got that far
+            Assert.True(InstallTransaction.Recover(install, fs, new RetryPolicy(1, 0)));
+            Assert.Equal("OLD-LAUNCHER (was locked)", File.ReadAllText(Path.Combine(install, "Launcher.exe")));
+            Assert.Equal("OLD-DLL (was locked)", File.ReadAllText(Path.Combine(install, "FluentWPF.dll")));
+        }
+    }
+
+    [Fact]
+    public void Without_any_manifest_a_markerless_backup_is_an_interrupted_update_as_before()
+    {
+        var (t, install, _) = Hop(withManifest: false);
+        using (t) { Assert.True(InstallTransaction.Recover(install, new FaultyFileSystem(), new RetryPolicy(1, 0))); Assert.Equal("OLD-LAUNCHER (was locked)", File.ReadAllText(Path.Combine(install, "Launcher.exe"))); }
+    }
+
+    [Fact]
+    public void A_finished_update_whose_leftovers_stay_locked_is_never_rolled_back_on_any_later_start_either()
+    {
+        var (t, install, backup) = Hop(withManifest: true);
+        using (t)
+        {
+            var fs = new FaultyFileSystem { BackupCreated = Now, ManifestWritten = Now.AddSeconds(2), FailDeleteFile = p => p.EndsWith("Launcher.exe") && p.Contains(InstallTransaction.BackupDirName) };
+            for (var start = 0; start < 3; start++)
+            {
+                Assert.False(InstallTransaction.Recover(install, fs, new RetryPolicy(1, 0)));
+                Assert.Equal("NEW-STUB", File.ReadAllText(Path.Combine(install, "Launcher.exe")));
+            }
+            Assert.True(File.Exists(Path.Combine(backup, "COMPLETE")));                                           // the marker was put back, so it stays recognised
+            Assert.False(InstallTransaction.Recover(install, new FaultyFileSystem { BackupCreated = Now, ManifestWritten = Now.AddSeconds(2) }));
+            Assert.False(Directory.Exists(backup));
+        }
+    }
+
+    [Fact]
+    public void If_the_times_cannot_be_read_the_old_safe_answer_applies()
+    {
+        var (t, install, _) = Hop(withManifest: true);
+        using (t) Assert.True(InstallTransaction.Recover(install, new ThrowingTimes(), new RetryPolicy(1, 0)));
+    }
+
+    private sealed class ThrowingTimes : ISwapFileSystem
+    {
+        private readonly RealSwapFileSystem _r = new();
+        public bool FileExists(string p) => _r.FileExists(p); public bool DirectoryExists(string p) => _r.DirectoryExists(p); public void CreateDirectory(string p) => _r.CreateDirectory(p);
+        public void MoveFile(string s, string d, bool o) => _r.MoveFile(s, d, o); public void DeleteFile(string p) => _r.DeleteFile(p); public void DeleteDirectory(string p) => _r.DeleteDirectory(p);
+        public void WriteAllText(string p, string t) => _r.WriteAllText(p, t);
+        public DateTime GetCreationTimeUtc(string p) => throw new IOException("cannot read"); public DateTime GetLastWriteTimeUtc(string p) => throw new IOException("cannot read");
+    }
+}
+
