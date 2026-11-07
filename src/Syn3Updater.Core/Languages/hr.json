@@ -295,7 +295,7 @@
   "App.WhatsNewTitle": "Syn3 Updater je ažuriran na {0}",
   "App.ForcedTitle": "Potrebno je ažuriranje",
   "App.ForcedBody": "Ova verzija programa Syn3 Updater više nije podržana. Instaliranje {0} prije nastavka...",
-  "App.ForcedManualBody": "Potreban je Syn3 Updater {0} ili noviji.\n\nOva kopija instalirana je upraviteljem paketa ili preuzimanjem pa se ne može sama ažurirati. Za ažuriranje:\n\n{1}\n\nZatim ponovno pokrenite Syn3 Updater.",
+  "App.ForcedManualBody": "Ažurirajte Syn3 Updater za nastavak.\n\nPotrebna je verzija {0} ili novija. Ova kopija instalirana je upraviteljem paketa ili preuzimanjem pa se ne može sama ažurirati. Za ažuriranje:\n\n{1}\n\nZatim ponovno pokrenite Syn3 Updater.",
   "App.ForcedUnavailable": "Potreban je Syn3 Updater {0} ili noviji, ali ga trenutno nije moguće preuzeti. Provjerite internetsku vezu i pokušajte ponovno.",
   "App.ForcedFailed": "Potrebno ažuriranje nije bilo moguće instalirati, a vaša trenutna verzija ostala je nepromijenjena.\n\n{0}",
   "App.ForcedRetry": "Pokušaj ponovno",

@@ -70,7 +70,7 @@ public sealed class UpdateService
         if (install.Route == UpdateRoute.InPlace) return new UpdatePlan(PlanKind.Install, manifest, asset, install);
 
         // updated another way: name the exact command for the file this system needs, or the download page
-        return new UpdatePlan(PlanKind.Manual, manifest, asset, install, InstallDetector.ManualInstructions(install.Kind, asset?.Name), install.Reason);
+        return new UpdatePlan(PlanKind.Manual, manifest, asset, install, InstallDetector.ManualInstructions(install.Kind, asset?.Name, asset?.Url), install.Reason);
     }
 
     /// <summary>User-level Linux tar installs and Windows folders: the two the app replaces itself. (Package-managed and macOS installs are shown instructions.)</summary>

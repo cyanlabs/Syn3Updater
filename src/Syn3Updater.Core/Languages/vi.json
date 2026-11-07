@@ -295,7 +295,7 @@
   "App.WhatsNewTitle": "Syn3 Updater đã được cập nhật lên {0}",
   "App.ForcedTitle": "Cần cập nhật",
   "App.ForcedBody": "Phiên bản Syn3 Updater này không còn được hỗ trợ. Đang cài đặt {0} trước khi bạn tiếp tục...",
-  "App.ForcedManualBody": "Cần Syn3 Updater {0} trở lên.\n\nBản sao này được cài bằng trình quản lý gói hoặc bằng tải xuống nên không thể tự cập nhật. Để cập nhật:\n\n{1}\n\nSau đó khởi động lại Syn3 Updater.",
+  "App.ForcedManualBody": "Vui lòng cập nhật Syn3 Updater để tiếp tục.\n\nCần phiên bản {0} trở lên. Bản sao này được cài bằng trình quản lý gói hoặc bằng tải xuống nên không thể tự cập nhật. Để cập nhật:\n\n{1}\n\nSau đó khởi động lại Syn3 Updater.",
   "App.ForcedUnavailable": "Cần Syn3 Updater {0} trở lên, nhưng hiện chưa thể tải xuống. Hãy kiểm tra kết nối Internet và thử lại.",
   "App.ForcedFailed": "Không thể cài đặt bản cập nhật bắt buộc và phiên bản hiện tại của bạn được giữ nguyên.\n\n{0}",
   "App.ForcedRetry": "Thử lại",

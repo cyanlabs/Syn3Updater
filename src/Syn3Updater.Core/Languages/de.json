@@ -295,7 +295,7 @@
   "App.WhatsNewTitle": "Syn3 Updater wurde auf {0} aktualisiert",
   "App.ForcedTitle": "Update erforderlich",
   "App.ForcedBody": "Diese Version von Syn3 Updater wird nicht mehr unterstützt. {0} wird installiert, bevor Sie fortfahren...",
-  "App.ForcedManualBody": "Syn3 Updater {0} oder neuer ist erforderlich.\n\nDiese Kopie wurde mit einem Paketmanager oder per Download installiert und kann sich daher nicht selbst aktualisieren. So aktualisieren Sie sie:\n\n{1}\n\nStarten Sie Syn3 Updater danach erneut.",
+  "App.ForcedManualBody": "Bitte aktualisieren Sie Syn3 Updater, um fortzufahren.\n\nVersion {0} oder neuer ist erforderlich. Diese Kopie wurde mit einem Paketmanager oder per Download installiert und kann sich daher nicht selbst aktualisieren. So aktualisieren Sie sie:\n\n{1}\n\nStarten Sie Syn3 Updater danach erneut.",
   "App.ForcedUnavailable": "Syn3 Updater {0} oder neuer ist erforderlich, konnte aber gerade nicht heruntergeladen werden. Prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
   "App.ForcedFailed": "Das erforderliche Update konnte nicht installiert werden. Ihre aktuelle Version blieb unverändert.\n\n{0}",
   "App.ForcedRetry": "Erneut versuchen",

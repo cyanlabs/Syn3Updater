@@ -295,7 +295,7 @@
   "App.WhatsNewTitle": "Syn3 Updater bol aktualizovaný na {0}",
   "App.ForcedTitle": "Vyžaduje sa aktualizácia",
   "App.ForcedBody": "Táto verzia Syn3 Updater už nie je podporovaná. Inštaluje sa {0}, kým budete pokračovať...",
-  "App.ForcedManualBody": "Vyžaduje sa Syn3 Updater {0} alebo novší.\n\nTáto kópia bola nainštalovaná správcom balíkov alebo stiahnutím, a preto sa nemôže aktualizovať sama. Aktualizujete ju takto:\n\n{1}\n\nPotom Syn3 Updater spustite znova.",
+  "App.ForcedManualBody": "Ak chcete pokračovať, aktualizujte Syn3 Updater.\n\nVyžaduje sa verzia {0} alebo novšia. Táto kópia bola nainštalovaná správcom balíkov alebo stiahnutím, a preto sa nemôže aktualizovať sama. Aktualizujete ju takto:\n\n{1}\n\nPotom Syn3 Updater spustite znova.",
   "App.ForcedUnavailable": "Vyžaduje sa Syn3 Updater {0} alebo novší, no momentálne ho nie je možné stiahnuť. Skontrolujte pripojenie k internetu a skúste to znova.",
   "App.ForcedFailed": "Požadovanú aktualizáciu sa nepodarilo nainštalovať a vaša aktuálna verzia zostala bez zmeny.\n\n{0}",
   "App.ForcedRetry": "Skúsiť znova",

@@ -185,32 +185,49 @@ public class InstallDetectorTests : IDisposable
         Assert.Contains(reason, info.Reason);
     }
 
+    private const string Url = "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0/";
+
     [Fact]
     public void Instructions_name_the_right_command()
     {
-        Assert.Equal("sudo apt install ./a.deb", InstallDetector.ManualInstructions(InstallKind.LinuxDeb, "a.deb"));
+        Assert.Equal("sudo apt install ./a.deb", InstallDetector.ManualInstructions(InstallKind.LinuxDeb, "a.deb"));            // no address known: just the install command
         Assert.StartsWith("sudo dnf install ./a.rpm", InstallDetector.ManualInstructions(InstallKind.LinuxRpm, "a.rpm"));
         Assert.Contains("sudo zypper install ./a.rpm", InstallDetector.ManualInstructions(InstallKind.LinuxRpm, "a.rpm"));
-        Assert.Contains("yay -Syu syn3updater-bin", InstallDetector.ManualInstructions(InstallKind.LinuxPacman, null));
-        Assert.Contains("pacman -U", InstallDetector.ManualInstructions(InstallKind.LinuxPacman, "a.pkg.tar.zst"));
+        Assert.Equal("sudo pacman -U a.pkg.tar.zst", InstallDetector.ManualInstructions(InstallKind.LinuxPacman, "a.pkg.tar.zst"));
+        Assert.DoesNotContain("yay", InstallDetector.ManualInstructions(InstallKind.LinuxPacman, "a.pkg.tar.zst"));
         Assert.Contains("github.com/CyanLabs/Syn3Updater/releases", InstallDetector.ManualInstructions(InstallKind.LinuxPortable, null));
     }
 
-    [Fact]
-    public void Each_command_is_on_its_own_line_and_nothing_is_run_together_in_brackets()
+    [Theory]
+    [InlineData(InstallKind.LinuxDeb, "a.deb", "sudo apt install ./a.deb")]
+    [InlineData(InstallKind.LinuxRpm, "a.rpm", "sudo dnf install ./a.rpm")]
+    [InlineData(InstallKind.LinuxPacman, "a.pkg.tar.zst", "sudo pacman -U a.pkg.tar.zst")]
+    public void Every_package_manager_is_told_to_download_the_file_first_with_curl(InstallKind kind, string file, string install)
     {
-        var arch = InstallDetector.ManualInstructions(InstallKind.LinuxPacman, "a.pkg.tar.zst").Split('\n');
-        Assert.Equal(2, arch.Length);
-        Assert.StartsWith("yay -Syu syn3updater-bin", arch[0]); Assert.StartsWith("sudo pacman -U a.pkg.tar.zst", arch[1]);
-        Assert.DoesNotContain("(", string.Concat(arch));
+        var lines = InstallDetector.ManualInstructions(kind, file, Url + file).Split('\n');
+        Assert.Equal($"curl -LO {Url}{file}", lines[0]); Assert.StartsWith(install, lines[1]);
+        Assert.DoesNotContain("(", string.Concat(lines));                                              // nothing run together in brackets
+    }
+
+    [Fact]
+    public void The_rpm_instructions_give_one_line_per_distro_family_after_the_download()
+    {
+        var lines = InstallDetector.ManualInstructions(InstallKind.LinuxRpm, "a.rpm", Url + "a.rpm").Split('\n');
+        Assert.Equal(3, lines.Length);
+        Assert.StartsWith("sudo dnf install ./a.rpm", lines[1]); Assert.EndsWith("# Fedora, RHEL", lines[1]);
+        Assert.StartsWith("sudo zypper install ./a.rpm", lines[2]); Assert.EndsWith("# openSUSE", lines[2]);
     }
 
     [Theory]
-    [InlineData(InstallKind.LinuxDeb, "sudo apt install ./a.deb")]
-    [InlineData(InstallKind.LinuxRpm, "sudo dnf install ./a.rpm")]
-    [InlineData(InstallKind.LinuxPacman, "yay -Syu syn3updater-bin")]
-    public void Copy_command_copies_only_the_first_command_without_its_note(InstallKind kind, string expected) =>
-        Assert.Equal(expected, InstallDetector.PrimaryCommand(InstallDetector.ManualInstructions(kind, "a" + (kind == InstallKind.LinuxDeb ? ".deb" : ".rpm"))));
+    [InlineData(InstallKind.LinuxDeb, "a.deb", "curl -LO " + Url + "a.deb && sudo apt install ./a.deb")]
+    [InlineData(InstallKind.LinuxRpm, "a.rpm", "curl -LO " + Url + "a.rpm && sudo dnf install ./a.rpm")]
+    [InlineData(InstallKind.LinuxPacman, "a.pkg.tar.zst", "curl -LO " + Url + "a.pkg.tar.zst && sudo pacman -U a.pkg.tar.zst")]
+    public void Copy_command_copies_the_download_and_the_install_as_one_line_without_notes(InstallKind kind, string file, string expected) =>
+        Assert.Equal(expected, InstallDetector.PrimaryCommand(InstallDetector.ManualInstructions(kind, file, Url + file)));
+
+    [Fact]
+    public void Without_a_known_address_copy_command_copies_just_the_install_command() =>
+        Assert.Equal("sudo apt install ./a.deb", InstallDetector.PrimaryCommand(InstallDetector.ManualInstructions(InstallKind.LinuxDeb, "a.deb")));
 
     [Fact]
     public void A_sentence_is_not_offered_as_a_command_to_copy() =>

@@ -295,7 +295,7 @@
   "App.WhatsNewTitle": "Syn3 Updater 已更新到 {0}",
   "App.ForcedTitle": "需要更新",
   "App.ForcedBody": "此版本的 Syn3 Updater 已不再受支持。继续之前正在安装 {0}...",
-  "App.ForcedManualBody": "需要 Syn3 Updater {0} 或更高版本。\n\n此副本是通过软件包管理器或下载安装的，因此无法自行更新。更新方法：\n\n{1}\n\n然后重新启动 Syn3 Updater。",
+  "App.ForcedManualBody": "请更新 Syn3 Updater 以继续。\n\n需要 {0} 或更高版本。此副本是通过软件包管理器或下载安装的，因此无法自行更新。更新方法：\n\n{1}\n\n然后重新启动 Syn3 Updater。",
   "App.ForcedUnavailable": "需要 Syn3 Updater {0} 或更高版本，但目前无法下载。请检查您的网络连接后重试。",
   "App.ForcedFailed": "无法安装所需的更新，您当前的版本保持不变。\n\n{0}",
   "App.ForcedRetry": "重试",

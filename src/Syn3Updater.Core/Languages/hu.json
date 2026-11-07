@@ -295,7 +295,7 @@
   "App.WhatsNewTitle": "A Syn3 Updater frissítve lett a(z) {0} verzióra",
   "App.ForcedTitle": "Frissítés szükséges",
   "App.ForcedBody": "A Syn3 Updater ezen verziója már nem támogatott. A(z) {0} telepítése a folytatás előtt...",
-  "App.ForcedManualBody": "A Syn3 Updater {0} vagy újabb verziója szükséges.\n\nEzt a példányt csomagkezelővel vagy letöltéssel telepítették, ezért nem tudja magát frissíteni. Így frissítheti:\n\n{1}\n\nEzután indítsa újra a Syn3 Updatert.",
+  "App.ForcedManualBody": "A folytatáshoz frissítse a Syn3 Updatert.\n\nA(z) {0} vagy újabb verzió szükséges. Ezt a példányt csomagkezelővel vagy letöltéssel telepítették, ezért nem tudja magát frissíteni. Így frissítheti:\n\n{1}\n\nEzután indítsa újra a Syn3 Updatert.",
   "App.ForcedUnavailable": "A Syn3 Updater {0} vagy újabb szükséges, de most nem sikerült letölteni. Ellenőrizze az internetkapcsolatot, és próbálja újra.",
   "App.ForcedFailed": "A szükséges frissítést nem sikerült telepíteni, a jelenlegi verzió változatlan maradt.\n\n{0}",
   "App.ForcedRetry": "Újra",

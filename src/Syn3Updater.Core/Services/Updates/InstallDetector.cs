@@ -167,28 +167,38 @@ public static class InstallDetector
     }
 
     /// <summary>
-    /// What to tell someone whose install the app will not touch: one command per line, with a short "# note" saying which install it is for when there is more than one,
-    /// or (when there is no command) a sentence saying where to download. <see cref="PrimaryCommand"/> picks the line to copy.
+    /// What to tell someone whose install the app will not touch: a <c>curl</c> line that downloads the package (when its address is known), then the install command
+    /// (one line per distro family when they differ, each with a short "# note"), or, when there is no command, a sentence saying where to download.
+    /// The address comes from the signed manifest, which only allows this repository's release downloads, so it is safe to put in a shell command.
     /// </summary>
-    public static string ManualInstructions(InstallKind kind, string? fileName)
+    public static string ManualInstructions(InstallKind kind, string? fileName, string? url = null)
     {
-        var rpm = fileName ?? "<downloaded .rpm>";
+        var download = url != null && fileName != null ? $"curl -LO {url}\n" : "";
+        var file = fileName ?? "<downloaded package>";
         return kind switch
         {
-            InstallKind.LinuxDeb => $"sudo apt install ./{fileName ?? "<downloaded .deb>"}",
-            InstallKind.LinuxRpm => $"sudo dnf install ./{rpm}          # Fedora, RHEL\nsudo zypper install ./{rpm}          # openSUSE",
-            InstallKind.LinuxPacman => $"yay -Syu syn3updater-bin          # AUR\nsudo pacman -U {fileName ?? "<downloaded package>"}          # downloaded package",
+            InstallKind.LinuxDeb => download + $"sudo apt install ./{fileName ?? "<downloaded .deb>"}",
+            InstallKind.LinuxRpm => download + $"sudo dnf install ./{fileName ?? "<downloaded .rpm>"}          # Fedora, RHEL\nsudo zypper install ./{fileName ?? "<downloaded .rpm>"}          # openSUSE",
+            InstallKind.LinuxPacman => download + $"sudo pacman -U {file}",
             _ => "Download the new version from https://github.com/" + UpdateChecker.Repo + "/releases and install it the same way as before."
         };
     }
 
-    /// <summary>The first command in <paramref name="instructions"/>, without its note: what "Copy command" puts on the clipboard. Null when the instructions are a sentence, not a command.</summary>
+    /// <summary>
+    /// What "Copy command" puts on the clipboard: the download and the first install command joined with <c>&amp;&amp;</c>, so one paste does it all (notes removed).
+    /// Null when the instructions are a sentence, not a command.
+    /// </summary>
     public static string? PrimaryCommand(string? instructions)
     {
-        var first = (instructions ?? "").Split('\n')[0];
-        var hash = first.IndexOf("  #", StringComparison.Ordinal);
-        if (hash >= 0) first = first[..hash];
-        first = first.Trim();
-        return first.StartsWith("sudo ", StringComparison.Ordinal) || first.StartsWith("yay ", StringComparison.Ordinal) ? first : null;
+        var commands = new List<string>();
+        foreach (var line in (instructions ?? "").Split('\n'))
+        {
+            var text = line; var hash = text.IndexOf("  #", StringComparison.Ordinal);
+            if (hash >= 0) text = text[..hash];
+            text = text.Trim();
+            if (text.StartsWith("curl ", StringComparison.Ordinal) || text.StartsWith("sudo ", StringComparison.Ordinal)) commands.Add(text);
+        }
+        if (commands.Count == 0) return null;
+        return commands[0].StartsWith("curl ", StringComparison.Ordinal) && commands.Count > 1 ? commands[0] + " && " + commands[1] : commands[0];
     }
 }

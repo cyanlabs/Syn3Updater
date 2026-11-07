@@ -146,19 +146,20 @@ public class ForcedUpdateTests
     }
 
     [AvaloniaFact]
-    public async Task The_Arch_dialog_is_laid_out_as_requirement_then_reason_then_one_command_per_line_then_the_maintainers_message()
+    public async Task The_Arch_dialog_is_laid_out_as_a_request_then_the_reason_then_the_commands_then_the_maintainers_message()
     {
         using var e = new Env(); e.Serve(message: "Test of required updates");
         var (plan, _, _, _) = e.Inner.Scenario(); Ctx.Install = Pkg(InstallKind.LinuxPacman);
-        e.Plan(plan with { Kind = PlanKind.Manual, Install = Pkg(InstallKind.LinuxPacman), Instructions = InstallDetector.ManualInstructions(InstallKind.LinuxPacman, "Syn3Updater-3.1.0-linux-x64.pkg.tar.zst") });
+        const string file = "Syn3Updater-3.1.0-linux-x64.pkg.tar.zst", url = "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0/" + file;
+        e.Plan(plan with { Kind = PlanKind.Manual, Install = Pkg(InstallKind.LinuxPacman), Instructions = InstallDetector.ManualInstructions(InstallKind.LinuxPacman, file, url) });
         e.App.Dialogs.Choices.Enqueue(0); e.App.Dialogs.Choices.Enqueue(2);          // Copy command, then Quit
         await e.App.Main.EnforceMinimumAsync();
         var lines = e.App.Dialogs.Messages[0].Split('\n');
-        Assert.Equal("Syn3 Updater 3.0.5 or newer is required.", lines[0]);
-        Assert.Contains("can't update itself", lines[2]);
-        Assert.StartsWith("yay -Syu syn3updater-bin", lines[4]); Assert.StartsWith("sudo pacman -U Syn3Updater-3.1.0-linux-x64.pkg.tar.zst", lines[5]);
+        Assert.Equal("Please update Syn3 Updater to continue.", lines[0]);
+        Assert.StartsWith("Version 3.0.5 or newer is required.", lines[2]); Assert.Contains("can't update itself", lines[2]);
+        Assert.Equal("curl -LO " + url, lines[4]); Assert.Equal("sudo pacman -U " + file, lines[5]);
         Assert.Equal("Then start Syn3 Updater again.", lines[7]); Assert.Equal("Test of required updates", lines[9]);
-        Assert.Equal(new[] { "yay -Syu syn3updater-bin" }, e.App.Dialogs.Clipboard);          // only the command, not its note or the second line
+        Assert.Equal(new[] { $"curl -LO {url} && sudo pacman -U {file}" }, e.App.Dialogs.Clipboard);          // one paste downloads and installs
     }
 
     [AvaloniaFact]
