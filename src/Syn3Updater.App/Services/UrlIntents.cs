@@ -8,6 +8,9 @@ public static class AppLaunch
 {
     public static string? StartupLink { get; set; }
     public static SingleInstance? Primary { get; set; }
+    /// <summary>The name the lock was taken under, and what to do with a message from a later launch: kept so the lock can be taken back (see UpdateRestart).</summary>
+    public static string? PipeName { get; set; }
+    public static Action<string>? OnMessage { get; set; }
 }
 
 /// <summary>

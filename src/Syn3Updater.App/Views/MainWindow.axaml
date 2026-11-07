@@ -75,12 +75,15 @@
             <Button Grid.Column="3" Content="{svc:T Home.OpenStatusPage}" Command="{Binding OpenStatusPageCommand}" />
           </Grid>
         </Border>
-        <!-- a newer release exists: a notice only, nothing is downloaded or installed -->
+        <!-- a newer release exists. If the app can install it, "Update now" does (with progress); otherwise "How to update" says how, and "View release" opens the page -->
         <Border IsVisible="{Binding UpdateAvailable}" Classes="banner" Margin="24,12,24,0">
-          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-            <TextBlock Text="{Binding UpdateText}" VerticalAlignment="Center" TextWrapping="Wrap" />
-            <Button Grid.Column="1" Classes="accent" Content="{svc:T App.UpdateView}" Command="{Binding OpenUpdateCommand}" />
-            <Button Grid.Column="2" Content="{svc:T App.UpdateDismiss}" Command="{Binding DismissUpdateCommand}" />
+          <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8">
+            <TextBlock Text="{Binding UpdateBannerText}" VerticalAlignment="Center" TextWrapping="Wrap" />
+            <Button Grid.Column="1" Classes="accent" Content="{svc:T App.UpdateNow}" Command="{Binding UpdateNowCommand}" IsVisible="{Binding CanUpdateNow}" />
+            <Button Grid.Column="2" Classes="accent" Content="{svc:T App.UpdateHowTo}" Command="{Binding ShowHowToCommand}" IsVisible="{Binding CanShowHowTo}" />
+            <Button Grid.Column="3" Content="{svc:T App.UpdateView}" Command="{Binding OpenUpdateCommand}" IsVisible="{Binding NotInstallingUpdate}" />
+            <Button Grid.Column="4" Content="{svc:T App.UpdateDismiss}" Command="{Binding DismissUpdateCommand}" IsVisible="{Binding NotInstallingUpdate}" />
+            <ProgressBar Grid.Row="1" Grid.ColumnSpan="5" Margin="0,8,0,0" Minimum="0" Maximum="1" Value="{Binding UpdateProgress}" IsVisible="{Binding InstallingUpdate}" />
           </Grid>
         </Border>
       </StackPanel>
@@ -98,6 +101,18 @@
       </Border>
     </Grid>
   </Grid>
+
+    <!-- a required update is being installed: nothing can be used until it is done -->
+    <Border IsVisible="{Binding ForcedUpdateActive}" Background="#e6000000" ZIndex="90">
+      <Border Classes="card" MinWidth="360" MaxWidth="560" Margin="24" Padding="28" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Spacing="14">
+          <TextBlock Text="{svc:T App.ForcedTitle}" Classes="section" FontSize="20" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding ForcedUpdateText}" TextWrapping="Wrap" />
+          <ProgressBar Minimum="0" Maximum="1" Value="{Binding UpdateProgress}" />
+          <TextBlock Text="{Binding UpdateStatus}" Classes="label" TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+    </Border>
 
     <!-- in-window dialogs: no separate OS windows, so the desktop never moves focus or the pointer -->
     <Border IsVisible="{Binding Dialog.HasDialog}" Background="#b0000000" ZIndex="100">

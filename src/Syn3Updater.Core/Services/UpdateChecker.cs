@@ -4,7 +4,8 @@ using System.Text.RegularExpressions;
 
 namespace Cyanlabs.Syn3Updater.Core.Services;
 
-public record UpdateInfo(string Version, string Url, bool Prerelease, bool Switch = false);
+/// <summary>A release the app could move to. ManifestUrl and SignatureUrl are the release's signed manifest.json and manifest.json.minisig, when it has them (older releases do not).</summary>
+public record UpdateInfo(string Version, string Url, bool Prerelease, bool Switch = false, string? ManifestUrl = null, string? SignatureUrl = null);
 
 /// <summary>Where a build comes from. Stable = tested releases, Beta = early releases, Nightly = automatic builds of the latest code.</summary>
 public enum UpdateChannel { Stable, Beta, Nightly }
@@ -18,6 +19,13 @@ public static class Channels
         if (v == null || !v.IsPrerelease) return UpdateChannel.Stable;
         return v.Pre.StartsWith("nightly", StringComparison.OrdinalIgnoreCase) ? UpdateChannel.Nightly : UpdateChannel.Beta;
     }
+
+    /// <summary>
+    /// Which releases someone following <paramref name="wanted"/> is offered: Stable only full releases, Beta full releases and pre-releases (everything but nightlies), Nightly only nightlies.
+    /// The same rule <see cref="UpdateChecker.Pick"/> applies, so a release it finds is never refused for being on the wrong channel.
+    /// </summary>
+    public static bool Accepts(UpdateChannel wanted, UpdateChannel release) =>
+        wanted switch { UpdateChannel.Stable => release == UpdateChannel.Stable, UpdateChannel.Beta => release != UpdateChannel.Nightly, _ => release == UpdateChannel.Nightly };
 
     /// <summary>The channel saved in settings; anything missing or unknown means "the channel of the build that is running".</summary>
     public static UpdateChannel Parse(string? saved, string runningVersion) =>
@@ -76,7 +84,15 @@ public class UpdateChecker
             if (want == UpdateChannel.Stable ? pre || kind != UpdateChannel.Stable : want == UpdateChannel.Beta ? kind == UpdateChannel.Nightly : kind != UpdateChannel.Nightly) continue;
             if (bestVer != null && v.CompareTo(bestVer) <= 0) continue;
             var url = rel.TryGetProperty("html_url", out var u) ? u.GetString() : null;
-            best = new UpdateInfo(version!.TrimStart('v', 'V'), url ?? $"https://github.com/{Repo}/releases", pre);
+            string? manifest = null, signature = null;
+            if (rel.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
+                foreach (var a in assets.EnumerateArray())
+                {
+                    var an = a.TryGetProperty("name", out var nn) ? nn.GetString() : null;
+                    var au = a.TryGetProperty("browser_download_url", out var uu) ? uu.GetString() : null;
+                    if (an == "manifest.json") manifest = au; else if (an == "manifest.json.minisig") signature = au;
+                }
+            best = new UpdateInfo(version!.TrimStart('v', 'V'), url ?? $"https://github.com/{Repo}/releases", pre, false, manifest, manifest != null ? signature : null);
             bestVer = v;
         }
         if (best == null || bestVer == null) return null;

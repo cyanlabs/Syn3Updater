@@ -22,7 +22,7 @@ internal static class Program
         var primary = SingleInstance.TryBecomePrimary(pipe);
         if (primary == null && SingleInstance.TrySendAsync(pipe, AppLaunch.StartupLink ?? "activate").GetAwaiter().GetResult()) return 0;
         // (if nobody answered, the other copy is still starting up or stuck: carry on as a normal start rather than refusing to open)
-        AppLaunch.Primary = primary;
+        AppLaunch.Primary = primary; AppLaunch.PipeName = pipe;
         return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 

@@ -59,3 +59,38 @@ jobs:
           name: test-results-${{ matrix.os }}
           path: TestResults
           if-no-files-found: ignore
+
+  # The Windows in-place update replaces files while Syn3Updater.exe is still running (Windows allows a running program to be renamed, not overwritten or deleted).
+  # This proves it for the real published single-file program, not just for the tests' stand-in.
+  windows-self-replace:
+    name: A running Syn3Updater.exe can be replaced (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - name: Publish the app the way releases do
+        run: dotnet publish src/Syn3Updater.App -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o out
+        env:
+          SYN3_API_TOKEN: ${{ secrets.SYN3_API_TOKEN }}
+      - name: Rename and replace it while it runs
+        shell: pwsh
+        run: |
+          $env:SYN3_DATA_DIR = Join-Path $env:RUNNER_TEMP 'syn3data'
+          $dir = Join-Path $PWD 'out'; $exe = Join-Path $dir 'Syn3Updater.exe'; $old = Join-Path $dir 'Syn3Updater.exe.old'
+          $p = Start-Process $exe -PassThru
+          Start-Sleep -Seconds 12
+          if ($p.HasExited) { throw "Syn3Updater.exe exited on its own (code $($p.ExitCode)) before the test could start" }
+          Rename-Item $exe $old                                   # the step the update depends on
+          Copy-Item $old $exe                                     # a program in its place
+          $deleted = $true; try { Remove-Item $old -ErrorAction Stop } catch { $deleted = $false }
+          if ($deleted) { throw "the running program's old file could be deleted, which Windows should not allow" }
+          "as expected: renamed aside and replaced while running, and the old file cannot be deleted until it exits"
+          $p2 = Start-Process $exe -PassThru                      # the replacement starts (it hands over to the running copy and exits: one copy at a time)
+          $p2 | Wait-Process -Timeout 30
+          Stop-Process -Id $p.Id -Force; $p.WaitForExit()
+          Remove-Item $old                                        # once it has exited the old file goes
+          if (Test-Path $old) { throw "the old file is still there after the program exited" }
+

@@ -34,6 +34,20 @@ var work = Dispatcher.UIThread.InvokeAsync(async () =>
     _ = vm.LoadAdAsync(); vm.Home.OnShown();
     var win = new MainWindow { DataContext = vm, Width = w, Height = h };
     win.Show();
+    if (args.Contains("--forced"))      // the blocking overlay of a required update
+    {
+        vm.ForcedUpdateText = Ctx.T("App.ForcedBody", "3.1.0") + "\n\nFixes a bug that could damage the USB stick.";
+        vm.UpdateStatus = Ctx.T("App.UpdateDownloading", "3.1.0", 62); vm.UpdateProgress = 0.62; vm.ForcedUpdateActive = true;
+    }
+    if (args.FirstOrDefault(a => a.StartsWith("--update=")) is { } upd)      // --update=install|progress|howto|notify: the update banner in each state
+    {
+        var state = upd["--update=".Length..];
+        var inst = new Cyanlabs.Syn3Updater.Core.Services.Updates.InstallInfo(Cyanlabs.Syn3Updater.Core.Services.Updates.InstallKind.LinuxTar, "/home/me/.local/share/syn3updater", Cyanlabs.Syn3Updater.Core.Services.Updates.UpdateRoute.InPlace, "demo");
+        vm.Update = new Cyanlabs.Syn3Updater.Core.Services.UpdateInfo("3.1.0", "https://github.com/CyanLabs/Syn3Updater/releases/tag/v3.1.0", false);
+        var kind = state switch { "howto" => Cyanlabs.Syn3Updater.Core.Services.Updates.PlanKind.Manual, "notify" => Cyanlabs.Syn3Updater.Core.Services.Updates.PlanKind.NotifyOnly, _ => Cyanlabs.Syn3Updater.Core.Services.Updates.PlanKind.Install };
+        vm.Plan = new Cyanlabs.Syn3Updater.Core.Services.Updates.UpdatePlan(kind, null, null, inst);
+        if (state == "progress") { vm.UpdateStatus = Ctx.T("App.UpdateDownloading", "3.1.0", 45); vm.UpdateProgress = 0.45; vm.InstallingUpdate = true; }
+    }
     if (args.Contains("--dialog"))      // first-start disclaimer popup
     {
         Cyanlabs.Syn3Updater.App.Services.Ctx.Main.DisclaimerAccepted = false;

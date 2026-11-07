@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "version": "3.1.0-beta.2",
+  "channel": "Beta",
+  "published": "2026-11-07T16:16:16Z",
+  "notes": "",
+  "assets": [
+    {
+      "os": "windows",
+      "arch": "x64",
+      "kind": "zip",
+      "name": "Syn3Updater-3.1.0-beta.2-win-x64.zip",
+      "url": "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0-beta.2/Syn3Updater-3.1.0-beta.2-win-x64.zip",
+      "size": 17,
+      "sha256": "d8a390228b6c449e90780e921cb512195a454019e17883f70b3c4cfebea13a3b"
+    },
+    {
+      "os": "windows",
+      "arch": "arm64",
+      "kind": "zip",
+      "name": "Syn3Updater-3.1.0-beta.2-win-arm64.zip",
+      "url": "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0-beta.2/Syn3Updater-3.1.0-beta.2-win-arm64.zip",
+      "size": 19,
+      "sha256": "344a23c47fbf98152fc3ecc62576f45bb9f5b782520710f9e8e5cc13336125a8"
+    },
+    {
+      "os": "linux",
+      "arch": "x64",
+      "kind": "targz",
+      "name": "Syn3Updater-3.1.0-beta.2-linux-x64.tar.gz",
+      "url": "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0-beta.2/Syn3Updater-3.1.0-beta.2-linux-x64.tar.gz",
+      "size": 22,
+      "sha256": "287274287a49f01c613f2c581a4d493ddd68751fe28d21436c0d2e54ddd21174"
+    },
+    {
+      "os": "linux",
+      "arch": "arm64",
+      "kind": "targz",
+      "name": "Syn3Updater-3.1.0-beta.2-linux-arm64.tar.gz",
+      "url": "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0-beta.2/Syn3Updater-3.1.0-beta.2-linux-arm64.tar.gz",
+      "size": 24,
+      "sha256": "4f1ea464debb6a79b886f27e8c73b51c51edf0d1b809f8f8e4fe3b48b06171a0"
+    },
+    {
+      "os": "linux",
+      "arch": "x64",
+      "kind": "deb",
+      "name": "Syn3Updater-3.1.0-beta.2-linux-x64.deb",
+      "url": "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0-beta.2/Syn3Updater-3.1.0-beta.2-linux-x64.deb",
+      "size": 19,
+      "sha256": "a7b2edb3018191e613da5b401fd8eba92fb1bc9d22219e7f51601e9bdb027471"
+    },
+    {
+      "os": "linux",
+      "arch": "arm64",
+      "kind": "deb",
+      "name": "Syn3Updater-3.1.0-beta.2-linux-arm64.deb",
+      "url": "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0-beta.2/Syn3Updater-3.1.0-beta.2-linux-arm64.deb",
+      "size": 21,
+      "sha256": "fca8c6a807402e4e4afcf4ca8a4caa6ff05ac352f53db78e5c3f6ccaba8bceb8"
+    },
+    {
+      "os": "linux",
+      "arch": "x64",
+      "kind": "rpm",
+      "name": "Syn3Updater-3.1.0-beta.2-linux-x64.rpm",
+      "url": "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0-beta.2/Syn3Updater-3.1.0-beta.2-linux-x64.rpm",
+      "size": 19,
+      "sha256": "647ac25a5ac4913163bc9121d71b15de4f2a7042dc2102c191997430ca8ffcca"
+    },
+    {
+      "os": "linux",
+      "arch": "arm64",
+      "kind": "rpm",
+      "name": "Syn3Updater-3.1.0-beta.2-linux-arm64.rpm",
+      "url": "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0-beta.2/Syn3Updater-3.1.0-beta.2-linux-arm64.rpm",
+      "size": 21,
+      "sha256": "75221fc4710c10aae8d97e8832cd347e1e5a2497f496a8ffa59e7c1f2649e1b3"
+    },
+    {
+      "os": "linux",
+      "arch": "x64",
+      "kind": "arch",
+      "name": "Syn3Updater-3.1.0-beta.2-linux-x64.pkg.tar.zst",
+      "url": "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0-beta.2/Syn3Updater-3.1.0-beta.2-linux-x64.pkg.tar.zst",
+      "size": 27,
+      "sha256": "9b3c8836e3274952ddcdba241484b6877dd9e01f4b55a8de69621546980a1330"
+    },
+    {
+      "os": "linux",
+      "arch": "arm64",
+      "kind": "arch",
+      "name": "Syn3Updater-3.1.0-beta.2-linux-arm64.pkg.tar.zst",
+      "url": "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0-beta.2/Syn3Updater-3.1.0-beta.2-linux-arm64.pkg.tar.zst",
+      "size": 29,
+      "sha256": "e0b3ce0ce2442640ad2098a7a8a51532f9bcec95ccbbc4f9df42f20c80a2f306"
+    },
+    {
+      "os": "macos",
+      "arch": "arm64",
+      "kind": "dmg",
+      "name": "Syn3Updater-3.1.0-beta.2-macos-arm64.dmg",
+      "url": "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0-beta.2/Syn3Updater-3.1.0-beta.2-macos-arm64.dmg",
+      "size": 21,
+      "sha256": "06bf0fa51f7a008e667c7f98c2d85e82879c9b885212f89a67b9feb2b0e91d71"
+    },
+    {
+      "os": "macos",
+      "arch": "x64",
+      "kind": "dmg",
+      "name": "Syn3Updater-3.1.0-beta.2-macos-x64.dmg",
+      "url": "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0-beta.2/Syn3Updater-3.1.0-beta.2-macos-x64.dmg",
+      "size": 5,
+      "sha256": "6667b2d1aab6a00caa5aee5af8ad9f1465e567abf1c209d15727d57b3e8f6e5f"
+    }
+  ]
+}

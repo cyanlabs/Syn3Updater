@@ -198,6 +198,11 @@ public class MainSettings
     public int DownloadConnections { get; set; } = 8;
     /// <summary>Which builds the update notice offers: Stable, Beta or Nightly. Empty means the channel of the build that is running.</summary>
     public string? UpdateChannel { get; set; }
+    /// <summary>Set just before the app restarts into a new version: that version and its release notes, shown once as "What's new" and then cleared.</summary>
+    public string? WhatsNewVersion { get; set; }
+    public string? WhatsNewNotes { get; set; }
+    /// <summary>The install folder whose Launcher shortcuts and syn3updater:// handler were already pointed at Syn3Updater.exe (done once per install, see LauncherMigration).</summary>
+    public string? LauncherMigratedFor { get; set; }
 }
 
 public class ProfileSettings
@@ -242,3 +247,17 @@ public class ProfileSettings
         return s.Length == 7 ? $"{s[0]}.{s[1]}.{s[2..]}" : "0.0.00000";
     }
 }
+
+/// <summary>One row of the backend's update_policy collection: the minimum version per update channel (and OS) that is still allowed to run. Empty = no minimum.</summary>
+public class UpdatePolicyRoot { [JsonPropertyName("update_policy")] public List<UpdatePolicyDto>? Rows { get; set; } }
+public class UpdatePolicyDto
+{
+    [JsonPropertyName("channel")] public string? Channel { get; set; }
+    [JsonPropertyName("enabled")] public bool Enabled { get; set; }
+    [JsonPropertyName("min_version_all")] public string? MinVersionAll { get; set; }
+    [JsonPropertyName("min_version_windows")] public string? MinVersionWindows { get; set; }
+    [JsonPropertyName("min_version_linux")] public string? MinVersionLinux { get; set; }
+    [JsonPropertyName("min_version_macos")] public string? MinVersionMacos { get; set; }
+    [JsonPropertyName("message")] public string? Message { get; set; }
+}
+

@@ -36,6 +36,8 @@ install -m 755 "$here/Syn3Updater" "$dest/Syn3Updater"
 [[ -f "$here/LICENSE" ]] && install -m 644 "$here/LICENSE" "$dest/LICENSE"
 install -m 644 "$here/syn3updater.png" "$data/icons/hicolor/128x128/apps/syn3updater.png"
 ln -sf "$dest/Syn3Updater" "$bin/syn3updater"
+# tells the app it may update itself in place (it re-runs this install.sh from the new release)
+echo tar > "$dest/.install-method"; chmod 644 "$dest/.install-method"
 
 cat > "$data/applications/syn3updater.desktop" <<DESK
 [Desktop Entry]
@@ -73,7 +75,8 @@ if ((${#missing[@]})); then
   esac
   echo
   echo "Note: preparing a USB drive also needs: ${missing[*]}"
-  [[ -n "$hint" ]] && echo "  Install them with: $hint"
+  # an if, not `[[ ]] && echo`: with no hint for this distro that list would be the last command and make the whole script exit 1 although everything was installed
+  if [[ -n "$hint" ]]; then echo "  Install them with: $hint"; fi
 fi
 INST
 

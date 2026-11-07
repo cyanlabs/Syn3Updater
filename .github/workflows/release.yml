@@ -19,6 +19,10 @@ on:
         description: "Build and publish the rolling 'nightly' pre-release instead (production repo only; ignores the version above). Its tag is not a version, so only do this once the v2 Launcher is retired"
         type: boolean
         default: false
+      notes:
+        description: "Short release notes for the update banner and the What's new box (a line or two, plain text). Empty = the file release-notes/<version>.md if there is one."
+        type: string
+        default: ""
       legacy_tag:
         description: "Tag for the v2 Launcher, which only reads bare numeric tags: 'auto' = the next free 2.99.99.N (1 to 999), or an exact tag such as 3.0.0.0. Empty = the normal v<version> tag. Also attaches the flat <tag>.zip it needs."
         type: string
@@ -247,6 +251,27 @@ jobs:
           pattern: pkg-*
           path: dist
           merge-multiple: true
+      # The app updates itself only from files listed in a manifest signed with the release key (scripts/make-manifest.sh, scripts/sign-manifest.sh). The signature is
+      # checked here against the public keys compiled into the app, so a wrong key or password fails the release and never reaches a user.
+      - name: Write and sign the release manifest
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          NIGHTLY: ${{ needs.prepare.outputs.nightly }}
+          LEGACY_TAG: ${{ needs.prepare.outputs.legacy_tag }}
+          INPUT_NOTES: ${{ inputs.notes }}
+          MINISIGN_PRIMARY_KEY: ${{ secrets.MINISIGN_PRIMARY_KEY }}
+          MINISIGN_PASSWORD: ${{ secrets.MINISIGN_PASSWORD }}
+        run: |
+          if [[ -z "$MINISIGN_PRIMARY_KEY" || -z "$MINISIGN_PASSWORD" ]]; then
+            if [[ "${GITHUB_REPOSITORY,,}" == "cyanlabs/syn3updater" ]]; then echo "::error::the MINISIGN_PRIMARY_KEY and MINISIGN_PASSWORD secrets are not set: this release could not be updated to by the app"; exit 1; fi
+            echo "::notice::No signing key in this repository: the release is published without a manifest, so the app only tells people about it (it cannot update itself to it)"; exit 0
+          fi
+          sudo apt-get update -qq && sudo apt-get install -y -qq minisign jq
+          if [[ -n "$LEGACY_TAG" ]]; then tag="$LEGACY_TAG"; elif [[ "$NIGHTLY" == "true" ]]; then tag="nightly"; else tag="v$VERSION"; fi
+          notes="$RUNNER_TEMP/notes.txt"
+          if [[ -n "$INPUT_NOTES" ]]; then printf '%s' "$INPUT_NOTES" > "$notes"; elif [[ -s "release-notes/$VERSION.md" ]]; then cp "release-notes/$VERSION.md" "$notes"; else : > "$notes"; fi
+          scripts/make-manifest.sh "$VERSION" "$tag" dist dist/manifest.json "$notes"
+          scripts/sign-manifest.sh dist/manifest.json "$VERSION"
       - name: Create the release
         env:
           GH_TOKEN: ${{ github.token }}

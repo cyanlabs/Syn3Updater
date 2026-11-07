@@ -23,6 +23,8 @@ package() {
   cd "$srcdir/Syn3Updater-${pkgver}-${_rid}"
 
   install -Dm755 Syn3Updater "$pkgdir/opt/syn3updater/Syn3Updater"
+  # tells the app it is pacman-managed, so it shows the update command instead of rewriting these files
+  echo pacman > "$pkgdir/opt/syn3updater/.install-method"; chmod 644 "$pkgdir/opt/syn3updater/.install-method"
   install -d "$pkgdir/usr/bin"
   ln -s /opt/syn3updater/Syn3Updater "$pkgdir/usr/bin/syn3updater"
   install -Dm644 syn3updater.png "$pkgdir/usr/share/icons/hicolor/128x128/apps/syn3updater.png"

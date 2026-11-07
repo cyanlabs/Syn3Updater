@@ -27,18 +27,21 @@ public class App : Application
             };
             _ = vm.LoadAdAsync();
             _ = vm.CheckForUpdateAsync();
+            vm.StartUpdateWatcher();
             UrlSchemeRegistration.EnsureRegistered();
             vm.Home.OnShown();
             // first start (or not accepted yet): the disclaimer pops up over the app until it is accepted
             desktop.MainWindow.Opened += async (_, _) =>
-                { if (await DisclaimerGate.EnsureAcceptedAsync(() => { desktop.Shutdown(); return Task.CompletedTask; })) await CrashReports.OfferAsync(); };
+                { if (await DisclaimerGate.EnsureAcceptedAsync(() => { desktop.Shutdown(); return Task.CompletedTask; })) { await vm.EnforceMinimumAsync(); await CrashReports.OfferAsync(); } };
             // syn3updater:// links: the one that started the app, ones forwarded by a second launch, and (macOS) ones the OS delivers while it runs
             desktop.MainWindow.Opened += async (_, _) => { if (AppLaunch.StartupLink is { } link) await UrlIntents.HandleAsync(link); };
-            AppLaunch.Primary?.Listen(message => Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+            desktop.MainWindow.Opened += async (_, _) => await vm.OnStartedAsync();       // after an update: What's new, and clean-up
+            AppLaunch.OnMessage = message => Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
             {
                 if (desktop.MainWindow is { } w) { if (w.WindowState == Avalonia.Controls.WindowState.Minimized) w.WindowState = Avalonia.Controls.WindowState.Normal; w.Activate(); }
                 if (message != "activate") await UrlIntents.HandleAsync(message);
-            }));
+            });
+            AppLaunch.Primary?.Listen(AppLaunch.OnMessage);
             if (TryGetFeature(typeof(IActivatableLifetime)) is IActivatableLifetime activatable)
                 activatable.Activated += (_, e) => { if (e is ProtocolActivatedEventArgs { Kind: ActivationKind.OpenUri } p) _ = UrlIntents.HandleAsync(p.Uri.ToString()); };
             desktop.Exit += (_, _) => AppLaunch.Primary?.Dispose();
