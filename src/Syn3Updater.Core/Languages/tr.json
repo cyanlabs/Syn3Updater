@@ -291,7 +291,7 @@
   "Home.BackendRequired": "Syn3 Updater'ın çalışması için sunucuya bağlantı gerekir.\n\n{0}",
   "Home.MapEsnLocked": "ESN kilitli · yalnızca MY20 öncesi üniteler",
   "Home.MapEsnOpen": "ESN kilitli değil",
-  "Home.MapEsnBlockedOnlyMaps": "ESN kilitli · “{0}” için kullanılamaz",
+  "Home.MapEsnBlockedOnlyMaps": "ESN kilitli · tam sürüm gerekir, “{0}” değil",
   "Diag.Intro": "Bu bilgisayarın bir USB sürücü hazırlamak için Syn3 Updater'ın ihtiyaç duyduğu her şeye sahip olup olmadığını denetler. Hiçbir şey değiştirilmez.",
   "Diag.RunAgain": "Yeniden çalıştır",
   "Diag.CopyReport": "Raporu kopyala",

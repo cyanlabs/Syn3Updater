@@ -291,7 +291,7 @@
   "Home.BackendRequired": "Syn3 Updater na svoju funkciu potrebuje spojenie so serverom.\n\n{0}",
   "Home.MapEsnLocked": "Uzamknuté ESN · iba jednotky pred MY20",
   "Home.MapEsnOpen": "Neuzamknuté ESN",
-  "Home.MapEsnBlockedOnlyMaps": "Uzamknuté ESN · nedostupné pre „{0}“",
+  "Home.MapEsnBlockedOnlyMaps": "Uzamknuté ESN · vyžaduje úplné vydanie, nie „{0}“",
   "Diag.Intro": "Kontroluje, či má tento počítač všetko, čo Syn3 Updater potrebuje na prípravu USB disku. Nič sa nemení.",
   "Diag.RunAgain": "Spustiť znova",
   "Diag.CopyReport": "Kopírovať správu",

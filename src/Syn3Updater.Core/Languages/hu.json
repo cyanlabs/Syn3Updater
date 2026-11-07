@@ -291,7 +291,7 @@
   "Home.BackendRequired": "A Syn3 Updater működéséhez kapcsolat szükséges a szerverrel.\n\n{0}",
   "Home.MapEsnLocked": "ESN-hez kötött · csak MY20 előtti egységekhez",
   "Home.MapEsnOpen": "Nem ESN-hez kötött",
-  "Home.MapEsnBlockedOnlyMaps": "ESN-hez kötött · nem elérhető ehhez: „{0}”",
+  "Home.MapEsnBlockedOnlyMaps": "ESN-hez kötött · teljes kiadás kell hozzá, nem „{0}”",
   "Diag.Intro": "Ellenőrzi, hogy ez a számítógép rendelkezik-e mindennel, amire a Syn3 Updaternek szüksége van egy USB meghajtó előkészítéséhez. Semmi nem változik.",
   "Diag.RunAgain": "Futtatás újra",
   "Diag.CopyReport": "Jelentés másolása",

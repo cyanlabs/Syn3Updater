@@ -291,7 +291,7 @@
   "Home.BackendRequired": "Syn3 Updater nécessite une connexion au serveur pour fonctionner.\n\n{0}",
   "Home.MapEsnLocked": "Verrouillée ESN · unités antérieures au MY20 uniquement",
   "Home.MapEsnOpen": "Non verrouillée ESN",
-  "Home.MapEsnBlockedOnlyMaps": "Verrouillée ESN · indisponible pour « {0} »",
+  "Home.MapEsnBlockedOnlyMaps": "Verrouillée ESN · nécessite une version complète, pas « {0} »",
   "Diag.Intro": "Vérifie que cet ordinateur dispose de ce dont Syn3 Updater a besoin pour préparer une clé USB. Rien n'est modifié.",
   "Diag.RunAgain": "Relancer",
   "Diag.CopyReport": "Copier le rapport",

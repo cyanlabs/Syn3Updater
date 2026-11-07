@@ -291,7 +291,7 @@
   "Home.BackendRequired": "Syn3 Updater do działania wymaga połączenia z serwerem.\n\n{0}",
   "Home.MapEsnLocked": "Zablokowana ESN · tylko jednostki sprzed MY20",
   "Home.MapEsnOpen": "Bez blokady ESN",
-  "Home.MapEsnBlockedOnlyMaps": "Zablokowana ESN · niedostępna dla „{0}”",
+  "Home.MapEsnBlockedOnlyMaps": "Zablokowana ESN · wymaga pełnego wydania, nie „{0}”",
   "Diag.Intro": "Sprawdza, czy ten komputer ma wszystko, czego Syn3 Updater potrzebuje do przygotowania dysku USB. Nic nie jest zmieniane.",
   "Diag.RunAgain": "Uruchom ponownie",
   "Diag.CopyReport": "Kopiuj raport",

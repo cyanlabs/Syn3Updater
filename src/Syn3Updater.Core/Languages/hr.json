@@ -291,7 +291,7 @@
   "Home.BackendRequired": "Syn3 Updater za rad zahtijeva vezu s poslužiteljem.\n\n{0}",
   "Home.MapEsnLocked": "ESN zaključano · samo jedinice prije MY20",
   "Home.MapEsnOpen": "Nije ESN zaključano",
-  "Home.MapEsnBlockedOnlyMaps": "ESN zaključano · nedostupno za „{0}”",
+  "Home.MapEsnBlockedOnlyMaps": "ESN zaključano · zahtijeva potpuno izdanje, ne „{0}”",
   "Diag.Intro": "Provjerava ima li ovo računalo sve što Syn3 Updater treba za pripremu USB pogona. Ništa se ne mijenja.",
   "Diag.RunAgain": "Pokreni ponovno",
   "Diag.CopyReport": "Kopiraj izvješće",

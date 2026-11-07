@@ -112,6 +112,7 @@ public class HomeFlowTests
         home.SelectedRelease = home.Releases[0]; await AppEnv.Until(() => home.MapVersions.Count == 2);     // only-maps: no keep-existing entry
         var locked = home.MapVersions[1];
         Assert.True(locked.Blocked); Assert.Equal(Ctx.T("Home.MapEsnBlockedOnlyMaps", Ctx.T("String.OnlyMaps")), locked.Detail);
+        Assert.Equal("ESN locked · needs a full release, not \"Only Update Maps\"", locked.Detail);               // (the English wording)
     }
 
     [AvaloniaFact]

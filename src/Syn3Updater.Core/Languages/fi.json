@@ -291,7 +291,7 @@
   "Home.BackendRequired": "Syn3 Updater tarvitsee toimiakseen yhteyden palvelimeen.\n\n{0}",
   "Home.MapEsnLocked": "ESN-lukittu · vain ennen MY20:tä valmistetut laitteet",
   "Home.MapEsnOpen": "Ei ESN-lukittu",
-  "Home.MapEsnBlockedOnlyMaps": "ESN-lukittu · ei saatavilla kohteelle ”{0}”",
+  "Home.MapEsnBlockedOnlyMaps": "ESN-lukittu · vaatii täyden version, ei ”{0}”",
   "Diag.Intro": "Tarkistaa, että tietokoneellasi on kaikki, mitä Syn3 Updater tarvitsee USB-aseman valmisteluun. Mitään ei muuteta.",
   "Diag.RunAgain": "Suorita uudelleen",
   "Diag.CopyReport": "Kopioi raportti",

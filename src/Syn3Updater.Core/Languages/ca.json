@@ -291,7 +291,7 @@
   "Home.BackendRequired": "Syn3 Updater necessita una connexió amb el servidor per funcionar.\n\n{0}",
   "Home.MapEsnLocked": "Bloquejat per ESN · només unitats anteriors a MY20",
   "Home.MapEsnOpen": "No bloquejat per ESN",
-  "Home.MapEsnBlockedOnlyMaps": "Bloquejat per ESN · no disponible per a «{0}»",
+  "Home.MapEsnBlockedOnlyMaps": "Bloquejat per ESN · requereix una versió completa, no «{0}»",
   "Diag.Intro": "Comprova que aquest ordinador té el que Syn3 Updater necessita per preparar una unitat USB. No es canvia res.",
   "Diag.RunAgain": "Torna a executar",
   "Diag.CopyReport": "Copia l'informe",

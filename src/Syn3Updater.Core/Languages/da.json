@@ -291,7 +291,7 @@
   "Home.BackendRequired": "Syn3 Updater kræver en forbindelse til serveren for at fungere.\n\n{0}",
   "Home.MapEsnLocked": "ESN-låst · kun enheder før MY20",
   "Home.MapEsnOpen": "Ikke ESN-låst",
-  "Home.MapEsnBlockedOnlyMaps": "ESN-låst · ikke tilgængelig for ”{0}”",
+  "Home.MapEsnBlockedOnlyMaps": "ESN-låst · kræver en komplet version, ikke ”{0}”",
   "Diag.Intro": "Kontrollerer, at denne computer har det, Syn3 Updater skal bruge for at forberede et USB-drev. Intet ændres.",
   "Diag.RunAgain": "Kør igen",
   "Diag.CopyReport": "Kopiér rapport",
