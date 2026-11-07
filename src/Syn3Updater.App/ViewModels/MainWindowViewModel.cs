@@ -215,7 +215,7 @@ public partial class MainWindowViewModel : ObservableObject
                 if (stage == UpdateInstaller.Stage.Installing) Dispatcher.UIThread.Post(() => { UpdateProgress = 1; UpdateStatus = Ctx.T("App.UpdateInstalling", version); });
             }, log: Ctx.Log.Info);
             Ctx.Log.Info($"Installed Syn3 Updater {version}; restarting into {exe}");
-            Ctx.Main.WhatsNewVersion = version; Ctx.Main.WhatsNewNotes = plan.Manifest.Notes;
+            Ctx.Main.WhatsNewVersion = version; Ctx.Main.WhatsNewNotes = plan.Manifest.Notes; Ctx.Main.WhatsNewUrl = ReleasePageOf(plan);
             Ctx.Save(); Ctx.Log.Save(Ctx.Paths.AppLogFile);
             UpdateStatus = Ctx.T("App.UpdateRestarting");
             if (UpdateRestart.Restart(exe)) { restarting = true; return (InstallEnd.Restarting, null); }
@@ -283,10 +283,20 @@ public partial class MainWindowViewModel : ObservableObject
         _ = Task.Run(() => CleanUpLegacyFiles());
         var m = Ctx.Main;
         if (m.WhatsNewVersion == null) return;
-        var version = m.WhatsNewVersion; var notes = m.WhatsNewNotes;
-        m.WhatsNewVersion = null; m.WhatsNewNotes = null; Ctx.Save();                         // once only, even if the dialog is never answered
-        if (version == Ctx.Version && !string.IsNullOrWhiteSpace(notes)) await Dialogs.Info(notes!.Trim(), Ctx.T("App.WhatsNewTitle", version));
+        var version = m.WhatsNewVersion; var notes = m.WhatsNewNotes; var url = m.WhatsNewUrl;
+        m.WhatsNewVersion = null; m.WhatsNewNotes = null; m.WhatsNewUrl = null; Ctx.Save();                         // once only, even if the dialog is never answered
+        if (version != Ctx.Version || string.IsNullOrWhiteSpace(notes)) return;
+        var choice = await Dialogs.Show(notes!.Trim(), Ctx.T("App.WhatsNewTitle", version), new[] { Ctx.T("String.OK"), Ctx.T("App.UpdateView") }, 0);
+        if (choice == 1) await Dialogs.OpenUrl(SafeReleaseUrl(url));
     }
+
+    /// <summary>The release page of the version a plan installs: its tag is in the download address of the signed manifest. Falls back to the list of releases.</summary>
+    internal static string ReleasePageOf(UpdatePlan plan) =>
+        plan.Asset != null && ReleaseManifest.TagOf(plan.Asset) is { } tag ? $"{InstallDetector.ReleasesPage}/tag/{Uri.EscapeDataString(tag)}" : InstallDetector.ReleasesPage;
+
+    /// <summary>Only this repository's pages are ever opened from a saved address (the settings file is a plain file on disk).</summary>
+    internal static string SafeReleaseUrl(string? url) =>
+        url != null && url.StartsWith(InstallDetector.ReleasesPage + "/", StringComparison.Ordinal) && Uri.TryCreate(url, UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps ? url : InstallDetector.ReleasesPage;
 
     // ---- ad slot ----
     [ObservableProperty] private bool _adVisible;
