@@ -9,6 +9,8 @@ public static class ApiEndpoints
 {
     public const string GraphQl = "https://syn3updater.cyanlabs.net/graphql";
     public const string ApiBase = "https://api.cyanlabs.net/";
+    /// <summary>Where CyanLabs says whether its servers are up; named in the "cannot reach the backend" messages.</summary>
+    public const string StatusPage = "https://status.cyanlabs.net";
     public const string ChangelogUrl = ApiBase + "app/syn3updater/githubchangelog/json";
     public const string LogPost = ApiBase + "Syn3Updater/logs/post.php";
     public const string LogUrl = "https://cyanlabs.net/syn3-updater-log/?uuid=";

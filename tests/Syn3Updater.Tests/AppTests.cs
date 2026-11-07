@@ -244,6 +244,29 @@ public class HomeFlowTests
         await AppEnv.Until(() => env.Dialogs.Messages.Any(m => m.Contains("offline")));
         Assert.Empty(home.Releases);
     }
+
+    [AvaloniaFact]
+    public async Task Api_Failure_PointsToTheStatusPage_WithAButtonThatOpensIt()
+    {
+        using var env = new AppEnv(); env.Api.Offline = true;
+        env.Dialogs.Choices.Enqueue(1);                                                   // the user presses "Open status page"
+        var home = env.Main.Home; home.ReloadSummary();
+        await AppEnv.Until(() => env.Dialogs.Opened.Count > 0);
+        Assert.Equal(new[] { "https://status.cyanlabs.net" }, env.Dialogs.Opened);
+        var shown = env.Dialogs.Shown.First(s => s.Buttons.Length == 2);
+        Assert.Equal(new[] { Ctx.T("String.OK"), Ctx.T("Home.OpenStatusPage") }, shown.Buttons);
+        Assert.Contains(env.Dialogs.Messages, m => m.Contains("status.cyanlabs.net") && m.Contains("offline"));   // names the page, and keeps the technical reason
+    }
+
+    [AvaloniaFact]
+    public async Task Api_Failure_OkJustClosesIt()
+    {
+        using var env = new AppEnv(); env.Api.Offline = true;
+        env.Dialogs.Choices.Enqueue(0);
+        var home = env.Main.Home; home.ReloadSummary();
+        await AppEnv.Until(() => env.Dialogs.Messages.Any(m => m.Contains("status.cyanlabs.net")));
+        await Task.Delay(300); Assert.Empty(env.Dialogs.Opened);
+    }
 }
 
 public class WorkflowTests

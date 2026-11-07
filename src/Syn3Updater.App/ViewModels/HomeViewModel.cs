@@ -384,10 +384,11 @@ public partial class HomeViewModel : PageViewModel
         finally { Loading = false; }
     }
 
-    private static Task ShowApiError(ApiException e)
+    /// <summary>The backend cannot be used: say what is likely wrong, with the technical reason underneath, and a button for CyanLabs' status page.</summary>
+    private static async Task ShowApiError(ApiException e)
     {
         Ctx.Log.Error(e.Message);
-        return Dialogs.Error(Ctx.T("Home.BackendRequired", e.Message));
+        if (await Dialogs.Error(Ctx.T("Home.BackendRequired", e.Message), Ctx.T("Home.OpenStatusPage"))) await Dialogs.OpenUrl(ApiEndpoints.StatusPage);
     }
 
     partial void OnSelectedReleaseChanged(ReleaseItem? value)
