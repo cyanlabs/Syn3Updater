@@ -84,6 +84,36 @@ public class HomeFlowTests
         Assert.Equal("autoinstall", home.InstallMode);
     }
 
+    [AvaloniaTheory]
+    [InlineData(false, false)]     // MY20 off: every map can be picked, the lock shows which ones are ESN locked
+    [InlineData(null, false)]      // Auto-Detect: pickable too (Start asks the MY20 question), the line says so
+    [InlineData(true, true)]       // MY20 on: the ESN locked map is blocked
+    public async Task Maps_ShowTheirEsnState_AndOnlyTheBlockedOnesCannotBePicked(bool? my20, bool lockedIsBlocked)
+    {
+        using var env = new AppEnv(version: 3420282, nav: true);
+        Ctx.Profile.My20v2 = my20;
+        var home = env.Main.Home; home.ReloadSummary();
+        await AppEnv.Until(() => home.Releases.Count == 2);
+        home.SelectedRelease = home.Releases[1]; await AppEnv.Until(() => home.MapVersions.Count == 3);
+        Assert.Null(home.MapVersions[0].Esn); Assert.False(home.MapVersions[0].HasDetail);                    // keep existing maps: nothing to say about ESN
+        Assert.True(home.MapVersions[1].IsUnlocked); Assert.Equal(Ctx.T("Home.MapEsnOpen"), home.MapVersions[1].Detail); Assert.True(home.MapVersions[1].IsSelectable);
+        var locked = home.MapVersions[2];
+        Assert.True(locked.IsLocked); Assert.Equal(lockedIsBlocked, locked.Blocked);
+        Assert.Equal(lockedIsBlocked ? Ctx.T("Home.MapEsnBlockedMy20") : Ctx.T(my20 == null ? "Home.MapEsnLockedUnknown" : "Home.MapEsnLocked"), locked.Detail);   // Auto-Detect: the line says the check comes on Start
+    }
+
+    [AvaloniaFact]
+    public async Task OnlyUpdateMaps_BlocksEsnLockedMaps_WithItsOwnReason()
+    {
+        using var env = new AppEnv(version: 3420282, nav: true);
+        Ctx.Profile.My20v2 = false;
+        var home = env.Main.Home; home.ReloadSummary();
+        await AppEnv.Until(() => home.Releases.Count == 2);
+        home.SelectedRelease = home.Releases[0]; await AppEnv.Until(() => home.MapVersions.Count == 2);     // only-maps: no keep-existing entry
+        var locked = home.MapVersions[1];
+        Assert.True(locked.Blocked); Assert.Equal(Ctx.T("Home.MapEsnBlockedOnlyMaps", Ctx.T("String.OnlyMaps")), locked.Detail);
+    }
+
     [AvaloniaFact]
     public async Task My20_WithEsnMap_IsRefused()
     {
@@ -92,8 +122,11 @@ public class HomeFlowTests
         var home = env.Main.Home; home.ReloadSummary();
         await AppEnv.Until(() => home.Releases.Count == 2);
         home.SelectedRelease = home.Releases[1]; await AppEnv.Until(() => home.MapVersions.Count == 3);
-        Assert.Contains("not compatible", home.MapVersions[2].Display);
-        home.SelectedMap = home.MapVersions[2];
+        var esn = home.MapVersions[2];
+        Assert.True(esn.Blocked); Assert.False(esn.IsSelectable); Assert.True(esn.IsLocked);                  // dimmed and unpickable in the list
+        Assert.Equal(Ctx.T("Home.MapEsnBlockedMy20"), esn.Detail);
+        Assert.False(home.MapVersions[1].Blocked); Assert.True(home.MapVersions[1].IsUnlocked);
+        home.SelectedMap = home.MapVersions[2];                                                            // (still refused if it is chosen some other way)
         await AppEnv.Until(() => env.Dialogs.Messages.Count > 0);
         Assert.Contains(env.Dialogs.Messages, m => m == Ctx.T("MessageBox.MY20InvalidConfiguration"));
         Assert.False(home.StartEnabled);

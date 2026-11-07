@@ -79,7 +79,7 @@ How the chart's boxes map to the app (v2 called the outcomes options A to H):
 | Below 3.2, not protected: Reformat | installed version under 3200000 | A |
 | Below 3.2, protected: Not possible | error shown, Start and Download only disabled | H |
 | Keep Maps / Non Nav: Autoinstall | the maps choice is "No maps", "Non-nav APIM" or "Keep existing maps" | B (below 3.4.19274), E (3.4.19274 or newer) |
-| Protected, ESN locked: Not possible | the ESN-locked map is greyed out ("not compatible with MY20"); if one is already selected, error shown | C-ESN, F-ESN |
+| Protected, ESN locked: Not possible | the ESN-locked map is dimmed and cannot be picked (its second line says "not compatible with MY20"); if one is already selected, error shown | C-ESN, F-ESN |
 | Protected, ESN unlocked: Autoinstall | | C, F |
 | Not protected, Keep Existing (apps): Autoinstall / Not possible | the **"Only update maps"** release; ESN-locked maps are greyed out for it too | C, F |
 | Not protected, Update App Version: Reformat / Downgrade | a normal release with a map package; Downgrade from 3.4.19274 | D, G |
@@ -88,7 +88,7 @@ Notes:
 - **MY20 Auto-Detect** (nothing known yet) follows the "Not MY20 Protected" arrows. Because that can be wrong, pressing Start with a Reformat or Downgrade while MY20 is Auto-Detect asks first (diagram 3). Until it is answered, the Home banner says **MY20 Check** instead of Reformat or Downgrade, because that mode may never be used. The question's answers are "Yes or not sure: run the MY20 check" and "No, none of these apply".
 - **Version boundaries** are exact: 3.2 is `3200000` and 3.4.19274 is `3419274`; there is no gap between the two Reformat/Downgrade ranges.
 - **A fixed mode** (diagram 2) replaces the mode for the *Reformat*, *Downgrade* and *Keep Maps / Non Nav: Autoinstall* outcomes. The other Autoinstall outcomes (protected, or "Only update maps") and *Not possible* ignore it.
-- ESN-locked maps are greyed out whenever MY20 protection is Enabled or the release is "Only update maps" (`InstallModeResolver.EsnBlocked`).
+- ESN-locked maps are dimmed and cannot be picked whenever MY20 protection is Enabled or the release is "Only update maps" (`InstallModeResolver.EsnBlocked`). Every map in the list shows its ESN state: a lock for ESN locked (pre-MY20 units only), an open lock for not ESN locked (any unit, including MY20). While MY20 is Auto-Detect an ESN-locked map can still be picked (it is not known whether it fits), its line says "we'll check on Start", and pressing Start asks the MY20 question first (diagram 3).
 
 ## 2. When a fixed mode exists
 

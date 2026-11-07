@@ -21,6 +21,16 @@ public class MapItem
     public Release? Release { get; init; }
     public MapChoice Kind { get; init; }
     public string Display { get; init; } = "";
+    /// <summary>Whether the map is ESN locked; null for the entries that are not a map package (keep existing maps, non-nav APIM).</summary>
+    public bool? Esn { get; init; }
+    /// <summary>The map cannot be chosen with this release / MY20 setting (see <see cref="InstallModeResolver.EsnBlocked"/>); the list shows it dimmed.</summary>
+    public bool Blocked { get; init; }
+    /// <summary>Second line in the list: the ESN state, or why the map is blocked.</summary>
+    public string Detail { get; init; } = "";
+    public bool HasDetail => Detail.Length > 0;
+    public bool IsLocked => Esn == true;
+    public bool IsUnlocked => Esn == false;
+    public bool IsSelectable => !Blocked;
     public override string ToString() => Display;
 }
 
@@ -410,7 +420,10 @@ public partial class HomeViewModel : PageViewModel
                 {
                     bool esnBlocked = InstallModeResolver.EsnBlocked(rel.OnlyMaps, p.My20v2, m.Esn);
                     m.IsEnabled = !esnBlocked;
-                    MapVersions.Add(new MapItem { Kind = MapChoice.MapPackage, Release = m, Display = m.Name + (esnBlocked ? " " + Ctx.T("Home.MapNotCompatibleMy20") : "") });
+                    var detail = !m.Esn ? Ctx.T("Home.MapEsnOpen")
+                        : !esnBlocked ? Ctx.T(p.My20v2 == null ? "Home.MapEsnLockedUnknown" : "Home.MapEsnLocked")   // MY20 unknown: it is checked when Start is pressed
+                        : p.My20v2 == true ? Ctx.T("Home.MapEsnBlockedMy20") : Ctx.T("Home.MapEsnBlockedOnlyMaps", Ctx.T("String.OnlyMaps"));
+                    MapVersions.Add(new MapItem { Kind = MapChoice.MapPackage, Release = m, Display = m.Name, Esn = m.Esn, Blocked = esnBlocked, Detail = detail });
                 }
             }
             catch (ApiException e) { await ShowApiError(e); }
