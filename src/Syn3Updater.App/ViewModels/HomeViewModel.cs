@@ -183,6 +183,7 @@ public partial class HomeViewModel : PageViewModel
             ConfigItems.Add(new(Ctx.T("Home.Nav"), CurrentNav));
         }
         UpdateMy20Badge(p.My20v2);
+        UpdateModePresentation();
         // the profile's region is preselected only the first time Home appears; after that an empty dropdown stays empty until the user picks
         if (!_regionPreselected)
         {
@@ -472,7 +473,12 @@ public partial class HomeViewModel : PageViewModel
     /// <summary>Title, one-line explanation, colour and icon for the install mode shown in the action bar.</summary>
     private void UpdateModePresentation()
     {
-        var (title, desc, colour, icon) = InstallMode switch
+        // Reformat and Downgrade can brick an MY20 unit, and nothing says yet whether this one is: until MY20 protection is known the banner only says that a check comes first
+        // (the mode itself is unchanged, and Start asks the question).
+        var my20Unknown = InstallMode is InstallModes.Reformat or InstallModes.Downgrade && Ctx.Profile.My20v2 == null;
+        var (title, desc, colour, icon) = my20Unknown
+            ? ("MY20 Check", Ctx.T("App.Mode.my20check"), "#e8a23a", "M15.07,11.25L14.17,12.17C13.45,12.89 13,13.5 13,15H11V14.5C11,13.39 11.45,12.39 12.17,11.67L13.41,10.41C13.78,10.05 14,9.55 14,9C14,7.89 13.1,7 12,7A2,2 0 0,0 10,9H8A4,4 0 0,1 12,5A4,4 0 0,1 16,9C16,9.88 15.64,10.67 15.07,11.25M13,19H11V17H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12C22,6.47 17.5,2 12,2Z")
+            : InstallMode switch
         {
             InstallModes.Reformat => ("Reformat", Ctx.T("App.Mode.reformat"), "#e8a23a", "M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"),
             InstallModes.Downgrade => ("Downgrade", Ctx.T("App.Mode.downgrade"), "#e5645b", "M9,4H15V12H19.84L12,19.84L4.16,12H9V4Z"),
@@ -533,7 +539,7 @@ public partial class HomeViewModel : PageViewModel
         bool reformatLike = InstallMode is InstallModes.Reformat or InstallModes.Downgrade;
         if (reformatLike && !downloadOnly && p.My20v2 == null)
         {
-            if (await Dialogs.Confirm(Ctx.T("MessageBox.My20CheckV2"), Ctx.T("String.Warning") + "!", warning: true))
+            if (await Dialogs.Confirm(Ctx.T("MessageBox.My20CheckV2"), Ctx.T("String.Warning") + "!", yes: Ctx.T("MessageBox.My20CheckYes"), no: Ctx.T("MessageBox.My20CheckNo"), warning: true))
             {
                 await MainWindowViewModel.Instance.Utility.PrepareLogUsbAsync(SelectedDrive, UpdateAction.LogUtilityMy20);
                 return;

@@ -85,7 +85,7 @@ How the chart's boxes map to the app (v2 called the outcomes options A to H):
 | Not protected, Update App Version: Reformat / Downgrade | a normal release with a map package; Downgrade from 3.4.19274 | D, G |
 
 Notes:
-- **MY20 Auto-Detect** (nothing known yet) follows the "Not MY20 Protected" arrows. Because that can be wrong, pressing Start with a Reformat or Downgrade while MY20 is Auto-Detect asks first (diagram 3).
+- **MY20 Auto-Detect** (nothing known yet) follows the "Not MY20 Protected" arrows. Because that can be wrong, pressing Start with a Reformat or Downgrade while MY20 is Auto-Detect asks first (diagram 3). Until it is answered, the Home banner says **MY20 Check** instead of Reformat or Downgrade, because that mode may never be used. The question's answers are "Yes or not sure: run the MY20 check" and "No, none of these apply".
 - **Version boundaries** are exact: 3.2 is `3200000` and 3.4.19274 is `3419274`; there is no gap between the two Reformat/Downgrade ranges.
 - **A fixed mode** (diagram 2) replaces the mode for the *Reformat*, *Downgrade* and *Keep Maps / Non Nav: Autoinstall* outcomes. The other Autoinstall outcomes (protected, or "Only update maps") and *Not possible* ignore it.
 - ESN-locked maps are greyed out whenever MY20 protection is Enabled or the release is "Only update maps" (`InstallModeResolver.EsnBlocked`).
