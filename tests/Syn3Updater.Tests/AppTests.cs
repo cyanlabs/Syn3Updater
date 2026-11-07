@@ -61,7 +61,10 @@ public class HomeFlowTests
         Assert.Equal(MapChoice.KeepExisting, home.MapVersions[0].Kind);
         home.SelectedMap = home.MapVersions[1];
         await AppEnv.Until(() => home.Packages.Count == 4);                 // 2 release + map + licence
-        Assert.Equal("reformat", home.InstallMode); Assert.Equal("Reformat", home.ModeTitle);
+        Assert.Equal("reformat", home.InstallMode);
+        Assert.Equal("MY20 Check", home.ModeTitle); Assert.Equal(Ctx.T("App.Mode.my20check"), home.ModeDescription);   // MY20 protection is Auto-Detect: the banner does not claim a mode before the question is answered
+        Ctx.Profile.My20v2 = false; home.ReloadSummary();
+        Assert.Equal("Reformat", home.ModeTitle);                                                                          // known not to be MY20: the real mode is shown
         Assert.Contains(home.Packages, p => p.TypeLabel == "Navigation map");
         Assert.Contains(home.Packages, p => p.TypeLabel == "Map licence");
     }
@@ -320,6 +323,7 @@ public class WorkflowTests
         env.Dialogs.FolderToPick = env.UsbDir; await home.ChooseFolderCommand.ExecuteAsync(null);
         env.Dialogs.Say(m => m == Ctx.T("MessageBox.My20CheckV2"), true);
         await home.StartCommand.ExecuteAsync(null);
+        Assert.Contains(env.Dialogs.Shown, d => d.Buttons.SequenceEqual(new[] { Ctx.T("MessageBox.My20CheckNo"), Ctx.T("MessageBox.My20CheckYes") }));   // explicit answers, not a bare Yes/No
         await AppEnv.Until(() => env.Dialogs.Messages.Contains(Ctx.T("MessageBox.LogUtilityCompleteMy20")));
         Assert.True(File.Exists(Path.Combine(env.UsbDir, "autoinstall.lst")));
         Assert.Contains("logtool", string.Join("\n", env.Api.Queries));
