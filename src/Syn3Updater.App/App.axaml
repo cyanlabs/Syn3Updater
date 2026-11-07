@@ -29,6 +29,8 @@
           <SolidColorBrush x:Key="BrandSoft">#262fa1ab</SolidColorBrush>
           <SolidColorBrush x:Key="WarnBg">#33f0a43c</SolidColorBrush>
           <SolidColorBrush x:Key="WarnFg">#f0b45a</SolidColorBrush>
+          <SolidColorBrush x:Key="ErrBg">#33ef6b62</SolidColorBrush>
+          <SolidColorBrush x:Key="ErrFg">#f4948d</SolidColorBrush>
           <SolidColorBrush x:Key="ExpanderHeaderBackground">Transparent</SolidColorBrush>
           <SolidColorBrush x:Key="ExpanderHeaderBackgroundPointerOver">#14808080</SolidColorBrush>
           <SolidColorBrush x:Key="ExpanderHeaderBackgroundPressed">#1e808080</SolidColorBrush>
@@ -47,6 +49,8 @@
           <SolidColorBrush x:Key="BrandSoft">#1f1f8a94</SolidColorBrush>
           <SolidColorBrush x:Key="WarnBg">#26e8920a</SolidColorBrush>
           <SolidColorBrush x:Key="WarnFg">#9a5a00</SolidColorBrush>
+          <SolidColorBrush x:Key="ErrBg">#26d93a30</SolidColorBrush>
+          <SolidColorBrush x:Key="ErrFg">#b3261e</SolidColorBrush>
           <SolidColorBrush x:Key="ExpanderHeaderBackground">Transparent</SolidColorBrush>
           <SolidColorBrush x:Key="ExpanderHeaderBackgroundPointerOver">#14808080</SolidColorBrush>
           <SolidColorBrush x:Key="ExpanderHeaderBackgroundPressed">#1e808080</SolidColorBrush>
@@ -87,6 +91,7 @@
     <Style Selector="Border.step"><Setter Property="Width" Value="26" /><Setter Property="Height" Value="26" /><Setter Property="CornerRadius" Value="13" /><Setter Property="Background" Value="{DynamicResource BrandSoft}" /></Style>
     <Style Selector="Border.step > TextBlock"><Setter Property="Foreground" Value="{DynamicResource Brand}" /><Setter Property="FontWeight" Value="Bold" /><Setter Property="HorizontalAlignment" Value="Center" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
     <Style Selector="Border.banner"><Setter Property="Background" Value="{DynamicResource WarnBg}" /><Setter Property="CornerRadius" Value="10" /><Setter Property="Padding" Value="16,12" /></Style>
+    <Style Selector="Border.banner.error"><Setter Property="Background" Value="{DynamicResource ErrBg}" /></Style>
 
     <!-- controls -->
     <Style Selector="Button"><Setter Property="CornerRadius" Value="8" /><Setter Property="Padding" Value="14,8" /><Setter Property="VerticalContentAlignment" Value="Center" /></Style>

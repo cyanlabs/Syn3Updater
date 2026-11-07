@@ -40,12 +40,31 @@ public class ApiClient
         NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString, // the API sends ids and sizes as strings
     };
     private readonly HttpClient _http;
+    private int _reachable = -1;                      // -1 = nothing asked yet, 0 = the backend did not answer, 1 = it did
     private readonly Func<string?> _token;
     private readonly Func<string> _licenseKey;
 
     public ApiClient(HttpClient http, Func<string?> tokenProvider, Func<string> licenseKeyProvider)
     {
         _http = http; _token = tokenProvider; _licenseKey = licenseKeyProvider;
+    }
+
+    /// <summary>
+    /// Raised, from whatever thread the request ran on, when the answer to "can the backend be reached?" changes: false after a network error, a timeout or a 5xx answer,
+    /// true after any other answer (a 400 or 401 means the server is there, just unhappy with the request). Only changes are reported, not every request.
+    /// </summary>
+    public event Action<bool>? ReachabilityChanged;
+
+    private void Report(bool reachable)
+    {
+        if (Interlocked.Exchange(ref _reachable, reachable ? 1 : 0) != (reachable ? 1 : 0)) ReachabilityChanged?.Invoke(reachable);
+    }
+
+    /// <summary>A tiny request to find out whether the backend answers now. Never throws; <see cref="ReachabilityChanged"/> reports the result like any other request.</summary>
+    public async Task<bool> PingAsync(CancellationToken ct = default)
+    {
+        try { await GetUserAgents(ct); return true; }
+        catch (Exception e) when (e is ApiException or TaskCanceledException or HttpRequestException) { return false; }
     }
 
     /// <summary>The compiled-in token (see secrets/README.md). SYN3_API_TOKEN at runtime overrides it for development.</summary>
@@ -72,6 +91,7 @@ public class ApiClient
         {
             using var resp = await _http.SendAsync(req, ct);
             var body = await resp.Content.ReadAsStringAsync(ct);
+            Report((int)resp.StatusCode < 500);
             if (!resp.IsSuccessStatusCode)
                 throw new ApiException($"API returned {(int)resp.StatusCode} {resp.ReasonPhrase}" +
                     (resp.StatusCode is System.Net.HttpStatusCode.Unauthorized or System.Net.HttpStatusCode.Forbidden
@@ -82,7 +102,8 @@ public class ApiClient
             return doc.RootElement.GetProperty("data").Deserialize<T>(JsonOpts)
                    ?? throw new ApiException("API returned empty data");
         }
-        catch (HttpRequestException e) { throw new ApiException("Unable to reach the CyanLabs API: " + e.Message, e); }
+        catch (HttpRequestException e) { Report(false); throw new ApiException("Unable to reach the CyanLabs API: " + e.Message, e); }
+        catch (TaskCanceledException) when (!ct.IsCancellationRequested) { Report(false); throw; }                       // the HttpClient timeout, not the caller giving up
         catch (JsonException e) { throw new ApiException("Unexpected API response: " + e.Message, e); }
     }
 

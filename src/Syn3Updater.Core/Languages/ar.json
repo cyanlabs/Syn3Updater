@@ -298,6 +298,8 @@
   "Settings.ResetConfirm": "هل تريد إعادة تعيين كل الإعدادات (بما في ذلك ملف التعريف هذا) إلى الإعدادات الافتراضية؟",
   "Home.BackendRequired": "لم يتمكّن Syn3 Updater من الوصول إلى خوادم CyanLabs.\n\nتحقق من اتصالك بالإنترنت.\n\nثم تحقق من status.cyanlabs.net. إذا كان لدى CyanLabs مشكلة معروفة، فأعد المحاولة لاحقاً.\n\nإذا كان اتصالك يعمل وتُظهر صفحة الحالة أن كل شيء متصل، فيرجى الإبلاغ عن ذلك في منتدانا (community.cyanlabs.net) أو على Discord مع إرفاق التفاصيل أدناه.\n\nالتفاصيل: {0}",
   "Home.OpenStatusPage": "فتح صفحة الحالة",
+  "App.NoConnectionBanner": "لا يوجد اتصال بـ CyanLabs. تحقق من اتصالك بالإنترنت.",
+  "App.NoConnectionRetry": "أعد المحاولة الآن",
   "Home.MapNotCompatibleMy20": "(غير متوافق مع MY20)",
   "Diag.Intro": "يتحقق من أن هذا الكمبيوتر يملك ما يحتاجه Syn3 Updater لتجهيز محرك USB. لا يتم تغيير أي شيء.",
   "Diag.RunAgain": "تشغيل مرة أخرى",

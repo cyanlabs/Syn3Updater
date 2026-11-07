@@ -298,6 +298,8 @@
   "Settings.ResetConfirm": "Redefinir todas as configurações (inclusive este perfil) para os padrões?",
   "Home.BackendRequired": "O Syn3 Updater não conseguiu acessar os servidores da CyanLabs.\n\nVerifique a sua conexão com a Internet.\n\nDepois consulte status.cyanlabs.net. Se a CyanLabs tiver um problema conhecido, tente novamente mais tarde.\n\nSe a sua conexão estiver funcionando e a página de status mostrar que tudo está online, relate o problema no nosso fórum (community.cyanlabs.net) ou no Discord e inclua os detalhes abaixo.\n\nDetalhes: {0}",
   "Home.OpenStatusPage": "Abrir página de status",
+  "App.NoConnectionBanner": "Sem conexão com a CyanLabs. Verifique a sua conexão com a Internet.",
+  "App.NoConnectionRetry": "Tentar agora",
   "Home.MapNotCompatibleMy20": "(não compatível com MY20)",
   "Diag.Intro": "Verifica se este computador tem o que o Syn3 Updater precisa para preparar uma unidade USB. Nada é alterado.",
   "Diag.RunAgain": "Executar novamente",

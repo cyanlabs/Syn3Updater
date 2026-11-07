@@ -298,6 +298,8 @@
   "Settings.ResetConfirm": "Resetați toate setările (inclusiv acest profil) la valorile implicite?",
   "Home.BackendRequired": "Syn3 Updater nu a putut ajunge la serverele CyanLabs.\n\nVerificați conexiunea la internet.\n\nApoi verificați status.cyanlabs.net. Dacă CyanLabs are o problemă cunoscută, încercați din nou mai târziu.\n\nDacă conexiunea funcționează, iar pagina de stare arată că totul este online, raportați problema pe forumul nostru (community.cyanlabs.net) sau pe Discord și includeți detaliile de mai jos.\n\nDetalii: {0}",
   "Home.OpenStatusPage": "Deschide pagina de stare",
+  "App.NoConnectionBanner": "Nu există conexiune la CyanLabs. Verificați conexiunea la internet.",
+  "App.NoConnectionRetry": "Reîncearcă acum",
   "Home.MapNotCompatibleMy20": "(incompatibil cu MY20)",
   "Diag.Intro": "Verifică dacă acest computer are ce îi trebuie lui Syn3 Updater pentru a pregăti o unitate USB. Nu se modifică nimic.",
   "Diag.RunAgain": "Rulează din nou",

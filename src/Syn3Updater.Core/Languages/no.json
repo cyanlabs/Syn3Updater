@@ -298,6 +298,8 @@
   "Settings.ResetConfirm": "Tilbakestille alle innstillinger (inkludert denne profilen) til standardverdiene?",
   "Home.BackendRequired": "Syn3 Updater kunne ikke nå CyanLabs sine servere.\n\nSjekk internettforbindelsen din.\n\nSjekk deretter status.cyanlabs.net. Hvis CyanLabs har et kjent problem, prøv igjen senere.\n\nHvis forbindelsen din fungerer og statussiden viser at alt er online, meld fra på forumet vårt (community.cyanlabs.net) eller Discord og ta med detaljene under.\n\nDetaljer: {0}",
   "Home.OpenStatusPage": "Åpne statussiden",
+  "App.NoConnectionBanner": "Ingen forbindelse til CyanLabs. Sjekk internettforbindelsen din.",
+  "App.NoConnectionRetry": "Prøv igjen nå",
   "Home.MapNotCompatibleMy20": "(ikke kompatibel med MY20)",
   "Diag.Intro": "Sjekker at denne datamaskinen har det Syn3 Updater trenger for å klargjøre en USB-stasjon. Ingenting endres.",
   "Diag.RunAgain": "Kjør på nytt",

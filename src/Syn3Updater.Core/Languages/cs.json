@@ -298,6 +298,8 @@
   "Settings.ResetConfirm": "Obnovit všechna nastavení (včetně tohoto profilu) na výchozí hodnoty?",
   "Home.BackendRequired": "Syn3 Updater se nemohl spojit se servery CyanLabs.\n\nZkontrolujte připojení k internetu.\n\nPoté zkontrolujte status.cyanlabs.net. Pokud má CyanLabs známý problém, zkuste to později znovu.\n\nPokud vaše připojení funguje a stavová stránka ukazuje, že vše běží, nahlaste to na našem fóru (community.cyanlabs.net) nebo na Discordu a uveďte níže uvedené podrobnosti.\n\nPodrobnosti: {0}",
   "Home.OpenStatusPage": "Otevřít stavovou stránku",
+  "App.NoConnectionBanner": "Žádné připojení k CyanLabs. Zkontrolujte připojení k internetu.",
+  "App.NoConnectionRetry": "Zkusit znovu",
   "Home.MapNotCompatibleMy20": "(není kompatibilní s MY20)",
   "Diag.Intro": "Kontroluje, zda má tento počítač vše, co Syn3 Updater potřebuje k přípravě USB disku. Nic se nemění.",
   "Diag.RunAgain": "Spustit znovu",

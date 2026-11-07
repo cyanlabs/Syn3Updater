@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Cyanlabs.Syn3Updater.App.Services;
 using Cyanlabs.Syn3Updater.Core.Services;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 
 namespace Cyanlabs.Syn3Updater.App.ViewModels;
 
@@ -134,10 +135,47 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty] private PageViewModel _current;
 
+    // ---- the backend cannot be reached: a banner above everything, until a request gets through again ----
+    [ObservableProperty] private bool _offline;
+    public string OfflineText => Ctx.T("App.NoConnectionBanner");
+    private DispatcherTimer? _retryTimer;
+    private ApiClient? _watched;
+
+    /// <summary>Follows <see cref="ApiClient.ReachabilityChanged"/> of the current API client (which tests and the app replace as a whole).</summary>
+    private void WatchBackend()
+    {
+        if (ReferenceEquals(_watched, Ctx.Api)) return;
+        if (_watched != null) _watched.ReachabilityChanged -= OnReachability;
+        _watched = Ctx.Api; _watched.ReachabilityChanged += OnReachability;
+    }
+
+    private void OnReachability(bool reachable)
+    {
+        void Apply() { Offline = !reachable; }
+        if (Dispatcher.UIThread.CheckAccess()) Apply(); else Dispatcher.UIThread.Post(Apply);
+    }
+
+    partial void OnOfflineChanged(bool value)
+    {
+        OnPropertyChanged(nameof(OfflineText));
+        if (value)                                       // keep trying quietly, so the banner goes away by itself when the servers come back
+        {
+            _retryTimer ??= new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+            _retryTimer.Tick -= OnRetryTick; _retryTimer.Tick += OnRetryTick; _retryTimer.Start();
+        }
+        else _retryTimer?.Stop();
+    }
+
+    private async void OnRetryTick(object? sender, EventArgs e) { if (Offline) await Ctx.Api.PingAsync(); }
+
+    [RelayCommand] private Task RetryConnection() => Ctx.Api.PingAsync();
+    [RelayCommand] private Task OpenStatusPage() => Dialogs.OpenUrl(ApiEndpoints.StatusPage);
+
     public MainWindowViewModel()
     {
         Instance = this;
-        Ctx.Loc.LanguageChanged += () => { OnPropertyChanged(nameof(UpdateText)); OnPropertyChanged(nameof(WindowTitle)); };
+        WatchBackend();
+        Ctx.Loc.LanguageChanged += () => { OnPropertyChanged(nameof(UpdateText)); OnPropertyChanged(nameof(WindowTitle)); OnPropertyChanged(nameof(OfflineText)); };
         Pages = new() { About, Home, Utility, Downloads, Logs, News, Diagnostics, Settings };
         TopPages = new() { Home, Utility, Logs, News };      // the update workflow; Diagnostics is reached from a button on About, not the sidebar
         BottomPages = new() { Downloads, Settings, About };   // Downloads comes first so appearing/disappearing never shifts the tabs above it; Settings and About stay put
