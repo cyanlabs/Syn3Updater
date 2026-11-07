@@ -10,6 +10,13 @@ namespace Cyanlabs.Syn3Updater.Tests;
 
 public class HomeDropdownTests
 {
+    private static string RepoFile(string relative)
+    {
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir != null; dir = dir.Parent)
+            if (File.Exists(Path.Combine(dir.FullName, relative))) return Path.Combine(dir.FullName, relative);
+        throw new FileNotFoundException(relative);
+    }
+
     private static async Task PickEverything(AppEnv env)
     {
         var home = env.Main.Home; home.ReloadSummary();
@@ -88,6 +95,19 @@ public class HomeDropdownTests
             Assert.Same(before, home.SelectedDrive);
         }
         window.Close();
+    }
+
+    [Fact]
+    public void TheMapList_DisablesBlockedMaps_AndShowsTheEsnLines()
+    {
+        // the popup's items are not realised in the headless platform, so the markup is checked instead: a blocked map's list item is disabled, and each row shows the lock and the ESN line
+        var xaml = File.ReadAllText(RepoFile("src/Syn3Updater.App/Views/HomeView.axaml"));
+        var box = xaml[xaml.IndexOf("x:Name=\"MapBox\"", StringComparison.Ordinal)..];
+        box = box[..box.IndexOf("</ComboBox>", StringComparison.Ordinal)];
+        Assert.Contains("<Setter Property=\"IsEnabled\" Value=\"{Binding IsSelectable}\"", box);
+        Assert.Contains("IsVisible=\"{Binding IsLocked}\"", box); Assert.Contains("IsVisible=\"{Binding IsUnlocked}\"", box);
+        Assert.Contains("Foreground=\"{Binding LockBrush}\"", box);                  // the lock is red when the map is dimmed
+        Assert.Contains("Text=\"{Binding Detail}\"", box);
     }
 
     [AvaloniaFact]

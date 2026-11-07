@@ -112,7 +112,24 @@
               <TextBlock Grid.Row="1" Text="{svc:T Home.NewVersion}" VerticalAlignment="Center" Classes="muted" />
               <ComboBox x:Name="ReleaseBox" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" ItemsSource="{Binding Releases}" SelectedItem="{Binding SelectedRelease}" PlaceholderText="{svc:T App.SelectVersion}" />
               <TextBlock Grid.Row="2" Text="{svc:T Home.MapVersion}" VerticalAlignment="Center" Classes="muted" />
-              <ComboBox x:Name="MapBox" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" ItemsSource="{Binding MapVersions}" SelectedItem="{Binding SelectedMap}" PlaceholderText="{svc:T App.SelectMaps}" />
+              <!-- ESN state per map: a lock (pre-MY20 only) or an open lock (any unit); a map the release / MY20 setting does not allow is dimmed and cannot be picked -->
+              <ComboBox x:Name="MapBox" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" ItemsSource="{Binding MapVersions}" SelectedItem="{Binding SelectedMap}" PlaceholderText="{svc:T App.SelectMaps}">
+                <ComboBox.Styles>
+                  <Style Selector="ComboBoxItem"><Setter Property="IsEnabled" Value="{Binding IsSelectable}" /></Style>
+                </ComboBox.Styles>
+                <ComboBox.ItemTemplate>
+                  <DataTemplate DataType="vm:MapItem">
+                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,2">
+                      <PathIcon Data="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z" Width="16" Height="16" Foreground="{Binding LockBrush}" IsVisible="{Binding IsLocked}" />
+                      <PathIcon Data="M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H15V6A3,3 0 0,0 12,3A3,3 0 0,0 9,6H7A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17Z" Width="16" Height="16" Foreground="#4cc38a" IsVisible="{Binding IsUnlocked}" />
+                      <StackPanel>
+                        <TextBlock Text="{Binding Display}" />
+                        <TextBlock Text="{Binding Detail}" Classes="label" TextTrimming="CharacterEllipsis" MaxWidth="460" IsVisible="{Binding HasDetail}" />
+                      </StackPanel>
+                    </StackPanel>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
             </Grid>
             <ProgressBar IsIndeterminate="True" IsVisible="{Binding Loading}" Height="4" />
 
