@@ -71,7 +71,7 @@ Run **Actions > Release > Run workflow** with `publish` ticked and `legacy_tag` 
 | an exact tag such as `3.0.0.0` | that tag, for the real release (it fails at once if the tag or release already exists) |
 
 With a legacy tag the workflow also builds `<tag>.zip`: a flat zip (no folder) holding the same files as the Windows package: `Syn3Updater.exe`, the real hybrid Launcher
-(`Launcher.exe` plus `Launcher.exe.config`, `Launcher.Core.dll`, `FluentWPF.dll`, `Newtonsoft.Json.dll`), LICENSE and README.txt, uploaded as `application/x-zip-compressed`
+(`Launcher.exe` plus `Launcher.exe.config`, `Launcher.Core.dll`, `FluentWPF.dll`, `Newtonsoft.Json.dll`, and the `Launcher.pdb` and `Launcher.Core.pdb` symbols), LICENSE and README.txt, uploaded as `application/x-zip-compressed`
 (the old Launcher's download picks the first asset of that exact type). The release is created as a **draft**, the zip is attached and its content type checked, and only then
 is it published, so an old Launcher never sees a release without its zip. The release title stays `Syn3 Updater <version>`: the in-app update check reads the real version
 (`3.0.0-test9`) from the title of a pre-release under a bare numeric tag. The release is flagged pre-release when the version has a suffix, and only Launchers on the Beta channel see pre-releases.
