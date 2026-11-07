@@ -86,7 +86,7 @@ public class HomeFlowTests
 
     [AvaloniaTheory]
     [InlineData(false, false)]     // MY20 off: every map can be picked, the lock shows which ones are ESN locked
-    [InlineData(null, false)]      // Auto-Detect: pickable too (Start asks the MY20 question), the line says so
+    [InlineData(null, false)]      // Auto-Detect: pickable too (Start asks the MY20 question)
     [InlineData(true, true)]       // MY20 on: the ESN locked map is blocked
     public async Task Maps_ShowTheirEsnState_AndOnlyTheBlockedOnesCannotBePicked(bool? my20, bool lockedIsBlocked)
     {
@@ -99,7 +99,7 @@ public class HomeFlowTests
         Assert.True(home.MapVersions[1].IsUnlocked); Assert.Equal(Ctx.T("Home.MapEsnOpen"), home.MapVersions[1].Detail); Assert.True(home.MapVersions[1].IsSelectable);
         var locked = home.MapVersions[2];
         Assert.True(locked.IsLocked); Assert.Equal(lockedIsBlocked, locked.Blocked);
-        Assert.Equal(lockedIsBlocked ? Ctx.T("Home.MapEsnBlockedMy20") : Ctx.T(my20 == null ? "Home.MapEsnLockedUnknown" : "Home.MapEsnLocked"), locked.Detail);   // Auto-Detect: the line says the check comes on Start
+        Assert.Equal(lockedIsBlocked ? Ctx.T("Home.MapEsnBlockedMy20") : Ctx.T("Home.MapEsnLocked"), locked.Detail);
     }
 
     [AvaloniaFact]

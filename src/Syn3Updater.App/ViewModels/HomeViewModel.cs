@@ -421,7 +421,7 @@ public partial class HomeViewModel : PageViewModel
                     bool esnBlocked = InstallModeResolver.EsnBlocked(rel.OnlyMaps, p.My20v2, m.Esn);
                     m.IsEnabled = !esnBlocked;
                     var detail = !m.Esn ? Ctx.T("Home.MapEsnOpen")
-                        : !esnBlocked ? Ctx.T(p.My20v2 == null ? "Home.MapEsnLockedUnknown" : "Home.MapEsnLocked")   // MY20 unknown: it is checked when Start is pressed
+                        : !esnBlocked ? Ctx.T("Home.MapEsnLocked")
                         : p.My20v2 == true ? Ctx.T("Home.MapEsnBlockedMy20") : Ctx.T("Home.MapEsnBlockedOnlyMaps", Ctx.T("String.OnlyMaps"));
                     MapVersions.Add(new MapItem { Kind = MapChoice.MapPackage, Release = m, Display = m.Name, Esn = m.Esn, Blocked = esnBlocked, Detail = detail });
                 }
