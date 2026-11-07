@@ -157,7 +157,12 @@ public partial class MainWindowViewModel : ObservableObject
     {
         if (Plan is not { Kind: PlanKind.Manual } plan || Update == null) return;
         var command = plan.Instructions ?? "";
-        var body = InstallDetector.IsPackageManaged(plan.Install.Kind) ? Ctx.T("App.UpdateHowToBody", Update.Version, command) : Ctx.T("App.UpdateHowToDownloadBody", Update.Version, command);
+        var body = InstallDetector.ManualStyleFor(plan.Install.Kind, command) switch
+        {
+            InstallDetector.ManualStyle.PackageManager => Ctx.T("App.UpdateHowToBody", Update.Version, command),
+            InstallDetector.ManualStyle.Mac => Ctx.T("App.UpdateHowToMacBody", Update.Version, command, Ctx.T("App.UpdateView")),
+            _ => Ctx.T("App.UpdateHowToDownloadBody", Update.Version, command)
+        };
         var choice = await Dialogs.Show(body, Ctx.T("App.UpdateHowToTitle", Update.Version),
             new[] { Ctx.T("String.OK"), Ctx.T("App.UpdateCopyCommand"), Ctx.T("App.UpdateView") }, 0);
         if (choice == 1) await Dialogs.SetClipboard(InstallDetector.PrimaryCommand(command) ?? Update.Url);

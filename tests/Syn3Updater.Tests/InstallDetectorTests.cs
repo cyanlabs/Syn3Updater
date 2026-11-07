@@ -229,6 +229,47 @@ public class InstallDetectorTests : IDisposable
     public void Without_a_known_address_copy_command_copies_just_the_install_command() =>
         Assert.Equal("sudo apt install ./a.deb", InstallDetector.PrimaryCommand(InstallDetector.ManualInstructions(InstallKind.LinuxDeb, "a.deb")));
 
+    private const string Dmg = "Syn3Updater-3.1.0-macos-arm64.dmg";
+
+    [Fact]
+    public void The_Mac_instructions_download_mount_copy_and_unmount_the_disk_image_one_command_per_line()
+    {
+        var lines = InstallDetector.ManualInstructions(InstallKind.MacApp, Dmg, Url + Dmg).Split('\n');
+        Assert.Equal(new[]
+        {
+            $"curl -LO {Url}{Dmg}", $"hdiutil attach -nobrowse -quiet {Dmg}",
+            "ditto \"/Volumes/Syn3 Updater/Syn3 Updater.app\" \"/Applications/Syn3 Updater.app\"", "hdiutil detach -quiet \"/Volumes/Syn3 Updater\""
+        }, lines);
+    }
+
+    [Fact]
+    public void Copy_command_for_a_Mac_copies_all_four_steps_as_one_line() =>
+        Assert.Equal($"curl -LO {Url}{Dmg} && hdiutil attach -nobrowse -quiet {Dmg} && ditto \"/Volumes/Syn3 Updater/Syn3 Updater.app\" \"/Applications/Syn3 Updater.app\" && hdiutil detach -quiet \"/Volumes/Syn3 Updater\"",
+            InstallDetector.PrimaryCommand(InstallDetector.ManualInstructions(InstallKind.MacApp, Dmg, Url + Dmg)));
+
+    [Fact]
+    public void A_Mac_release_with_no_disk_image_falls_back_to_the_download_page()
+    {
+        var text = InstallDetector.ManualInstructions(InstallKind.MacApp, null, null);
+        Assert.Equal(InstallDetector.ReleasesPage, text); Assert.Null(InstallDetector.PrimaryCommand(text));
+        Assert.Equal(InstallDetector.ManualStyle.Download, InstallDetector.ManualStyleFor(InstallKind.MacApp, text));
+    }
+
+    [Theory]
+    [InlineData(InstallKind.LinuxDeb, InstallDetector.ManualStyle.PackageManager)]
+    [InlineData(InstallKind.LinuxRpm, InstallDetector.ManualStyle.PackageManager)]
+    [InlineData(InstallKind.LinuxPacman, InstallDetector.ManualStyle.PackageManager)]
+    [InlineData(InstallKind.MacApp, InstallDetector.ManualStyle.Mac)]
+    [InlineData(InstallKind.LinuxPortable, InstallDetector.ManualStyle.Download)]
+    [InlineData(InstallKind.LinuxSystemUnknown, InstallDetector.ManualStyle.Download)]
+    [InlineData(InstallKind.WindowsPortable, InstallDetector.ManualStyle.Download)]
+    [InlineData(InstallKind.Unknown, InstallDetector.ManualStyle.Download)]
+    public void Each_install_gets_the_wording_that_matches_how_it_is_updated(InstallKind kind, InstallDetector.ManualStyle expected)
+    {
+        var file = kind == InstallKind.MacApp ? Dmg : "a.pkg";
+        Assert.Equal(expected, InstallDetector.ManualStyleFor(kind, InstallDetector.ManualInstructions(kind, file, Url + file)));
+    }
+
     [Fact]
     public void A_sentence_is_not_offered_as_a_command_to_copy() =>
         Assert.Null(InstallDetector.PrimaryCommand(InstallDetector.ManualInstructions(InstallKind.LinuxPortable, null)));

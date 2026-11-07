@@ -180,6 +180,8 @@ public static class InstallDetector
             InstallKind.LinuxDeb => download + $"sudo apt install ./{fileName ?? "<downloaded .deb>"}",
             InstallKind.LinuxRpm => download + $"sudo dnf install ./{fileName ?? "<downloaded .rpm>"}          # Fedora, RHEL\nsudo zypper install ./{fileName ?? "<downloaded .rpm>"}          # openSUSE",
             InstallKind.LinuxPacman => download + $"sudo pacman -U {file}",
+            // the disk image mounts as "Syn3 Updater" (scripts/package-macos.sh). curl does not mark the file as downloaded from the internet, so Gatekeeper does not block the copy
+            InstallKind.MacApp when download.Length > 0 => download + $"hdiutil attach -nobrowse -quiet {fileName}\nditto \"/Volumes/Syn3 Updater/Syn3 Updater.app\" \"/Applications/Syn3 Updater.app\"\nhdiutil detach -quiet \"/Volumes/Syn3 Updater\"",
             _ => ReleasesPage
         };
     }
@@ -187,24 +189,30 @@ public static class InstallDetector
     /// <summary>Where new versions can be downloaded: what a copy that no package manager owns is pointed at.</summary>
     public const string ReleasesPage = "https://github.com/" + UpdateChecker.Repo + "/releases";
 
-    /// <summary>True for installs a package manager owns (the instructions are commands); false for the rest (the instructions are the download address).</summary>
-    public static bool IsPackageManaged(InstallKind kind) => kind is InstallKind.LinuxDeb or InstallKind.LinuxRpm or InstallKind.LinuxPacman;
-
     /// <summary>
-    /// What "Copy command" puts on the clipboard: the download and the first install command joined with <c>&amp;&amp;</c>, so one paste does it all (notes removed).
-    /// Null when the instructions are a sentence, not a command.
+    /// What "Copy command" puts on the clipboard: the commands that must all run, joined with <c>&amp;&amp;</c> so one paste does everything (notes removed). Lines that are alternatives
+    /// for different systems carry a "# note": only the first of those is included. Null when the instructions are a sentence or an address, not commands.
     /// </summary>
     public static string? PrimaryCommand(string? instructions)
     {
         var commands = new List<string>();
         foreach (var line in (instructions ?? "").Split('\n'))
         {
-            var text = line; var hash = text.IndexOf("  #", StringComparison.Ordinal);
-            if (hash >= 0) text = text[..hash];
+            var text = line; var hash = text.IndexOf("  #", StringComparison.Ordinal); var noted = hash >= 0;
+            if (noted) text = text[..hash];
             text = text.Trim();
-            if (text.StartsWith("curl ", StringComparison.Ordinal) || text.StartsWith("sudo ", StringComparison.Ordinal)) commands.Add(text);
+            if (!(text.StartsWith("curl ", StringComparison.Ordinal) || text.StartsWith("sudo ", StringComparison.Ordinal) || text.StartsWith("hdiutil ", StringComparison.Ordinal) || text.StartsWith("ditto ", StringComparison.Ordinal))) continue;
+            commands.Add(text);
+            if (noted) break;
         }
-        if (commands.Count == 0) return null;
-        return commands[0].StartsWith("curl ", StringComparison.Ordinal) && commands.Count > 1 ? commands[0] + " && " + commands[1] : commands[0];
+        return commands.Count == 0 ? null : string.Join(" && ", commands);
     }
+
+    /// <summary>Which wording tells the user how to update a copy the app will not update itself.</summary>
+    public enum ManualStyle { PackageManager, Mac, Download }
+
+    public static ManualStyle ManualStyleFor(InstallKind kind, string? instructions) =>
+        kind is InstallKind.LinuxDeb or InstallKind.LinuxRpm or InstallKind.LinuxPacman ? ManualStyle.PackageManager
+        : kind == InstallKind.MacApp && PrimaryCommand(instructions) != null ? ManualStyle.Mac
+        : ManualStyle.Download;
 }
