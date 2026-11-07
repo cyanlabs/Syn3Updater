@@ -163,6 +163,7 @@ public class WindowsApplierTests : IDisposable
         public HookFileSystem(Action hook) => _hook = hook;
         public bool FileExists(string p) => _r.FileExists(p); public bool DirectoryExists(string p) => _r.DirectoryExists(p); public void CreateDirectory(string p) => _r.CreateDirectory(p);
         public void WriteAllText(string p, string t) => _r.WriteAllText(p, t);
+        public DateTime GetCreationTimeUtc(string p) => _r.GetCreationTimeUtc(p); public DateTime GetLastWriteTimeUtc(string p) => _r.GetLastWriteTimeUtc(p);
         public void DeleteFile(string p) => _r.DeleteFile(p); public void DeleteDirectory(string p) => _r.DeleteDirectory(p);
         public void MoveFile(string s, string d, bool o) { if (!_done) { _done = true; _hook(); } _r.MoveFile(s, d, o); }
     }

@@ -38,7 +38,7 @@ public static class LauncherMigration
 
         IEnumerable<string> found;
         try { found = shortcuts.FindShortcuts().ToList(); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { log("Could not list shortcuts: " + e.Message); found = Array.Empty<string>(); complete = false; }
+        catch (Exception e) { log("Could not list shortcuts: " + e.Message); found = Array.Empty<string>(); complete = false; }
 
         foreach (var lnk in found)
         {
@@ -50,9 +50,9 @@ public static class LauncherMigration
                 shortcuts.Write(lnk, info with { Target = app, WorkingDirectory = workDir, IconPath = icon, IconIndex = Same(info.IconPath, launcher) ? 0 : info.IconIndex });
                 changed.Add(lnk); log($"Shortcut {lnk} now opens {AppExe}");
             }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Runtime.InteropServices.COMException)
+            catch (Exception e)                                      // best effort, and it runs in the background: whatever goes wrong with one shortcut (COM, rights, anything) is logged, never thrown
             {
-                log($"Could not update the shortcut {lnk}: {e.Message}"); complete = false;
+                log($"Could not update the shortcut {lnk}: {e.GetType().Name}: {e.Message}"); complete = false;
             }
         }
 
@@ -65,7 +65,7 @@ public static class LauncherMigration
                 protocolFixed = true; log($"The syn3updater:// handler now opens {AppExe}");
             }
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        catch (Exception e)
         {
             log("Could not update the syn3updater:// handler: " + e.Message); complete = false;
         }

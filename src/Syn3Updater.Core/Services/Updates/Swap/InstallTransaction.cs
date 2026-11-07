@@ -115,7 +115,16 @@ public sealed class InstallTransaction
         var rolledBack = false;
         if (fs.DirectoryExists(backup))
         {
-            if (!File.Exists(Path.Combine(backup, CompleteMarker)))
+            var marker = Path.Combine(backup, CompleteMarker);
+            var complete = File.Exists(marker);
+            if (!complete && FinishedWithoutMarker(installDir, backup, fs))
+            {
+                // an update that DID finish, whose marker was lost: the old Launcher removes its backup in one go while its own files are locked, which deletes the marker and leaves the locked
+                // files. Rolling that back would put the old Launcher and its libraries over the new ones, so it is treated as finished (and the marker put back, best effort).
+                complete = true;
+                try { fs.WriteAllText(marker, "recovered " + DateTime.UtcNow.ToString("o")); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+            }
+            if (!complete)
             {
                 foreach (var rel in PackageStager.ListFiles(backup))
                 {
@@ -132,6 +141,20 @@ public sealed class InstallTransaction
         try { if (fs.DirectoryExists(staging)) fs.DeleteDirectory(staging); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
         RemoveDisplaced(installDir);
         return rolledBack;
+    }
+
+    /// <summary>
+    /// True when install-manifest.json was written AFTER the backup folder was created. Both engines write the manifest only once a swap has completed, so it is newer than the backup folder
+    /// exactly for an update that finished; an interrupted one never got to it, and its manifest (the previous update's) is older.
+    /// </summary>
+    private static bool FinishedWithoutMarker(string installDir, string backup, ISwapFileSystem fs)
+    {
+        try
+        {
+            var manifest = Path.Combine(installDir, InstallManifest.FileName);
+            return File.Exists(manifest) && fs.GetLastWriteTimeUtc(manifest) > fs.GetCreationTimeUtc(backup);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return false; }         // cannot tell: the safe answer is the old one (treat it as interrupted)
     }
 
     /// <summary>Deletes the files that a rollback renamed aside because they were running; one that still is running stays for the next start.</summary>

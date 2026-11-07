@@ -11,6 +11,8 @@ public interface ISwapFileSystem
     void DeleteFile(string path);
     void DeleteDirectory(string path);
     void WriteAllText(string path, string text);
+    DateTime GetCreationTimeUtc(string path);
+    DateTime GetLastWriteTimeUtc(string path);
 }
 
 public sealed class RealSwapFileSystem : ISwapFileSystem
@@ -34,6 +36,8 @@ public sealed class RealSwapFileSystem : ISwapFileSystem
     public void DeleteFile(string path) => File.Delete(path);
     public void DeleteDirectory(string path) => Directory.Delete(path, true);
     public void WriteAllText(string path, string text) => File.WriteAllText(path, text);
+    public DateTime GetCreationTimeUtc(string path) => Directory.Exists(path) ? Directory.GetCreationTimeUtc(path) : File.GetCreationTimeUtc(path);
+    public DateTime GetLastWriteTimeUtc(string path) => File.GetLastWriteTimeUtc(path);
 
     /// <summary>Ends the name of a file that was in the way (a running program) and was renamed aside; see <see cref="IsDisplaced"/>.</summary>
     public const string DisplacedSuffix = ".old";

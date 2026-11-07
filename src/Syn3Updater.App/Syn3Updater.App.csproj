@@ -3,7 +3,8 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>Cyanlabs.Syn3Updater.App</RootNamespace>
     <AssemblyName>Syn3Updater</AssemblyName>
-    <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+    <!-- must stay true: the Windows shortcut migration (WindowsShortcutStore) uses built-in COM (IShellLink). With false it throws NotSupportedException in the published app, while the tests, which run in a host that has COM, pass. -->
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
