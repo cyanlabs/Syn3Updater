@@ -106,6 +106,7 @@ public class HomeDropdownTests
         box = box[..box.IndexOf("</ComboBox>", StringComparison.Ordinal)];
         Assert.Contains("<Setter Property=\"IsEnabled\" Value=\"{Binding IsSelectable}\"", box);
         Assert.Contains("IsVisible=\"{Binding IsLocked}\"", box); Assert.Contains("IsVisible=\"{Binding IsUnlocked}\"", box);
+        Assert.Contains("Foreground=\"{Binding LockBrush}\"", box);                  // the lock is red when the map is dimmed
         Assert.Contains("Text=\"{Binding Detail}\"", box);
     }
 

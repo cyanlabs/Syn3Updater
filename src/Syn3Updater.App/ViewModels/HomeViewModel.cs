@@ -31,6 +31,9 @@ public class MapItem
     public bool IsLocked => Esn == true;
     public bool IsUnlocked => Esn == false;
     public bool IsSelectable => !Blocked;
+    private static readonly Avalonia.Media.IBrush Amber = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#e8a23a")), Red = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#ef6b62"));
+    /// <summary>The lock of an ESN-locked map: amber while it can be picked, red when it is dimmed because it cannot be used.</summary>
+    public Avalonia.Media.IBrush LockBrush => Blocked ? Red : Amber;
     public override string ToString() => Display;
 }
 
