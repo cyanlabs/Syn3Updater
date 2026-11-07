@@ -91,7 +91,13 @@ public class WindowsDriveService : IDriveService
           if ($d.IsOffline) { Set-Disk -Number $n -IsOffline $false }
           if ($d.IsReadOnly) { Set-Disk -Number $n -IsReadOnly $false }
           Clear-Disk -Number $n -RemoveData -RemoveOEM -Confirm:$false
-          Initialize-Disk -Number $n -PartitionStyle MBR
+          # Clear-Disk normally makes the disk RAW, but some USB controllers leave the
+          # existing partition style in place. Initialize-Disk only accepts RAW disks.
+          # Keep MBR as-is in that case; any other initialized style has no partitions
+          # after Clear-Disk and can safely be converted to MBR.
+          $style = [string](Get-Disk -Number $n).PartitionStyle
+          if ($style -eq 'RAW') { Initialize-Disk -Number $n -PartitionStyle MBR }
+          elseif ($style -ne 'MBR') { Set-Disk -Number $n -PartitionStyle MBR -Confirm:$false }
           if ($keep -ne '' -and -not (Get-Volume -DriveLetter $keep -ErrorAction SilentlyContinue)) { $p = New-Partition -DiskNumber $n -UseMaximumSize -DriveLetter $keep }
           else { $p = New-Partition -DiskNumber $n -UseMaximumSize -AssignDriveLetter }
           Format-Volume -Partition $p -FileSystem exFAT -NewFileSystemLabel 'CYANLABS' -Confirm:$false -Force | Out-Null
