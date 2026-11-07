@@ -83,7 +83,10 @@ jobs:
           # tag (and a flat zip, see the release job); the real version stays in the release title.
           if [[ -n "$INPUT_LEGACY_TAG" && "$nightly" != "true" && "$GITHUB_REF_TYPE" != "tag" ]]; then
             if [[ "$INPUT_LEGACY_TAG" == "auto" ]]; then
-              used="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1000 --json tagName -q '.[].tagName' | sed -n 's/^2\.99\.99\.\([0-9][0-9]*\)$/\1/p' | sort -n | tail -n1)"
+              # numbers already taken by a release OR by a tag: deleting a release leaves its tag behind, and the check below refuses a tag that exists
+              used="$({ gh release list --repo "$GITHUB_REPOSITORY" --limit 1000 --json tagName -q '.[].tagName'
+                        git ls-remote --tags origin 'refs/tags/2.99.99.*' | sed 's:.*refs/tags/::' || true; } \
+                      | sed -n 's/^2\.99\.99\.\([0-9][0-9]*\)$/\1/p' | sort -n | tail -n1)"
               next=$(( ${used:-0} + 1 ))
               if (( next > 999 )); then echo "::error::2.99.99.1 to 2.99.99.999 are all used; pass an explicit legacy_tag"; exit 1; fi
               legacy="2.99.99.$next"
