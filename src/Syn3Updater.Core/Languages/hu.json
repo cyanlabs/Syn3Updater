@@ -301,6 +301,8 @@
   "Home.MapEsnOpen": "Nem ESN-hez kötött",
   "Home.MapEsnBlockedOnlyMaps": "ESN-hez kötött · teljes kiadás kell hozzá, nem „{0}”",
   "Home.OpenStatusPage": "Állapotoldal megnyitása",
+  "App.NoConnectionBanner": "Nincs kapcsolat a CyanLabsszel. Ellenőrizze az internetkapcsolatot.",
+  "App.NoConnectionRetry": "Újrapróbálás most",
   "Diag.Intro": "Ellenőrzi, hogy ez a számítógép rendelkezik-e mindennel, amire a Syn3 Updaternek szüksége van egy USB meghajtó előkészítéséhez. Semmi nem változik.",
   "Diag.RunAgain": "Futtatás újra",
   "Diag.CopyReport": "Jelentés másolása",

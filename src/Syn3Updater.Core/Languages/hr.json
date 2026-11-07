@@ -301,6 +301,8 @@
   "Home.MapEsnOpen": "Nije ESN zaključano",
   "Home.MapEsnBlockedOnlyMaps": "ESN zaključano · zahtijeva potpuno izdanje, ne „{0}”",
   "Home.OpenStatusPage": "Otvori stranicu statusa",
+  "App.NoConnectionBanner": "Nema veze s CyanLabsom. Provjerite internetsku vezu.",
+  "App.NoConnectionRetry": "Pokušaj sada",
   "Diag.Intro": "Provjerava ima li ovo računalo sve što Syn3 Updater treba za pripremu USB pogona. Ništa se ne mijenja.",
   "Diag.RunAgain": "Pokreni ponovno",
   "Diag.CopyReport": "Kopiraj izvješće",

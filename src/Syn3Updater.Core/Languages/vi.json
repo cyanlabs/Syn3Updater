@@ -301,6 +301,8 @@
   "Home.MapEsnOpen": "Không khóa theo ESN",
   "Home.MapEsnBlockedOnlyMaps": "Khóa theo ESN · cần bản phát hành đầy đủ, không phải “{0}”",
   "Home.OpenStatusPage": "Mở trang trạng thái",
+  "App.NoConnectionBanner": "Không có kết nối tới CyanLabs. Hãy kiểm tra kết nối Internet của bạn.",
+  "App.NoConnectionRetry": "Thử lại ngay",
   "Diag.Intro": "Kiểm tra xem máy tính này có những gì Syn3 Updater cần để chuẩn bị ổ USB hay không. Không có gì bị thay đổi.",
   "Diag.RunAgain": "Chạy lại",
   "Diag.CopyReport": "Sao chép báo cáo",

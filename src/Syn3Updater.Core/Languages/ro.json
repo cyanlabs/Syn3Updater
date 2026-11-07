@@ -301,6 +301,8 @@
   "Home.MapEsnOpen": "Fără blocare ESN",
   "Home.MapEsnBlockedOnlyMaps": "Blocat ESN · necesită o versiune completă, nu „{0}”",
   "Home.OpenStatusPage": "Deschide pagina de stare",
+  "App.NoConnectionBanner": "Nu există conexiune la CyanLabs. Verificați conexiunea la internet.",
+  "App.NoConnectionRetry": "Reîncearcă acum",
   "Diag.Intro": "Verifică dacă acest computer are ce îi trebuie lui Syn3 Updater pentru a pregăti o unitate USB. Nu se modifică nimic.",
   "Diag.RunAgain": "Rulează din nou",
   "Diag.CopyReport": "Copiază raportul",

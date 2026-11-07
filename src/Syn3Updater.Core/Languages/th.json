@@ -301,6 +301,8 @@
   "Home.MapEsnOpen": "ไม่ล็อกด้วย ESN",
   "Home.MapEsnBlockedOnlyMaps": "ล็อกด้วย ESN · ต้องใช้รุ่นเต็ม ไม่ใช่ “{0}”",
   "Home.OpenStatusPage": "เปิดหน้าสถานะ",
+  "App.NoConnectionBanner": "ไม่มีการเชื่อมต่อกับ CyanLabs ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณ",
+  "App.NoConnectionRetry": "ลองใหม่ตอนนี้",
   "Diag.Intro": "ตรวจสอบว่าคอมพิวเตอร์เครื่องนี้มีสิ่งที่ Syn3 Updater ต้องใช้เตรียมไดรฟ์ USB หรือไม่ ไม่มีการเปลี่ยนแปลงใด ๆ",
   "Diag.RunAgain": "เรียกใช้อีกครั้ง",
   "Diag.CopyReport": "คัดลอกรายงาน",

@@ -301,6 +301,8 @@
   "Home.MapEsnOpen": "Ikke ESN-låst",
   "Home.MapEsnBlockedOnlyMaps": "ESN-låst · kræver en komplet version, ikke ”{0}”",
   "Home.OpenStatusPage": "Åbn statussiden",
+  "App.NoConnectionBanner": "Ingen forbindelse til CyanLabs. Kontrollér din internetforbindelse.",
+  "App.NoConnectionRetry": "Prøv igen nu",
   "Diag.Intro": "Kontrollerer, at denne computer har det, Syn3 Updater skal bruge for at forberede et USB-drev. Intet ændres.",
   "Diag.RunAgain": "Kør igen",
   "Diag.CopyReport": "Kopiér rapport",

@@ -301,6 +301,8 @@
   "Home.MapEsnOpen": "Niet ESN-vergrendeld",
   "Home.MapEsnBlockedOnlyMaps": "ESN-vergrendeld · vereist een volledige release, niet ‘{0}’",
   "Home.OpenStatusPage": "Statuspagina openen",
+  "App.NoConnectionBanner": "Geen verbinding met CyanLabs. Controleer uw internetverbinding.",
+  "App.NoConnectionRetry": "Nu opnieuw proberen",
   "Diag.Intro": "Controleert of deze computer heeft wat Syn3 Updater nodig heeft om een USB-schijf voor te bereiden. Er wordt niets gewijzigd.",
   "Diag.RunAgain": "Opnieuw uitvoeren",
   "Diag.CopyReport": "Rapport kopiëren",

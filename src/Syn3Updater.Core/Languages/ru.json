@@ -301,6 +301,8 @@
   "Home.MapEsnOpen": "Не привязана к ESN",
   "Home.MapEsnBlockedOnlyMaps": "Привязана к ESN · требуется полный релиз, а не «{0}»",
   "Home.OpenStatusPage": "Открыть страницу состояния",
+  "App.NoConnectionBanner": "Нет связи с CyanLabs. Проверьте подключение к интернету.",
+  "App.NoConnectionRetry": "Повторить сейчас",
   "Diag.Intro": "Проверяет, есть ли на этом компьютере всё необходимое для подготовки USB-накопителя. Ничего не изменяется.",
   "Diag.RunAgain": "Запустить снова",
   "Diag.CopyReport": "Копировать отчёт",

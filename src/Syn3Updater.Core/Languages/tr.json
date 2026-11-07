@@ -301,6 +301,8 @@
   "Home.MapEsnOpen": "ESN kilitli değil",
   "Home.MapEsnBlockedOnlyMaps": "ESN kilitli · tam sürüm gerekir, “{0}” değil",
   "Home.OpenStatusPage": "Durum sayfasını aç",
+  "App.NoConnectionBanner": "CyanLabs'e bağlantı yok. İnternet bağlantınızı kontrol edin.",
+  "App.NoConnectionRetry": "Şimdi yeniden dene",
   "Diag.Intro": "Bu bilgisayarın bir USB sürücü hazırlamak için Syn3 Updater'ın ihtiyaç duyduğu her şeye sahip olup olmadığını denetler. Hiçbir şey değiştirilmez.",
   "Diag.RunAgain": "Yeniden çalıştır",
   "Diag.CopyReport": "Raporu kopyala",

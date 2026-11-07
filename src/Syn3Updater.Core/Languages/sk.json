@@ -301,6 +301,8 @@
   "Home.MapEsnOpen": "Neuzamknuté ESN",
   "Home.MapEsnBlockedOnlyMaps": "Uzamknuté ESN · vyžaduje úplné vydanie, nie „{0}“",
   "Home.OpenStatusPage": "Otvoriť stavovú stránku",
+  "App.NoConnectionBanner": "Žiadne pripojenie k CyanLabs. Skontrolujte pripojenie na internet.",
+  "App.NoConnectionRetry": "Skúsiť znova",
   "Diag.Intro": "Kontroluje, či má tento počítač všetko, čo Syn3 Updater potrebuje na prípravu USB disku. Nič sa nemení.",
   "Diag.RunAgain": "Spustiť znova",
   "Diag.CopyReport": "Kopírovať správu",

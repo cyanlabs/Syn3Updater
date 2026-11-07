@@ -301,6 +301,8 @@
   "Home.MapEsnOpen": "Ei ESN-lukittu",
   "Home.MapEsnBlockedOnlyMaps": "ESN-lukittu · vaatii täyden version, ei ”{0}”",
   "Home.OpenStatusPage": "Avaa tilasivu",
+  "App.NoConnectionBanner": "Ei yhteyttä CyanLabsiin. Tarkista internetyhteytesi.",
+  "App.NoConnectionRetry": "Yritä nyt uudelleen",
   "Diag.Intro": "Tarkistaa, että tietokoneellasi on kaikki, mitä Syn3 Updater tarvitsee USB-aseman valmisteluun. Mitään ei muuteta.",
   "Diag.RunAgain": "Suorita uudelleen",
   "Diag.CopyReport": "Kopioi raportti",

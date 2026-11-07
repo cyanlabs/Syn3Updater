@@ -301,6 +301,8 @@
   "Home.MapEsnOpen": "Não bloqueado por ESN",
   "Home.MapEsnBlockedOnlyMaps": "Bloqueado por ESN · requer uma versão completa, não «{0}»",
   "Home.OpenStatusPage": "Abrir página de status",
+  "App.NoConnectionBanner": "Sem conexão com a CyanLabs. Verifique a sua conexão com a Internet.",
+  "App.NoConnectionRetry": "Tentar agora",
   "Diag.Intro": "Verifica se este computador tem o que o Syn3 Updater precisa para preparar uma unidade USB. Nada é alterado.",
   "Diag.RunAgain": "Executar novamente",
   "Diag.CopyReport": "Copiar relatório",

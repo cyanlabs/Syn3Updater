@@ -301,6 +301,8 @@
   "Home.MapEsnOpen": "未鎖定 ESN",
   "Home.MapEsnBlockedOnlyMaps": "已鎖定 ESN · 需要完整版本，而不是「{0}」",
   "Home.OpenStatusPage": "開啟狀態頁",
+  "App.NoConnectionBanner": "無法連線到 CyanLabs。請檢查您的網路連線。",
+  "App.NoConnectionRetry": "立即重試",
   "Diag.Intro": "檢查這台電腦是否具備 Syn3 Updater 準備 USB 磁碟機所需的條件。不會變更任何內容。",
   "Diag.RunAgain": "重新執行",
   "Diag.CopyReport": "複製報告",
