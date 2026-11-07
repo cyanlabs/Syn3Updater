@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<p:OTAModuleSnapShot xmlns:d2p1="urn:ford/Vehicle/Module/Information/v3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="urn:ford/com/productdesign/ipp/ModuleSnapshot/v2.0" version="2024-10-07" xsi:schemaLocation="urn:ford/Vehicle/Module/Information/v3.0 ModuleSnapshot.xsd">
+<p:VIN>XXXXXXXXXXXXXXXXX</p:VIN>
+<p:ModuleName>ECU</p:ModuleName>
+<p:RequestRole>
+<d2p1:Role>CONSUMER</d2p1:Role>
+<d2p1:RoleSource>OTA</d2p1:RoleSource>
+<d2p1:RoleDesc>SYNCGEN3</d2p1:RoleDesc>
+<d2p1:RoleID>OTA</d2p1:RoleID>
+</p:RequestRole>
+<p:BroadcastDTCType/>
+<p:Node isFlashed="false" specificationCategory="GGDS">
+<d2p1:Address>7D0</d2p1:Address>
+<d2p1:ECUAcronym name="APIM">
+<d2p1:State>
+<d2p1:Gateway gatewayType="NONE">
+<d2p1:DID didFormat="ASCII" didType="Embedded Consumer Operating System Part Number" didValue="8033" responseLength="24">
+<d2p1:Response>NU5T-14G381-AD</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="Packeted" didType="Embedded Consumer Applications Part Numbers 1" didValue="8060" responseLength="384">
+<d2p1:Response>315535542d3134473432312d424147000000000000000000315535542d3134473432312d424247000000000000000000315535542d3134473432312d424347000000000000000000315535542d3134473432312d424447000000000000000000315535542d3134473432312d424547000000000000000000315535542d3134473432312d424647000000000000000000315535542d3134473432312d424747000000000000000000315535542d3134473432312d424847000000000000000000315535542d3134473432312d424a47000000000000000000315535542d3134473635382d414800000000000000000000315535542d3134473432342d424d00000000000000000000345535542d3134473432332d414300000000000000000000355535542d3134473339312d415400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="Packeted" didType="Embedded Consumer Applications Part Numbers 1" didValue="8061" responseLength="384">
+<d2p1:Response>000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="HEX" didType="ECU Checksum 1" didValue="D704" responseLength="4">
+<d2p1:Response>00490caf</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="HEX" didType="ECU Checksum 2" didValue="D705" responseLength="4">
+<d2p1:Response>d287f2a4</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didType="Direct Configuraation DID DE00" didValue="DE00">
+<d2p1:Response>4551544bf34c29864dcb</d2p1:Response>
+<d2p1:IsConfig>true</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didType="Direct Configuraation DID DE01" didValue="DE01">
+<d2p1:Response>5123500bf39a6860f3899aa0</d2p1:Response>
+<d2p1:IsConfig>true</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didType="Direct Configuraation DID DE02" didValue="DE02">
+<d2p1:Response>9dc8481366</d2p1:Response>
+<d2p1:IsConfig>true</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didType="Direct Configuraation DID DE03" didValue="DE03">
+<d2p1:Response>e04f71427c9b85</d2p1:Response>
+<d2p1:IsConfig>true</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didType="Direct Configuraation DID DE04" didValue="DE04">
+<d2p1:Response>0b742c1873c6</d2p1:Response>
+<d2p1:IsConfig>true</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didType="Direct Configuraation DID DE05" didValue="DE05">
+<d2p1:Response>f5</d2p1:Response>
+<d2p1:IsConfig>true</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didType="Direct Configuraation DID DE06" didValue="DE06">
+<d2p1:Response>478ddef5ef846e05aa9a4f47add2c43d</d2p1:Response>
+<d2p1:IsConfig>true</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="ASCII" didType="On-line Diagnostic Database Reference Number" didValue="F110" responseLength="24">
+<d2p1:Response>DS-1U5T-14G371-EK</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="ASCII" didType="ECU Core Assembly Number" didValue="F111" responseLength="24">
+<d2p1:Response>GU5T-14G380-FE</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="ASCII" didType="ECU Delivery Assembly Number" didValue="F113" responseLength="24">
+<d2p1:Response>5U5T-14G371-BKC</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="ASCII" didType="ECU Calibration Data #1 Number" didValue="F124" responseLength="24">
+<d2p1:Response>1U5T-14G375-HA</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="ASCII" didType="Private Sub Node #1 Serial Number" didValue="F141" responseLength="16">
+<d2p1:Response>00000000</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="State Encoded" didType="Software Download Specification Version" didValue="F162" responseLength="1">
+<d2p1:Response>Blank</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="State Encoded" didType="Diagnostic Specification Version" didValue="F163" responseLength="1">
+<d2p1:Response>03</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="ASCII" didType="Vehicle Manufacturer ECU Software Number" didValue="F188" responseLength="24">
+<d2p1:Response>1U5T-14G374-EK</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="ASCII" didType="ECU Serial Number" didValue="F18C" responseLength="16">
+<d2p1:Response/>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="HEX" didType="ECU MAC Address 1" didValue="F1D0" responseLength="6">
+<d2p1:Response>00:00:00:00:00:01</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+<d2p1:DID didFormat="HEX" didType="ECU MAC Address 2" didValue="F1D1" responseLength="6">
+<d2p1:Response>00:00:00:00:00:02</d2p1:Response>
+<d2p1:IsConfig>false</d2p1:IsConfig>
+</d2p1:DID>
+</d2p1:Gateway>
+</d2p1:State>
+</d2p1:ECUAcronym>
+<d2p1:ODLNetwork d2p1:NetworkDataRate="500" d2p1:NetworkName="HS-CAN" d2p1:NetworkProtocol="CAN" d2p1:DLCName="SAE J1962" d2p1:Pins="6,14"/>
+<d2p1:AdditionalAttributes logGeneratedDateTime="2024-10-07T10:35:00+00:00" RAM="1006804992" vmcuVersion="Vector_VMCU_05.04.25">
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="1.1G" available="676K"/>
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="2.9G" available="15M"/>
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="2.7G" available="16M"/>
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="2.4G" available="14M"/>
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="2.4G" available="16M"/>
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="1.5G" available="7.6M"/>
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="1.5G" available="9.3M"/>
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="2.3G" available="17M"/>
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="2.2G" available="18M"/>
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="3.7G" available="24M"/>
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="38M" available="308K"/>
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="3.3G" available="4.5M"/>
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="3.2G" available="8.4M"/>
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="3.2G" available="26M"/>
+<d2p1:PartitionHealth type="/fs/sd/MAP/" total="3.6G" available="29M"/>
+<d2p1:PartitionHealth type="/fs/Nuance/" total="1.9G" available="8.4M"/>
+<d2p1:PartitionHealth type="/fs/Nuance/grace" total="1003M" available="21M"/>
+<d2p1:PartitionHealth type="/fs/rwdata/" total="1.2G" available="837M"/>
+<d2p1:PartitionHealth type="/fs/rwdata/quip/" total="35M" available="35M"/>
+<d2p1:PartitionHealth type="/fs/rwdata/quip/" total="90M" available="90M"/>
+<d2p1:PartitionHealth type="/fs/mp/" total="1.4G" available="84M"/>
+<d2p1:PartitionHealth type="/fs/mp/resources" total="72M" available="332K"/>
+<d2p1:PartitionHealth type="/fs/images/" total="54G" available="13G"/>
+<d2p1:InstallationLog/>
+<d2p1:SyncData>U0FOSVRJWkVE</d2p1:SyncData>
+</d2p1:AdditionalAttributes>
+</p:Node>
+</p:OTAModuleSnapShot>

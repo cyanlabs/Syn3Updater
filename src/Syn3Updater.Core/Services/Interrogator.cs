@@ -11,6 +11,9 @@ public class DidEntry { public string Type = ""; public string Value = ""; publi
 
 public class InterrogatorResult
 {
+    /// <summary>What <see cref="ApimModel"/> holds when the log has no "ECU Delivery Assembly Number" (some logs carry none).</summary>
+    public const string UnknownModel = "Unknown";
+    public bool ModelKnown => ApimModel != UnknownModel;
     public string Vin = "";
     public string ApimModel = "";
     public string SoftwareName = "";          // "Embedded Consumer Operating System Part Number"
@@ -22,6 +25,23 @@ public class InterrogatorResult
     public List<string> Packages = new();
     public List<DidEntry> AsBuilt = new();
     public XDocument? AsBuiltXml;
+}
+
+/// <summary>One partition of the APIM as the Home/Utility result shows it: how full it is, with the sizes as the log wrote them ("21M", "3.7G").</summary>
+public record PartitionUsage(string Path, string Free, string Total, double Used);
+
+/// <summary>The sizes in an Interrogator log: a number and a unit letter, "396K", "5.7M", "1.2G", "54G".</summary>
+public static class SizeText
+{
+    /// <summary>The size in bytes (units are powers of 1024), or null when the text is not a size.</summary>
+    public static double? ToBytes(string? text)
+    {
+        var t = (text ?? "").Trim();
+        if (t.Length < 2) return null;
+        var scale = char.ToUpperInvariant(t[^1]) switch { 'B' => 1d, 'K' => 1024d, 'M' => 1024d * 1024, 'G' => 1024d * 1024 * 1024, 'T' => 1024d * 1024 * 1024 * 1024, _ => 0d };
+        if (scale == 0 || !double.TryParse(t[..^1], NumberStyles.Float, CultureInfo.InvariantCulture, out var n) || n < 0) return null;
+        return n * scale;
+    }
 }
 
 public class InterrogatorException(string message) : Exception(message);
@@ -54,7 +74,7 @@ public static class Interrogator
         r.SoftwareName = dids.FirstOrDefault(d => d.Type == "Embedded Consumer Operating System Part Number")?.Response ?? "";
         r.ApimModel = dids.FirstOrDefault(d => d.Type == "ECU Delivery Assembly Number")?.Response ?? "";
         if (r.ApimModel == "" && requireModel) throw new InterrogatorException("MODEL_NOT_FOUND");
-        if (r.ApimModel == "") r.ApimModel = "Unknown";
+        if (r.ApimModel == "") r.ApimModel = InterrogatorResult.UnknownModel;
 
         var attrs = Q(root, "AdditionalAttributes");
         if (DateTimeOffset.TryParse((string?)attrs?.Attribute("logGeneratedDateTime"), CultureInfo.InvariantCulture, DateTimeStyles.None, out var gen)) r.Generated = gen;
@@ -97,6 +117,18 @@ public static class Interrogator
                 new XAttribute("MODULE", "Syn3Updater"), new XAttribute("VIN", ""),
                 new XAttribute("VEHICLE_ID", r.ApimModel), new XAttribute("VEHICLE_YEAR", r.Generated?.ToString() ?? ""),
                 r.AsBuilt.Select(d => new XElement("DID", new XAttribute("ID", d.Value), d.Response.ToUpperInvariant())))));
+
+    /// <summary>Every partition with the share of it that is used (0 to 1; 0 when a size cannot be read), in the order of the log.</summary>
+    public static List<PartitionUsage> Usage(InterrogatorResult r) =>
+        r.Partitions.Select(x =>
+        {
+            var free = SizeText.ToBytes(x.Available); var total = SizeText.ToBytes(x.Total);
+            var used = free is { } f && total is > 0 ? Math.Clamp(1 - f / total.Value, 0, 1) : 0;
+            return new PartitionUsage(x.Type, x.Available, x.Total, used);
+        }).ToList();
+
+    /// <summary>The installed package numbers, without the empty entries the 00-padded hex leaves behind.</summary>
+    public static List<string> PackageList(InterrogatorResult r) => r.Packages.Where(p => !string.IsNullOrWhiteSpace(p)).ToList();
 
     /// <summary>Human readable summary blocks (details, partitions + packages, as-built), like upstream's three text panes.</summary>
     public static (string Details, string Partitions, string AsBuilt) Describe(InterrogatorResult r, string? friendlyVersion)
