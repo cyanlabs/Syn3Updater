@@ -185,15 +185,94 @@ public class InstallDetectorTests : IDisposable
         Assert.Contains(reason, info.Reason);
     }
 
+    private const string Url = "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0/";
+
     [Fact]
     public void Instructions_name_the_right_command()
     {
-        Assert.Equal("sudo apt install ./a.deb", InstallDetector.ManualInstructions(InstallKind.LinuxDeb, "a.deb"));
+        Assert.Equal("sudo apt install ./a.deb", InstallDetector.ManualInstructions(InstallKind.LinuxDeb, "a.deb"));            // no address known: just the install command
         Assert.StartsWith("sudo dnf install ./a.rpm", InstallDetector.ManualInstructions(InstallKind.LinuxRpm, "a.rpm"));
-        Assert.Contains("yay -Syu syn3updater-bin", InstallDetector.ManualInstructions(InstallKind.LinuxPacman, null));
-        Assert.Contains("pacman -U", InstallDetector.ManualInstructions(InstallKind.LinuxPacman, "a.pkg.tar.zst"));
+        Assert.Contains("sudo zypper install ./a.rpm", InstallDetector.ManualInstructions(InstallKind.LinuxRpm, "a.rpm"));
+        Assert.Equal("sudo pacman -U a.pkg.tar.zst", InstallDetector.ManualInstructions(InstallKind.LinuxPacman, "a.pkg.tar.zst"));
+        Assert.DoesNotContain("yay", InstallDetector.ManualInstructions(InstallKind.LinuxPacman, "a.pkg.tar.zst"));
         Assert.Contains("github.com/CyanLabs/Syn3Updater/releases", InstallDetector.ManualInstructions(InstallKind.LinuxPortable, null));
     }
+
+    [Theory]
+    [InlineData(InstallKind.LinuxDeb, "a.deb", "sudo apt install ./a.deb")]
+    [InlineData(InstallKind.LinuxRpm, "a.rpm", "sudo dnf install ./a.rpm")]
+    [InlineData(InstallKind.LinuxPacman, "a.pkg.tar.zst", "sudo pacman -U a.pkg.tar.zst")]
+    public void Every_package_manager_is_told_to_download_the_file_first_with_curl(InstallKind kind, string file, string install)
+    {
+        var lines = InstallDetector.ManualInstructions(kind, file, Url + file).Split('\n');
+        Assert.Equal($"curl -LO {Url}{file}", lines[0]); Assert.StartsWith(install, lines[1]);
+        Assert.DoesNotContain("(", string.Concat(lines));                                              // nothing run together in brackets
+    }
+
+    [Fact]
+    public void The_rpm_instructions_give_one_line_per_distro_family_after_the_download()
+    {
+        var lines = InstallDetector.ManualInstructions(InstallKind.LinuxRpm, "a.rpm", Url + "a.rpm").Split('\n');
+        Assert.Equal(3, lines.Length);
+        Assert.StartsWith("sudo dnf install ./a.rpm", lines[1]); Assert.EndsWith("# Fedora, RHEL", lines[1]);
+        Assert.StartsWith("sudo zypper install ./a.rpm", lines[2]); Assert.EndsWith("# openSUSE", lines[2]);
+    }
+
+    [Theory]
+    [InlineData(InstallKind.LinuxDeb, "a.deb", "curl -LO " + Url + "a.deb && sudo apt install ./a.deb")]
+    [InlineData(InstallKind.LinuxRpm, "a.rpm", "curl -LO " + Url + "a.rpm && sudo dnf install ./a.rpm")]
+    [InlineData(InstallKind.LinuxPacman, "a.pkg.tar.zst", "curl -LO " + Url + "a.pkg.tar.zst && sudo pacman -U a.pkg.tar.zst")]
+    public void Copy_command_copies_the_download_and_the_install_as_one_line_without_notes(InstallKind kind, string file, string expected) =>
+        Assert.Equal(expected, InstallDetector.PrimaryCommand(InstallDetector.ManualInstructions(kind, file, Url + file)));
+
+    [Fact]
+    public void Without_a_known_address_copy_command_copies_just_the_install_command() =>
+        Assert.Equal("sudo apt install ./a.deb", InstallDetector.PrimaryCommand(InstallDetector.ManualInstructions(InstallKind.LinuxDeb, "a.deb")));
+
+    private const string Dmg = "Syn3Updater-3.1.0-macos-arm64.dmg";
+
+    [Fact]
+    public void The_Mac_instructions_download_mount_copy_and_unmount_the_disk_image_one_command_per_line()
+    {
+        var lines = InstallDetector.ManualInstructions(InstallKind.MacApp, Dmg, Url + Dmg).Split('\n');
+        Assert.Equal(new[]
+        {
+            $"curl -LO {Url}{Dmg}", $"hdiutil attach -nobrowse -quiet {Dmg}",
+            "ditto \"/Volumes/Syn3 Updater/Syn3 Updater.app\" \"/Applications/Syn3 Updater.app\"", "hdiutil detach -quiet \"/Volumes/Syn3 Updater\""
+        }, lines);
+    }
+
+    [Fact]
+    public void Copy_command_for_a_Mac_copies_all_four_steps_as_one_line() =>
+        Assert.Equal($"curl -LO {Url}{Dmg} && hdiutil attach -nobrowse -quiet {Dmg} && ditto \"/Volumes/Syn3 Updater/Syn3 Updater.app\" \"/Applications/Syn3 Updater.app\" && hdiutil detach -quiet \"/Volumes/Syn3 Updater\"",
+            InstallDetector.PrimaryCommand(InstallDetector.ManualInstructions(InstallKind.MacApp, Dmg, Url + Dmg)));
+
+    [Fact]
+    public void A_Mac_release_with_no_disk_image_falls_back_to_the_download_page()
+    {
+        var text = InstallDetector.ManualInstructions(InstallKind.MacApp, null, null);
+        Assert.Equal(InstallDetector.ReleasesPage, text); Assert.Null(InstallDetector.PrimaryCommand(text));
+        Assert.Equal(InstallDetector.ManualStyle.Download, InstallDetector.ManualStyleFor(InstallKind.MacApp, text));
+    }
+
+    [Theory]
+    [InlineData(InstallKind.LinuxDeb, InstallDetector.ManualStyle.PackageManager)]
+    [InlineData(InstallKind.LinuxRpm, InstallDetector.ManualStyle.PackageManager)]
+    [InlineData(InstallKind.LinuxPacman, InstallDetector.ManualStyle.PackageManager)]
+    [InlineData(InstallKind.MacApp, InstallDetector.ManualStyle.Mac)]
+    [InlineData(InstallKind.LinuxPortable, InstallDetector.ManualStyle.Download)]
+    [InlineData(InstallKind.LinuxSystemUnknown, InstallDetector.ManualStyle.Download)]
+    [InlineData(InstallKind.WindowsPortable, InstallDetector.ManualStyle.Download)]
+    [InlineData(InstallKind.Unknown, InstallDetector.ManualStyle.Download)]
+    public void Each_install_gets_the_wording_that_matches_how_it_is_updated(InstallKind kind, InstallDetector.ManualStyle expected)
+    {
+        var file = kind == InstallKind.MacApp ? Dmg : "a.pkg";
+        Assert.Equal(expected, InstallDetector.ManualStyleFor(kind, InstallDetector.ManualInstructions(kind, file, Url + file)));
+    }
+
+    [Fact]
+    public void A_sentence_is_not_offered_as_a_command_to_copy() =>
+        Assert.Null(InstallDetector.PrimaryCommand(InstallDetector.ManualInstructions(InstallKind.LinuxPortable, null)));
 
     [Fact]
     public void The_running_test_process_is_detected_without_throwing()

@@ -166,12 +166,53 @@ public static class InstallDetector
         catch (IOException) { return path; }
     }
 
-    /// <summary>What to tell someone whose install the app will not touch: the exact command, or where to download.</summary>
-    public static string ManualInstructions(InstallKind kind, string? fileName) => kind switch
+    /// <summary>
+    /// What to tell someone whose install the app will not touch: a <c>curl</c> line that downloads the package (when its address is known), then the install command
+    /// (one line per distro family when they differ, each with a short "# note"), or, when there is no command, a sentence saying where to download.
+    /// The address comes from the signed manifest, which only allows this repository's release downloads, so it is safe to put in a shell command.
+    /// </summary>
+    public static string ManualInstructions(InstallKind kind, string? fileName, string? url = null)
     {
-        InstallKind.LinuxDeb => $"sudo apt install ./{fileName ?? "<downloaded .deb>"}",
-        InstallKind.LinuxRpm => $"sudo dnf install ./{fileName ?? "<downloaded .rpm>"}      (openSUSE: sudo zypper install ./{fileName ?? "<downloaded .rpm>"})",
-        InstallKind.LinuxPacman => $"yay -Syu syn3updater-bin      (installed the release package instead: sudo pacman -U {fileName ?? "<downloaded package>"})",
-        _ => "Download the new version from https://github.com/" + UpdateChecker.Repo + "/releases and install it the same way as before."
-    };
+        var download = url != null && fileName != null ? $"curl -LO {url}\n" : "";
+        var file = fileName ?? "<downloaded package>";
+        return kind switch
+        {
+            InstallKind.LinuxDeb => download + $"sudo apt install ./{fileName ?? "<downloaded .deb>"}",
+            InstallKind.LinuxRpm => download + $"sudo dnf install ./{fileName ?? "<downloaded .rpm>"}          # Fedora, RHEL\nsudo zypper install ./{fileName ?? "<downloaded .rpm>"}          # openSUSE",
+            InstallKind.LinuxPacman => download + $"sudo pacman -U {file}",
+            // the disk image mounts as "Syn3 Updater" (scripts/package-macos.sh). curl does not mark the file as downloaded from the internet, so Gatekeeper does not block the copy
+            InstallKind.MacApp when download.Length > 0 => download + $"hdiutil attach -nobrowse -quiet {fileName}\nditto \"/Volumes/Syn3 Updater/Syn3 Updater.app\" \"/Applications/Syn3 Updater.app\"\nhdiutil detach -quiet \"/Volumes/Syn3 Updater\"",
+            _ => ReleasesPage
+        };
+    }
+
+    /// <summary>Where new versions can be downloaded: what a copy that no package manager owns is pointed at.</summary>
+    public const string ReleasesPage = "https://github.com/" + UpdateChecker.Repo + "/releases";
+
+    /// <summary>
+    /// What "Copy command" puts on the clipboard: the commands that must all run, joined with <c>&amp;&amp;</c> so one paste does everything (notes removed). Lines that are alternatives
+    /// for different systems carry a "# note": only the first of those is included. Null when the instructions are a sentence or an address, not commands.
+    /// </summary>
+    public static string? PrimaryCommand(string? instructions)
+    {
+        var commands = new List<string>();
+        foreach (var line in (instructions ?? "").Split('\n'))
+        {
+            var text = line; var hash = text.IndexOf("  #", StringComparison.Ordinal); var noted = hash >= 0;
+            if (noted) text = text[..hash];
+            text = text.Trim();
+            if (!(text.StartsWith("curl ", StringComparison.Ordinal) || text.StartsWith("sudo ", StringComparison.Ordinal) || text.StartsWith("hdiutil ", StringComparison.Ordinal) || text.StartsWith("ditto ", StringComparison.Ordinal))) continue;
+            commands.Add(text);
+            if (noted) break;
+        }
+        return commands.Count == 0 ? null : string.Join(" && ", commands);
+    }
+
+    /// <summary>Which wording tells the user how to update a copy the app will not update itself.</summary>
+    public enum ManualStyle { PackageManager, Mac, Download }
+
+    public static ManualStyle ManualStyleFor(InstallKind kind, string? instructions) =>
+        kind is InstallKind.LinuxDeb or InstallKind.LinuxRpm or InstallKind.LinuxPacman ? ManualStyle.PackageManager
+        : kind == InstallKind.MacApp && PrimaryCommand(instructions) != null ? ManualStyle.Mac
+        : ManualStyle.Download;
 }

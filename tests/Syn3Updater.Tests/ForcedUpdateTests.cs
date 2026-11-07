@@ -161,6 +161,60 @@ public class ForcedUpdateTests
     }
 
     [AvaloniaFact]
+    public async Task The_Arch_dialog_is_laid_out_as_a_request_then_the_reason_then_the_commands_then_the_maintainers_message()
+    {
+        using var e = new Env(); e.Serve(message: "Test of required updates");
+        var (plan, _, _, _) = e.Inner.Scenario(); Ctx.Install = Pkg(InstallKind.LinuxPacman);
+        const string file = "Syn3Updater-3.1.0-linux-x64.pkg.tar.zst", url = "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0/" + file;
+        e.Plan(plan with { Kind = PlanKind.Manual, Install = Pkg(InstallKind.LinuxPacman), Instructions = InstallDetector.ManualInstructions(InstallKind.LinuxPacman, file, url) });
+        e.App.Dialogs.Choices.Enqueue(0); e.App.Dialogs.Choices.Enqueue(2);          // Copy command, then Quit
+        await e.App.Main.EnforceMinimumAsync();
+        var lines = e.App.Dialogs.Messages[0].Split('\n');
+        Assert.Equal("Please update Syn3 Updater to continue.", lines[0]);
+        Assert.StartsWith("Version 3.0.5 or newer is required.", lines[2]); Assert.Contains("can't update itself", lines[2]);
+        Assert.Equal("curl -LO " + url, lines[4]); Assert.Equal("sudo pacman -U " + file, lines[5]);
+        Assert.Equal("Then start Syn3 Updater again.", lines[7]); Assert.Equal("Test of required updates", lines[9]);
+        Assert.Equal(new[] { $"curl -LO {url} && sudo pacman -U {file}" }, e.App.Dialogs.Clipboard);          // one paste downloads and installs
+    }
+
+    [AvaloniaFact]
+    public async Task A_copy_no_package_manager_owns_is_pointed_at_the_download_page_and_the_text_does_not_mention_a_package_manager()
+    {
+        using var e = new Env();
+        var (plan, _, _, _) = e.Inner.Scenario(); var portable = new InstallInfo(InstallKind.LinuxPortable, "/home/u/Downloads/x", UpdateRoute.Manual, "nothing installed this");
+        Ctx.Install = portable;
+        e.Plan(plan with { Kind = PlanKind.Manual, Install = portable, Instructions = InstallDetector.ManualInstructions(InstallKind.LinuxPortable, null) });
+        e.App.Dialogs.Choices.Enqueue(0); e.App.Dialogs.Choices.Enqueue(2);          // Copy command, then Quit
+        await e.App.Main.EnforceMinimumAsync();
+        var lines = e.App.Dialogs.Messages[0].Split('\n');
+        Assert.Equal("Please update Syn3 Updater to continue.", lines[0]);
+        Assert.Equal("Version 3.0.5 or newer is required. This copy can't update itself because of how it was installed. Download the new version here:", lines[2]);
+        Assert.Equal("https://github.com/CyanLabs/Syn3Updater/releases", lines[4]);
+        Assert.Equal("Install it the same way as before. Then start Syn3 Updater again.", lines[6]);
+        Assert.DoesNotContain("package manager", e.App.Dialogs.Messages[0]);
+        Assert.Equal(new[] { "https://github.com/CyanLabs/Syn3Updater/releases/tag/v3.1.0" }, e.App.Dialogs.Clipboard);          // no command to copy: the page for this release
+    }
+
+    [AvaloniaFact]
+    public async Task The_Mac_dialog_gives_the_Terminal_commands_and_the_steps_to_do_it_by_hand()
+    {
+        using var e = new Env();
+        var (plan, _, _, _) = e.Inner.Scenario(); var mac = new InstallInfo(InstallKind.MacApp, "/Applications/Syn3 Updater.app/Contents/MacOS", UpdateRoute.Manual, "in-place updates need a signed build");
+        Ctx.Install = mac;
+        const string file = "Syn3Updater-3.1.0-macos-arm64.dmg", url = "https://github.com/CyanLabs/Syn3Updater/releases/download/v3.1.0/" + file;
+        e.Plan(plan with { Kind = PlanKind.Manual, Install = mac, Instructions = InstallDetector.ManualInstructions(InstallKind.MacApp, file, url) });
+        e.App.Dialogs.Choices.Enqueue(0); e.App.Dialogs.Choices.Enqueue(2);          // Copy command, then Quit
+        await e.App.Main.EnforceMinimumAsync();
+        var lines = e.App.Dialogs.Messages[0].Split('\n');
+        Assert.Equal("Please update Syn3 Updater to continue.", lines[0]);
+        Assert.Equal("Version 3.0.5 or newer is required. The Mac app can't update itself yet. Quit Syn3 Updater, then update it using Terminal:", lines[2]);
+        Assert.Equal("curl -LO " + url, lines[4]); Assert.StartsWith("hdiutil attach", lines[5]); Assert.StartsWith("ditto ", lines[6]); Assert.StartsWith("hdiutil detach", lines[7]);
+        Assert.Equal("Or do it by hand: use View release to download the disk image, open it, and drag Syn3 Updater into your Applications folder, replacing the old copy.", lines[9]);
+        Assert.Equal("Then start Syn3 Updater again.", lines[11]);
+        Assert.StartsWith($"curl -LO {url} && hdiutil attach", e.App.Dialogs.Clipboard.Single()); Assert.EndsWith("hdiutil detach -quiet \"/Volumes/Syn3 Updater\"", e.App.Dialogs.Clipboard.Single());
+    }
+
+    [AvaloniaFact]
     public async Task A_failed_install_offers_to_try_again_and_the_second_try_succeeds()
     {
         if (OperatingSystem.IsWindows()) return;                    // runs a shell script: the Linux install path, never used on Windows
