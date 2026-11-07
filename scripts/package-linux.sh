@@ -75,7 +75,8 @@ if ((${#missing[@]})); then
   esac
   echo
   echo "Note: preparing a USB drive also needs: ${missing[*]}"
-  [[ -n "$hint" ]] && echo "  Install them with: $hint"
+  # an if, not `[[ ]] && echo`: with no hint for this distro that list would be the last command and make the whole script exit 1 although everything was installed
+  if [[ -n "$hint" ]]; then echo "  Install them with: $hint"; fi
 fi
 INST
 

@@ -151,6 +151,21 @@ public class LinuxTarApplierTests : IDisposable
                      File.GetUnixFileMode(Path.Combine(_xdg, "extracted")));            // 0755, whatever the archive said (it said 04777)
     }
 
+    /// <summary>
+    /// install.sh must exit 0 whenever everything was installed, including on a distro it has no package hint for. Its last command used to be `[[ -n "$hint" ]] && echo ...`, which returns 1
+    /// with no hint and so made a successful install look failed (and made the updater roll it back). macOS has no /etc/os-release, so the real-script test below also covers it there.
+    /// </summary>
+    [Fact]
+    public void The_install_script_does_not_end_on_a_conditional_that_can_make_it_exit_non_zero()
+    {
+        var packager = File.ReadAllText(FindRepoFile(Path.Combine("scripts", "package-linux.sh")));
+        var start = packager.IndexOf("<<'INST'\n", StringComparison.Ordinal) + "<<'INST'\n".Length;
+        var script = packager[start..packager.IndexOf("\nINST\n", start, StringComparison.Ordinal)];
+        var last = script.TrimEnd().Split('\n').Last().Trim();
+        Assert.False(last.StartsWith("[[") && last.Contains("&&"), "the last command of install.sh is a `[[ ]] && ...` list: with a false test the script exits 1: " + last);
+        Assert.DoesNotContain("[[ -n \"$hint\" ]] && echo", script);
+    }
+
     /// <summary>The REAL install.sh, taken out of scripts/package-linux.sh, run inside a throwaway home with a minimal PATH (no xdg-mime, no desktop database): the update must produce exactly what a fresh install does.</summary>
     [Fact]
     public async Task The_real_install_script_updates_an_existing_install()

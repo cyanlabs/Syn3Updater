@@ -86,16 +86,16 @@ public class WindowsInstallerTests : IDisposable
         if (!OperatingSystem.IsWindows()) return;
         var (plan, zip) = Scenario(); var dir = plan.Install.AppDir; var exe = Path.Combine(dir, "Syn3Updater.exe");
         File.Copy(Path.Combine(Environment.SystemDirectory, "cmd.exe"), exe, overwrite: true);           // a real executable image that is really running (a copy of ping.exe cannot start outside System32)
-        using var running = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, "/c ping -n 120 127.0.0.1 >nul") { UseShellExecute = false, CreateNoWindow = true })!;
+        using var running = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, "/c ping -n 120 127.0.0.1 >nul") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardError = true, RedirectStandardOutput = true })!;
         try
         {
             await Task.Delay(1000);
-            Assert.False(running.HasExited);
+            Assert.False(running.HasExited, running.HasExited ? $"the stand-in exited by itself with code {running.ExitCode}: {running.StandardError.ReadToEnd()} {running.StandardOutput.ReadToEnd()}" : "");
             await Installer(zip).RunAsync(plan);
             Assert.Equal("NEW-APP", File.ReadAllText(exe));                                                // the new program is in place while the old one still runs
             var backup = Path.Combine(dir, InstallTransaction.BackupDirName);
             Assert.True(File.Exists(Path.Combine(backup, "Syn3Updater.exe")));                             // the old one could be renamed aside but not deleted
-            Assert.False(running.HasExited);
+            Assert.False(running.HasExited, "the program stopped after its file was renamed aside and replaced");
         }
         finally { try { running.Kill(true); running.WaitForExit(5000); } catch (InvalidOperationException) { } }
         Assert.False(InstallTransaction.Recover(dir));                                                     // the next start: the update was complete, so the old program is removed
