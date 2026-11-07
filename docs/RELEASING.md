@@ -15,7 +15,7 @@
 | `Syn3Updater-<v>-linux-x64.rpm`, `-linux-arm64` | `scripts/package-rpm.sh` | same layout for Fedora / Nobara / RHEL-family; pre-releases get `Release: 0.<pre>.1` so the final release upgrades them |
 | `Syn3Updater-<v>-linux-x64.pkg.tar.zst`, `-linux-arm64` | `scripts/package-arch.sh` | native Arch package. Built from the AUR recipe in an Arch container and named `syn3updater-bin`, so installing from the AUR later is a normal upgrade. A pre-release `3.0.0-test7` is versioned `3.0.0test7`, which pacman sorts before `3.0.0`. Not in a repository, so pacman never offers updates. Releases carry no `.sig`, so it must be installed from a downloaded file, not a URL |
 | AUR `syn3updater-bin` (not published yet) | `packaging/aur/PKGBUILD`, `scripts/update-aur-package.sh` | uses the release tarballs; see [packaging/aur/README.md](../packaging/aur/README.md) |
-| `Syn3Updater-<v>-win-x64.zip`, `-win-arm64` | `scripts/package-windows.sh` | `Syn3Updater.exe` (asks for administrator rights to format drives) plus the hybrid Launcher (`Launcher.exe` and its four support files, hash-pinned in `packaging/windows/launcher/`). The Launcher must be in every package; see that folder's README |
+| `Syn3Updater-<v>-win-x64.zip`, `-win-arm64` | `scripts/package-windows.sh` | `Syn3Updater.exe` (asks for administrator rights to format drives), the temporary `Launcher.exe` stub (see below) and three hash-pinned transition libraries in `packaging/windows/launcher/` |
 | `Syn3Updater-<v>-macos-arm64.dmg`, `-macos-x64` | `scripts/package-macos.sh` (macOS only) | `.app` bundle in a DMG |
 
 CI installs the `.deb`, `.rpm` and Arch package in real Debian, Ubuntu, Fedora and Arch containers (and builds the AUR package in Arch Linux) before a release is
@@ -53,6 +53,32 @@ compiled into it (`UpdateKeys` in `src/Syn3Updater.Core/Services/Updates/Minisig
   (vault Private, "Syn3Updater minisign PRIMARY" / "BACKUP"). Forks without the secrets publish releases without a manifest: the app then only tells people about them.
 - **Install markers:** packages and `install.sh` write `.install-method` (`tar`, `deb`, `rpm`, `pacman`) next to the program. The app updates itself in place only for `tar` (a user-level
   `install.sh` install); package-managed copies are never rewritten and are shown the right `apt`, `dnf` or `pacman` command instead.
+
+## How each install updates itself
+
+| Install | What the banner offers | How |
+|---|---|---|
+| Windows zip (a folder, normally `C:\Program Files\CyanLabs\Syn3Updater`) | **Update now** | The app downloads the zip, re-checks it against the signed manifest, then swaps its own files with the transactional engine in `Services/Updates/Swap` (a port of the Launcher's, same on-disk protocol: `.update-staging`, `.update-backup` with a `COMPLETE` marker, `install-manifest.json`). Windows lets a running program be *renamed* aside but not overwritten, which is all that needs, so the old `Syn3Updater.exe` sits in `.update-backup` until the next start removes it. The app then starts the new program and exits. A failure puts the old files back; a crash mid-swap is undone at the next start (by the app, or by the stub). While the Launcher still exists its prefs file is kept in step (`ReleaseInstalled` = the release tag as four numbers). |
+| Linux tar.gz installed by `install.sh` | **Update now** | The archive is unpacked safely and its own `install.sh` is re-run, so the launcher entry and icon stay right; a failure puts the previous program back. |
+| Linux deb, rpm, Arch, AUR | **How to update** | The exact `apt` / `dnf` / `pacman` / AUR command. These copies are owned by the package manager and are never rewritten (`.install-method` says which). |
+| macOS | **How to update** | Opens the DMG. In-place updating needs a Developer ID signed build, so it is off until releases are signed (`InstallDetector`, `macInPlaceSupported`). |
+
+An update is only ever installed when its signed manifest verifies, it is newer than what runs (or the user chose another channel), and the file matches the manifest's size and SHA-256.
+It is never installed while a download or a USB run is in progress.
+
+**Windows shortcuts and link handler.** The v2 installer pointed the Desktop and Start Menu shortcuts and the machine-wide `syn3updater://` handler (`HKLM\Software\Classes\syn3updater`) at `Launcher.exe`.
+Once per install, on installs that can update themselves, the app retargets those to `Syn3Updater.exe` (`LauncherMigration`): arguments, descriptions and custom icons are kept, and other copies' shortcuts and the uninstall shortcut are left alone.
+
+## The `Launcher.exe` stub (temporary)
+
+`Launcher.exe` in a Windows package is a small program (`src/Syn3Updater.Launcher`, about 12 MB) that undoes an interrupted update and then starts `Syn3Updater.exe` with the same arguments.
+It exists only because old shortcuts, the old link handler and the v2 Launcher (which needs a file of that name in a package) still point at it. The three libraries in `packaging/windows/launcher/` ship
+beside it for the same transition: a Launcher that is part-way through installing a package may still load them. Keep all of it for a few months after `3.0.0.0`, then remove it in one release:
+
+1. Delete `src/Syn3Updater.Launcher`, the stub block and the transition-library block in `scripts/package-windows.sh`, `packaging/windows/launcher/`, and the `LauncherStub` code and tests.
+2. Update the expected file lists in `.github/workflows/package-check.yml` and the check in `scripts/make-legacy-zip.sh` (the v2 hop needs a `Launcher.exe` only while v2 Launchers exist).
+3. The install manifest of each installed copy lists those files, so that release's update removes them (installs made by the old Launcher also have a manifest); the shortcut migration, which does not need `Launcher.exe` to exist, repairs any shortcut that was missed.
+4. A release or two later, remove `LauncherPrefs` (the Launcher's prefs file handling) and `LauncherMigration`.
 
 ## Update channels
 

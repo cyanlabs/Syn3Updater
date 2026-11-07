@@ -49,3 +49,9 @@ It also checks the data / download / log folders, the API key, the Syn3 Updater 
 
 A link needs `Region` to do anything, as in v2. It selects among the options the app already offers (`Sync <Release>` for the release, underscores for spaces in map names).
 If a link arrives while an update is running it is refused with the usual "another operation is running" message.
+
+## Updates
+
+The app checks for a newer release at start and every six hours, and shows a banner. What the banner offers depends on how the copy was installed
+(see "How each install updates itself" in [RELEASING.md](RELEASING.md)): an **Update now** button where the app can replace itself (Windows folder, Linux `install.sh` install), otherwise
+**How to update** with the exact command for the package manager (deb, rpm, Arch, AUR) or the download page (macOS). Every update is checked against a signed manifest first, and none starts while a download or USB run is in progress.

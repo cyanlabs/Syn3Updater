@@ -212,7 +212,6 @@ public partial class MainWindowViewModel : ObservableObject
         {
             if (!OperatingSystem.IsWindows() || Ctx.Install.Kind != InstallKind.WindowsFolder || !UpdateService.DefaultCanApply(Ctx.Install)) return;
             if (string.Equals(Ctx.Main.LauncherMigratedFor, Ctx.Install.AppDir, StringComparison.OrdinalIgnoreCase)) return;
-            if (!File.Exists(Path.Combine(Ctx.Install.AppDir, LauncherMigration.LauncherExe))) return;          // no Launcher here: nothing could point at it
             var r = LauncherMigration.Run(Ctx.Install.AppDir, new Core.Services.Updates.Windows.WindowsShortcutStore(), new Core.Services.Updates.Windows.WindowsProtocolStore(), Ctx.Log.Info);
             if (r.Complete) { Ctx.Main.LauncherMigratedFor = Ctx.Install.AppDir; Ctx.Save(); }
         }

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- TEMPORARY Launcher.exe stub (a few months after 3.0.0.0, then delete this project): starts Syn3Updater.exe for old shortcuts, the syn3updater:// handler and the v2 Launcher.
+       The logic is Syn3Updater.Core's LauncherStub so it is tested on every OS. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>Launcher</AssemblyName>
+    <RootNamespace>Cyanlabs.Syn3Updater.Launcher</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\Syn3Updater.App\Assets\app.ico</ApplicationIcon>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+    <NoWarn>$(NoWarn);IL2026;IL3050;IL2104;IL2057;IL2075;IL2070</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Syn3Updater.Core\Syn3Updater.Core.csproj" />
+  </ItemGroup>
+</Project>

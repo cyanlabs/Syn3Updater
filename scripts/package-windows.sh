@@ -13,15 +13,22 @@ OUT="$(cd "$OUT" && pwd)"
 dotnet publish src/Syn3Updater.App -c Release -r "$RID" --self-contained \
   -p:Version="$VERSION" -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o "$STAGE"
 cp LICENSE "$STAGE/"
-# The hybrid Launcher goes in every Windows package: when the Launcher installs a package it removes old files the package does not ship (every .dll, on the
-# first run after the v2 Launcher), so a package without the Launcher's own libraries would make it delete them. The files are pinned by hash.
+# TEMPORARY (remove a few months after 3.0.0.0, see docs/RELEASING.md): Launcher.exe is now a stub that starts Syn3Updater.exe. The v2 installer pointed the Desktop and Start Menu shortcuts
+# and the syn3updater:// handler at it, and the v2 Launcher needs a file of that name in a package. It also undoes an update that was cut short before starting the app.
+LAUNCHER_OUT="$(mktemp -d)"
+dotnet publish src/Syn3Updater.Launcher -c Release -r "$RID" --self-contained \
+  -p:Version="$VERSION" -p:PublishSingleFile=true -p:PublishTrimmed=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o "$LAUNCHER_OUT"
+cp "$LAUNCHER_OUT/Launcher.exe" "$STAGE/Launcher.exe"
+rm -rf "$LAUNCHER_OUT"
+# Also TEMPORARY: the three libraries of the old hybrid Launcher. A Launcher that is part-way through installing this package may still load them after the swap, and the old v2 Launcher
+# deletes every .dll a package does not ship, so they stay for the transition. They are pinned by hash and listed in the install manifest, so the release that drops them removes them.
 LAUNCHER_DIR="packaging/windows/launcher"
 ( cd "$LAUNCHER_DIR" && if command -v sha256sum >/dev/null 2>&1; then sha256sum -c --quiet SHA256SUMS; else shasum -a 256 -c --quiet SHA256SUMS; fi ) \
-  || { echo "the Launcher files in $LAUNCHER_DIR do not match SHA256SUMS" >&2; exit 1; }
+  || { echo "the files in $LAUNCHER_DIR do not match SHA256SUMS" >&2; exit 1; }
 while read -r _ file; do cp "$LAUNCHER_DIR/${file#\*}" "$STAGE/"; done < "$LAUNCHER_DIR/SHA256SUMS"
 cat > "$STAGE/README.txt" <<TXT
 Syn3 Updater $VERSION
-Start Syn3Updater.exe (or Launcher.exe, which keeps it up to date and then opens it). Syn3 Updater checks for new versions itself and installs them.
+Start Syn3Updater.exe. (Launcher.exe only starts it again, for shortcuts made by older versions.) Syn3 Updater checks for new versions itself and installs them.
 Syn3 Updater asks for administrator rights because formatting a USB drive needs them.
 TXT
 
