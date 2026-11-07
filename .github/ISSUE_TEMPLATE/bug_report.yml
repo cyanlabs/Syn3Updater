@@ -1,0 +1,263 @@
+name: Bug report
+description: Something in Syn3 Updater does not work as it should
+title: "[Bug] "
+labels: ["Type: Bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. The more of this form you fill in, the faster it can be fixed.
+
+        **Before you start**
+        - Is CyanLabs up? Check [status.cyanlabs.net](https://status.cyanlabs.net). If the app shows "No connection to CyanLabs" it is usually that, not a bug.
+        - Open **Diagnostics** in the app (sidebar) and use **Copy report**. It checks the tools and permissions your system needs and tells you how to fix what fails.
+        - Search the [existing issues](https://github.com/cyanlabs/Syn3Updater/issues?q=is%3Aissue) first, and ask for help with using the app or with your car on the [forum](https://community.cyanlabs.net).
+
+        > **Your APIM comes first.** If the unit shows MEM_ERR, will not boot or is in a state you do not understand, **do not keep retrying**: ask on the forum before you try again.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues and this has not been reported yet
+          required: true
+        - label: I am on the latest version of my update channel (see **About**; a banner at the top of the app says when there is a newer one)
+          required: true
+        - label: I removed personal data from everything I paste below (see "Privacy")
+          required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What went wrong, in as much detail as you can. Include the exact text of any error message.
+      placeholder: "Example: after choosing the release and maps and pressing Start, the download stops at 37% and the app shows 'Unable to reach ...'"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps, starting from opening the app. Say which release, maps and region you picked.
+      placeholder: |
+        1. Open the app, go to Home
+        2. Pick region ..., release ..., maps ...
+        3. Select the USB drive ... and press Start
+        4. See the error
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducible
+    attributes:
+      label: How often does it happen?
+      options:
+        - Every time
+        - Sometimes
+        - It happened once
+        - I have not tried again
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where in the app does it happen?
+      multiple: true
+      options:
+        - The app does not start, or crashes
+        - Home (choosing a release and maps, the install mode)
+        - Downloading, or copying to the USB drive
+        - Formatting or ejecting the drive
+        - Utility (Interrogator log, MEM_ERR tools, MY20 check)
+        - Settings or profiles
+        - Logs, News or About
+        - Diagnostics
+        - The Windows Launcher (Launcher.exe)
+        - Installing in the car (the APIM does not accept the drive)
+        - Translations or text
+        - Something else
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "## Your computer"
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - Linux
+        - macOS
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: Operating system version
+      description: Windows build (Win+R, `winver`), Linux distribution and desktop, or macOS version. Say if it is ARM or x64.
+      placeholder: "Windows 11 23H2 x64  /  Arch Linux, KDE Plasma 6, x64  /  macOS 14.5, Apple silicon"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Syn3 Updater version
+      description: Shown under **About**, and at the top of the Diagnostics report.
+      placeholder: "3.0.0-test17"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: channel
+    attributes:
+      label: Update channel
+      description: Settings > Update channel.
+      options:
+        - Stable
+        - Beta
+        - Nightly
+        - I do not know
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install it?
+      options:
+        - Windows zip, started with Launcher.exe
+        - Windows zip, started with Syn3Updater.exe
+        - Linux .deb
+        - Linux .rpm
+        - Arch Linux package (AUR or the .pkg.tar.zst)
+        - Linux .tar.gz
+        - macOS .dmg
+        - Built from source
+        - Something else
+    validations:
+      required: true
+
+  - type: dropdown
+    id: worked-before
+    attributes:
+      label: Did it work in an earlier version?
+      options:
+        - I do not know
+        - No, it never worked for me
+        - Yes (say which version in "Anything else")
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Your car and drive
+        Only needed when the problem is about an update, a map or the Interrogator log. Skip it otherwise.
+
+  - type: input
+    id: sync-version
+    attributes:
+      label: SYNC 3 version installed now
+      description: As set in Settings, or shown by the Interrogator log.
+      placeholder: "3.4.21194"
+
+  - type: input
+    id: region-nav
+    attributes:
+      label: Region and navigation
+      placeholder: "NA, with navigation  /  EU, no navigation"
+
+  - type: dropdown
+    id: my20
+    attributes:
+      label: MY20 protection (Settings, and the badge at the bottom of Home)
+      options:
+        - Not applicable
+        - Enabled
+        - Disabled
+        - Auto-Detect
+        - I do not know
+
+  - type: dropdown
+    id: install-mode
+    attributes:
+      label: Install mode shown on Home
+      options:
+        - Not applicable, or I did not get that far
+        - AutoInstall
+        - Reformat
+        - Downgrade
+        - MY20 Check
+
+  - type: input
+    id: selection
+    attributes:
+      label: Release and maps you selected
+      placeholder: "Sync 3.4.26057, maps 2025 Q1, region NA"
+
+  - type: input
+    id: drive
+    attributes:
+      label: USB drive
+      description: Make, size and how it was formatted. A plain folder as the destination counts as a drive too.
+      placeholder: "SanDisk Ultra 32 GB, exFAT"
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Logs and screenshots
+        These help more than anything else. **Please include them.**
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics report
+      description: Sidebar > Diagnostics > **Copy report**, then paste it here.
+      render: text
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: App log
+      description: |
+        The sidebar **Logs** page shows the app log. The file is `applog.txt` in the data folder
+        (`%LOCALAPPDATA%\CyanLabs\Syn3Updater` on Windows, `~/.local/share/CyanLabs/Syn3Updater` on Linux and macOS).
+        If it is long, paste the part from the start of the run where the problem happened, or attach the file.
+        After an update, `log.txt` on the USB drive is the log of that run.
+      render: text
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag and drop images here. A photo of the car's screen is useful for problems in the car.
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Privacy
+        Logs replace your home folder with `~`, but please look through them before you post.
+        **Remove your VIN**, any licence key and your email address from logs, screenshots and Interrogator files. The ready-made
+        **Interrogator log** (`Sync_..._VIN.xml`) contains the VIN, MAC addresses and the unit's serial number: attach it only if asked,
+        and replace those first.
+
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else?
+      description: What you already tried, when it started, links to forum threads, and so on.
