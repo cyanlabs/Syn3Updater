@@ -69,6 +69,30 @@ It is never installed while a download or a USB run is in progress.
 **Windows shortcuts and link handler.** The v2 installer pointed the Desktop and Start Menu shortcuts and the machine-wide `syn3updater://` handler (`HKLM\Software\Classes\syn3updater`) at `Launcher.exe`.
 Once per install, on installs that can update themselves, the app retargets those to `Syn3Updater.exe` (`LauncherMigration`): arguments, descriptions and custom icons are kept, and other copies' shortcuts and the uninstall shortcut are left alone.
 
+## Required updates (forcing everyone onto a newer version)
+
+The backend (Directus, `https://syn3updater.cyanlabs.net`) has a collection `update_policy` with one row per channel (Stable, Beta, Nightly). To force an update, edit the row of the channel:
+
+| Field | Meaning |
+|---|---|
+| `enabled` | the switch: off = nothing is forced for that channel, whatever the versions say |
+| `min_version_all` | the oldest version still allowed, on every OS (`3.0.2`, `3.1.0-beta.2`; empty = no minimum) |
+| `min_version_windows`, `min_version_linux`, `min_version_macos` | optional per-OS minimum; the higher of this and `min_version_all` applies |
+| `message` | optional text shown to the user in the update dialog (plain English) |
+
+At launch, before anything can be started, the app reads the row of the update channel the user follows. A version **below** the minimum is updated:
+
+- **Windows folder or Linux `install.sh` install:** installed automatically behind a blocking "Update required" screen, then the app restarts. If that fails the user can try again or quit.
+- **deb, rpm, Arch, AUR, macOS, anything else the app cannot replace:** a blocking dialog with the exact command (or the download page). The app stays unusable until it has been updated and restarted.
+
+Safety rules, so a mistake here cannot lock people out:
+
+- A minimum **above the newest published release** on that channel is ignored (logged as such): publish the release first, then raise the minimum.
+- It is checked **only at launch and never while a download or USB run is in progress**; a development run is never forced.
+- The policy is cached (60 days). With the backend down the cached policy still applies; with no cache nothing is forced.
+- Only a release whose signed manifest verifies is ever installed, so a wrong row can at worst force an update to a genuine release.
+- `scripts/directus-create-update-policy.sh` creates the collection (idempotent, `--dry-run` by default); values are validated as versions when saved.
+
 ## The `Launcher.exe` stub (temporary)
 
 `Launcher.exe` in a Windows package is a small program (`src/Syn3Updater.Launcher`, about 12 MB) that undoes an interrupted update and then starts `Syn3Updater.exe` with the same arguments.

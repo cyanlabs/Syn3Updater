@@ -14,7 +14,7 @@ public static class Ctx
     public static AppLog Log { get; } = new();
     public static Localizer Loc { get; } = new();
     public static HttpClient Http { get; private set; } = null!;
-    public static ApiClient Api { get; private set; } = null!;
+    public static ApiClient Api { get; set; } = null!;
     public static FileService Files { get; private set; } = null!;
     public static IDriveService Drives { get; private set; } = null!;
     public static UpdateRunner Runner { get; private set; } = null!;
@@ -25,12 +25,17 @@ public static class Ctx
     /// <summary>Decides what to do about a release that was found (verifies its signed manifest).</summary>
     public static UpdateService UpdatePlanner { get; set; } = null!;
     public static UpdateInstaller UpdateInstaller { get; set; } = null!;
+    /// <summary>What to do about a release that was found (default: check its signed manifest with <see cref="UpdatePlanner"/>; tests replace it).</summary>
+    public static Func<UpdateInfo, Task<UpdatePlan>> PlanUpdate { get; set; } =
+        info => UpdatePlanner.PlanAsync(info, Install, Version, UpdateChannel, ReleaseManifest.CurrentOs(), ReleaseManifest.CurrentArch());
+    /// <summary>The last update policy the backend gave, kept for when it cannot be reached.</summary>
+    public static string PolicyCacheFile => Path.Combine(Paths.DataDir, "update-policy.json");
     public static string UpdateDir => Path.Combine(Paths.DataDir, "updates");
 
     public static MainSettings Main => Store.Main;
     public static ProfileSettings Profile => Store.Profile;
     public static bool ModeForced => Profile.ModeForced;
-    public static string Version { get; } =
+    public static string Version { get; set; } =
         Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0] ?? "3.0.0";
     /// <summary>The channel the running build came from (also what the API and logs call its "branch").</summary>
     public static string Branch => Channels.Of(Version).ToString();

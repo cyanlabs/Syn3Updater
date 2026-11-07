@@ -102,6 +102,18 @@
     </Grid>
   </Grid>
 
+    <!-- a required update is being installed: nothing can be used until it is done -->
+    <Border IsVisible="{Binding ForcedUpdateActive}" Background="#e6000000" ZIndex="90">
+      <Border Classes="card" MinWidth="360" MaxWidth="560" Margin="24" Padding="28" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Spacing="14">
+          <TextBlock Text="{svc:T App.ForcedTitle}" Classes="section" FontSize="20" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding ForcedUpdateText}" TextWrapping="Wrap" />
+          <ProgressBar Minimum="0" Maximum="1" Value="{Binding UpdateProgress}" />
+          <TextBlock Text="{Binding UpdateStatus}" Classes="label" TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+    </Border>
+
     <!-- in-window dialogs: no separate OS windows, so the desktop never moves focus or the pointer -->
     <Border IsVisible="{Binding Dialog.HasDialog}" Background="#b0000000" ZIndex="100">
       <Border Classes="card" MinWidth="360" MaxWidth="600" Margin="24" Padding="28" HorizontalAlignment="Center" VerticalAlignment="Center">

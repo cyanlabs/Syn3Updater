@@ -126,7 +126,7 @@ public partial class MainWindowViewModel : ObservableObject
         Update = found;
         Ctx.Log.Info(found == null ? $"No newer version than {Ctx.Version} found on the {Ctx.UpdateChannel} channel" : $"{(found.Switch ? "A build is available on the " + Ctx.UpdateChannel + " channel" : "A newer version is available")}: {found.Version}");
         if (found == null) return;
-        var plan = await Ctx.UpdatePlanner.PlanAsync(found, Ctx.Install, Ctx.Version, Ctx.UpdateChannel, ReleaseManifest.CurrentOs(), ReleaseManifest.CurrentArch());
+        var plan = await Ctx.PlanUpdate(found);
         if (!ReferenceEquals(Update, found) || InstallingUpdate) return;              // the check was repeated, or the notice dismissed, while this was working
         Plan = plan;
         Ctx.Log.Info($"Update {found.Version}: {plan.Kind}{(plan.Reason != null ? " (" + plan.Reason + ")" : "")}");
@@ -174,6 +174,20 @@ public partial class MainWindowViewModel : ObservableObject
         if (!await Dialogs.Confirm(Ctx.T("App.UpdateConfirmBody", notes), Ctx.T("App.UpdateConfirmTitle", version), Ctx.T("App.UpdateNow"), Ctx.T("App.UpdateLater"))) return;
         if (Workflow.Busy) { await Dialogs.Info(Ctx.T("App.UpdateBusy")); return; }          // started something while the question was open
 
+        var (end, error) = await InstallCoreAsync(plan);
+        if (end == InstallEnd.Failed) await Dialogs.Error(Ctx.T("App.UpdateFailed", error!));
+        else if (end == InstallEnd.RestartFailed) await Dialogs.Error(Ctx.T("App.UpdateRestartFailed", version));
+    }
+
+    internal enum InstallEnd { Restarting, Failed, RestartFailed }
+
+    /// <summary>
+    /// Downloads, installs and restarts into the release a plan chose, showing progress in the banner (and the forced-update overlay, if it is up). Nothing else may start meanwhile.
+    /// Reports how it ended instead of showing dialogs, because the voluntary and the forced update say different things about a failure.
+    /// </summary>
+    internal async Task<(InstallEnd End, string? Error)> InstallCoreAsync(UpdatePlan plan)
+    {
+        var version = plan.Manifest!.Version;
         InstallingUpdate = true; Workflow.Busy = true;                       // nothing else may start while the program is being replaced
         UpdateProgress = 0; UpdateStatus = Ctx.T("App.UpdateDownloading", version, 0);
         var restarting = false;
@@ -188,13 +202,13 @@ public partial class MainWindowViewModel : ObservableObject
             Ctx.Main.WhatsNewVersion = version; Ctx.Main.WhatsNewNotes = plan.Manifest.Notes;
             Ctx.Save(); Ctx.Log.Save(Ctx.Paths.AppLogFile);
             UpdateStatus = Ctx.T("App.UpdateRestarting");
-            if (UpdateRestart.Restart(exe)) { restarting = true; return; }
-            await Dialogs.Error(Ctx.T("App.UpdateRestartFailed", version));
+            if (UpdateRestart.Restart(exe)) { restarting = true; return (InstallEnd.Restarting, null); }
+            return (InstallEnd.RestartFailed, null);
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {
             Ctx.Log.Error($"Update to {version} failed: {e.Message}");
-            await Dialogs.Error(Ctx.T("App.UpdateFailed", e.Message));
+            return (InstallEnd.Failed, e.Message);
         }
         finally
         {

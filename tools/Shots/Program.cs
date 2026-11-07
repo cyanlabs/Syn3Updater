@@ -34,6 +34,11 @@ var work = Dispatcher.UIThread.InvokeAsync(async () =>
     _ = vm.LoadAdAsync(); vm.Home.OnShown();
     var win = new MainWindow { DataContext = vm, Width = w, Height = h };
     win.Show();
+    if (args.Contains("--forced"))      // the blocking overlay of a required update
+    {
+        vm.ForcedUpdateText = Ctx.T("App.ForcedBody", "3.1.0") + "\n\nFixes a bug that could damage the USB stick.";
+        vm.UpdateStatus = Ctx.T("App.UpdateDownloading", "3.1.0", 62); vm.UpdateProgress = 0.62; vm.ForcedUpdateActive = true;
+    }
     if (args.FirstOrDefault(a => a.StartsWith("--update=")) is { } upd)      // --update=install|progress|howto|notify: the update banner in each state
     {
         var state = upd["--update=".Length..];
