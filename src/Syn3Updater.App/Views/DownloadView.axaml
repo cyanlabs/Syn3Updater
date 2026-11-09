@@ -47,10 +47,11 @@
           <ItemsControl ItemsSource="{Binding Queue}">
             <ItemsControl.ItemTemplate>
               <DataTemplate DataType="vm:QueueItem">
-                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Margin="0,5">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12" Margin="0,5">
                   <Ellipse Classes="dot" Classes.active="{Binding IsActive}" VerticalAlignment="Center" />
                   <TextBlock Grid.Column="1" Text="{Binding Name}" Classes="mono" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Grid.Column="2" Text="{Binding Size}" Classes="label" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="2" Text="{svc:T Download.RequiredTool}" Classes="label" IsVisible="{Binding IsTool}" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="3" Text="{Binding Size}" Classes="label" VerticalAlignment="Center" />
                 </Grid>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -64,10 +65,11 @@
           <ItemsControl ItemsSource="{Binding Completed}">
             <ItemsControl.ItemTemplate>
               <DataTemplate DataType="vm:QueueItem">
-                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Margin="0,4">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12" Margin="0,4">
                   <PathIcon Data="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z" Foreground="#4cc38a" Width="14" Height="14" VerticalAlignment="Center" />
                   <TextBlock Grid.Column="1" Text="{Binding Name}" Classes="mono" TextTrimming="CharacterEllipsis" Opacity="0.8" />
-                  <TextBlock Grid.Column="2" Text="{Binding Size}" Classes="label" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="2" Text="{svc:T Download.RequiredTool}" Classes="label" IsVisible="{Binding IsTool}" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="3" Text="{Binding Size}" Classes="label" VerticalAlignment="Center" />
                 </Grid>
               </DataTemplate>
             </ItemsControl.ItemTemplate>

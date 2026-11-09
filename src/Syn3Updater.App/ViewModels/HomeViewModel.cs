@@ -153,7 +153,11 @@ public partial class HomeViewModel : PageViewModel
         OnPropertyChanged(nameof(HasMode)); OnPropertyChanged(nameof(ModeIsForced));
         InstallDocsUrl = value.Length > 0 ? ApiEndpoints.InstallDocsUrl(value) : "";
         UpdateModePresentation();
+        UpdateSelectionSummary();                                                // the note about the tool files follows the mode
     }
+
+    /// <summary>Reformat and Downgrade need extra tool files that the app adds to the download itself (they are not in the package list).</summary>
+    private bool AddsToolFiles => InstallMode is InstallModes.Reformat or InstallModes.Downgrade;
 
     /// <summary>
     /// With nothing selected yet the mode is unknown, unless it was forced in Settings: then it is already decided
@@ -491,7 +495,7 @@ public partial class HomeViewModel : PageViewModel
     private void UpdateSelectionSummary()
     {
         var chosen = Packages.Where(r => r.Selected).ToList();
-        SelectionSummary = Packages.Count == 0 ? "" : $"{Ctx.T("App.SelectedSummary", chosen.Count, Packages.Count)}  ·  {Format.Bytes(chosen.Sum(r => r.Ivsu.FileSize))}";
+        SelectionSummary = Packages.Count == 0 ? "" : $"{Ctx.T("App.SelectedSummary", chosen.Count, Packages.Count)}  ·  {Format.Bytes(chosen.Sum(r => r.Ivsu.FileSize))}" + (AddsToolFiles ? "  ·  " + Ctx.T("App.SelectedExtraTools") : "");
     }
 
     /// <summary>Title, one-line explanation, colour and icon for the install mode shown in the action bar.</summary>
