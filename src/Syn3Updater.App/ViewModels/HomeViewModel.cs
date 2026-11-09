@@ -323,7 +323,7 @@ public partial class HomeViewModel : PageViewModel
     [RelayCommand]
     private async Task ChooseFolderAsync()
     {
-        var path = await Dialogs.PickFolder(Ctx.T("Home.NoUSBDir"));
+        var path = await Dialogs.PickFolder(Ctx.T("Home.NoUSBDir"), SelectedDrive is { IsFolder: true } ? SelectedDrive.MountPath : Ctx.Main.DownloadPath);          // the folder chosen last time, else the download folder
         if (path == null) { RestoreSelectionLater(); return; }                         // cancelled: keep what was selected before
         var item = new DriveInfoModel { IsFolder = true, MountPath = path, Name = $"{Ctx.T("Home.NoUSBDir")}: {path}", DeviceId = "" };
         SetDrives(Drives.Where(d => !d.IsFolder && !d.IsChooser).ToList(), item);

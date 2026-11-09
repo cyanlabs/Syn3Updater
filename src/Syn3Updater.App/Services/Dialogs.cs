@@ -16,7 +16,8 @@ public record DialogOptions(bool Logo = false, bool Markdown = false);
 public interface IDialogBackend
 {
     Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex, DialogOptions? options = null);
-    Task<string?> PickFolder(string title);
+    /// <summary>Opens a folder picker. <paramref name="startPath"/> is where it opens (its nearest existing parent when the folder is gone); null leaves the choice to the OS.</summary>
+    Task<string?> PickFolder(string title, string? startPath = null);
     Task<string?> PickFile(string title, string filterName, string[] patterns);
     /// <summary>Asks for text: one line, or several when <paramref name="multiline"/> (Enter then adds a line and Ctrl+Enter confirms). Returns null when cancelled.</summary>
     Task<string?> Prompt(string title, string message, string initial, bool multiline = false);
@@ -40,7 +41,7 @@ public static class Dialogs
         await Backend.Show(message, title ?? Ctx.T("String.Notice"), new[] { no ?? Ctx.T("String.No"), yes ?? Ctx.T("String.Yes") }, warning, false, 0) == 1;
 
     public static Task<int> Show(string message, string title, string[] buttons, int defaultIndex = 0, DialogOptions? options = null) => Backend.Show(message, title, buttons, false, false, defaultIndex, options);
-    public static Task<string?> PickFolder(string title) => Backend.PickFolder(title);
+    public static Task<string?> PickFolder(string title, string? startPath = null) => Backend.PickFolder(title, startPath);
     public static Task<string?> Prompt(string title, string message, string initial = "", bool multiline = false) => Backend.Prompt(title, message, initial, multiline);
     public static Task<string?> PickFile(string title, string filterName, params string[] patterns) => Backend.PickFile(title, filterName, patterns);
     public static Task SetClipboard(string text) => Backend.SetClipboard(text);
@@ -75,7 +76,7 @@ internal sealed class AvaloniaDialogBackend : IDialogBackend
         return await host.ShowAsync(request) == 1 ? request.Text : null;
     }
 
-    public Task<string?> PickFolder(string title) => DialogsImpl.PickFolder(title);
+    public Task<string?> PickFolder(string title, string? startPath = null) => DialogsImpl.PickFolder(title, startPath);
     public Task<string?> PickFile(string title, string filterName, string[] patterns) => DialogsImpl.PickFile(title, filterName, patterns);
     public Task SetClipboard(string text) => DialogsImpl.SetClipboard(text);
     public Task OpenUrl(string url) => DialogsImpl.OpenUrl(url);
@@ -149,12 +150,33 @@ public static class DialogsImpl
         return result;
     });
 
-    public static Task<string?> PickFolder(string title) => OnUi(async () =>
+    public static Task<string?> PickFolder(string title, string? startPath = null) => OnUi(async () =>
     {
         if (MainWindow?.StorageProvider is not { } sp) return null;
-        var r = await sp.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = title, AllowMultiple = false });
+        var options = new FolderPickerOpenOptions { Title = title, AllowMultiple = false };
+        if (ExistingFolder(startPath) is { } start)
+        {
+            try { options.SuggestedStartLocation = await sp.TryGetFolderFromPathAsync(start); }
+            catch (Exception e) when (e is ArgumentException or IOException or UnauthorizedAccessException or NotSupportedException) { }     // the OS decides where to open
+        }
+        var r = await sp.OpenFolderPickerAsync(options);
         return r.Count > 0 ? r[0].TryGetLocalPath() : null;
     });
+
+    /// <summary>The folder itself when it exists, otherwise its nearest existing parent (the saved download folder may be on a drive that is not plugged in), otherwise null.</summary>
+    public static string? ExistingFolder(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return null;
+        try
+        {
+            for (var dir = path.Trim(); !string.IsNullOrEmpty(dir); dir = Path.GetDirectoryName(dir))
+                if (Directory.Exists(dir)) return dir;
+        }
+        catch (ArgumentException) { }
+        catch (PathTooLongException) { }
+        catch (NotSupportedException) { }
+        return null;
+    }
 
     public static Task<string?> PickFile(string title, string filterName, params string[] patterns) => OnUi(async () =>
     {

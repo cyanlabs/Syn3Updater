@@ -47,7 +47,8 @@ public class FakeDialogs : IDialogBackend
         return Task.FromResult(yes ? 1 : 0);
     }
     public int FolderPicks { get; private set; }
-    public Task<string?> PickFolder(string title) { FolderPicks++; return Task.FromResult(FolderToPick); }
+    public List<string?> FolderStarts { get; } = new();
+    public Task<string?> PickFolder(string title, string? startPath = null) { FolderPicks++; FolderStarts.Add(startPath); return Task.FromResult(FolderToPick); }
     public Task<string?> Prompt(string title, string message, string initial, bool multiline = false) { Prompts.Add(message); return Task.FromResult(PromptAnswer); }
     public Task<string?> PickFile(string title, string filterName, string[] patterns) => Task.FromResult(FileToPick);
     public Task SetClipboard(string text) { Clipboard.Add(text); return Task.CompletedTask; }

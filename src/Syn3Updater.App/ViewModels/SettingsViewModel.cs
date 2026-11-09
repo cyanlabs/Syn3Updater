@@ -155,7 +155,7 @@ public partial class SettingsViewModel : PageViewModel
         Channel = ChannelOptions.FirstOrDefault(o => o.Value == Ctx.UpdateChannel.ToString()) ?? ChannelOptions[0];
         DownloadPath = m.DownloadPath ?? ""; LogPath = m.LogPath ?? "";
         LicenseKey = m.LicenseKey ?? "";
-        Advanced = false; Message = "";
+        Advanced = Ctx.ModeForced; Message = "";          // a mode the user fixed would otherwise be in effect but hidden behind an unticked box (MY20 alone is not a sign: the log reader sets it too)
         _loading = false; _dirty = false;
     }
 
@@ -198,14 +198,14 @@ public partial class SettingsViewModel : PageViewModel
     [RelayCommand]
     private async Task PickDownloadPathAsync()
     {
-        var p = await Dialogs.PickFolder(Ctx.T("Settings.DownloadLocation"));
+        var p = await Dialogs.PickFolder(Ctx.T("Settings.DownloadLocation"), DownloadPath);          // opens where the text box points
         if (p != null) DownloadPath = p;
     }
 
     [RelayCommand]
     private async Task PickLogPathAsync()
     {
-        var p = await Dialogs.PickFolder(Ctx.T("Settings.LogLocation"));
+        var p = await Dialogs.PickFolder(Ctx.T("Settings.LogLocation"), LogPath);
         if (p != null) LogPath = p;
     }
 

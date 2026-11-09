@@ -19,7 +19,19 @@ public static class SystemInfo
         }
         catch (IOException) { }
         catch (UnauthorizedAccessException) { }
+        if (OperatingSystem.IsWindows()) return WindowsName(Environment.OSVersion.Version) + " (" + RuntimeInformation.OSArchitecture + ")";
         return RuntimeInformation.OSDescription + " (" + RuntimeInformation.OSArchitecture + ")";
+    }
+
+    /// <summary>
+    /// "Windows 11 (10.0.26200)". Windows 11 still reports version 10.0 (Microsoft kept the major version), so the .NET description says "Windows 10.0.26200" and looks like Windows 10.
+    /// Build 22000 is the first Windows 11 build.
+    /// </summary>
+    public static string WindowsName(Version v)
+    {
+        var number = $"{v.Major}.{v.Minor}.{Math.Max(v.Build, 0)}";
+        if (v.Major == 10 && v.Minor == 0) return (v.Build >= 22000 ? "Windows 11 (" : "Windows 10 (") + number + ")";
+        return "Windows " + number;
     }
 
     /// <summary>Replaces the user's home folder with "~" so logs that get uploaded or pasted do not contain the account name.</summary>
