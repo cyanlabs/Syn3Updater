@@ -60,3 +60,25 @@ public class AdvancedOptionsTests
         window.Close();
     }
 }
+
+public class AdvancedOptionsRememberedTests
+{
+    [Avalonia.Headless.XUnit.AvaloniaFact]
+    public void A_forced_install_mode_is_shown_when_Settings_is_opened_again_instead_of_being_hidden_behind_an_unticked_box()
+    {
+        using var env = new AppEnv(); var s = env.Main.Settings;
+        Ctx.Profile.My20v2 = false; Ctx.Profile.InstallMode = Cyanlabs.Syn3Updater.Core.Models.InstallModes.Reformat;
+        s.OnShown();
+        Assert.True(s.Advanced); Assert.Equal("reformat", s.Mode!.Value); Assert.Equal("off", s.My20!.Value);      // ticked, so both are visible, and still as saved
+    }
+
+    [Avalonia.Headless.XUnit.AvaloniaTheory]
+    [InlineData(null)] [InlineData(true)] [InlineData(false)]
+    public void Without_a_forced_mode_the_box_stays_unticked_whatever_the_MY20_check_decided(bool? my20)
+    {
+        using var env = new AppEnv(); var s = env.Main.Settings;
+        Ctx.Profile.My20v2 = my20; Ctx.Profile.InstallMode = Cyanlabs.Syn3Updater.Core.Models.InstallModes.AutoDetect;      // the log reader sets My20 on its own
+        s.OnShown();
+        Assert.False(s.Advanced);
+    }
+}
