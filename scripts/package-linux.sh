@@ -24,6 +24,11 @@ cat > "$STAGE/install.sh" <<'INST'
 #   ~/.local/bin/syn3updater            a command (lower case) that starts it
 #   ~/.local/share/applications         the launcher entry in your application menu
 #   ~/.local/share/icons                its icon
+# Started by another shell (sh install.sh on Debian, Ubuntu and Mint runs dash, which has no "pipefail")? Run it again under bash. Plain POSIX here, so any shell can get this far.
+if [ -z "${BASH_VERSION:-}" ]; then
+  if command -v bash >/dev/null 2>&1; then exec bash "$0" "$@"; fi
+  echo "This script needs bash. Install bash, or run it as: bash $0" >&2; exit 1
+fi
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [[ ! -f "$here/Syn3Updater" ]]; then
@@ -83,6 +88,11 @@ INST
 cat > "$STAGE/uninstall.sh" <<'UNINST'
 #!/usr/bin/env bash
 # Removes what install.sh installed. Your settings and downloads are kept (settings: ~/.local/share/CyanLabs/Syn3Updater).
+# Started by another shell (sh install.sh on Debian, Ubuntu and Mint runs dash, which has no "pipefail")? Run it again under bash. Plain POSIX here, so any shell can get this far.
+if [ -z "${BASH_VERSION:-}" ]; then
+  if command -v bash >/dev/null 2>&1; then exec bash "$0" "$@"; fi
+  echo "This script needs bash. Install bash, or run it as: bash $0" >&2; exit 1
+fi
 set -euo pipefail
 data="${XDG_DATA_HOME:-$HOME/.local/share}"
 rm -rf "$data/syn3updater"
