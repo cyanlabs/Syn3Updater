@@ -19,7 +19,9 @@ public class InstallScriptShellTests
     /// <summary>The text of the script package-linux.sh writes into the archive (its heredoc), by the heredoc's tag.</summary>
     private static string Shipped(string tag)
     {
-        var m = Regex.Match(File.ReadAllText(Path.Combine(Repo(), "scripts", "package-linux.sh")), $"<<'{tag}'\n(.*?)\n{tag}\n", RegexOptions.Singleline);
+        // a Windows checkout turns the script's line endings into CRLF; the archive is built on Linux, where they are LF
+        var text = File.ReadAllText(Path.Combine(Repo(), "scripts", "package-linux.sh")).Replace("\r\n", "\n");
+        var m = Regex.Match(text, $"<<'{tag}'\n(.*?)\n{tag}\n", RegexOptions.Singleline);
         Assert.True(m.Success, tag);
         return m.Groups[1].Value + "\n";
     }
