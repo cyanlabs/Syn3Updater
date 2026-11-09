@@ -100,6 +100,8 @@ public sealed class FakeCyanLabs : DelegatingHandler
     private readonly string _files;
     public List<string> Queries { get; } = new();
     public bool Offline { get; set; }
+    /// <summary>Awaited with the query text before the backend answers: lets a test hold a response open to overlap two loads.</summary>
+    public Func<string, Task>? Gate { get; set; }
     public FakeCyanLabs(string fileServerUrl) : base(new SocketsHttpHandler()) { _files = fileServerUrl; }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage r, CancellationToken ct)
@@ -116,6 +118,7 @@ public sealed class FakeCyanLabs : DelegatingHandler
         var body = r.Content == null ? "" : await r.Content.ReadAsStringAsync(ct);
         string q; try { q = JsonDocument.Parse(body).RootElement.GetProperty("query").GetString()!; } catch { q = body; }
         Queries.Add(q);
+        if (Gate != null) await Gate(q);
         string Ivsu(string name, string type, string extra = "") => $$"""{"id":"1","name":"{{name}}","type":"{{type}}","regions":["ALL"],"md5":"{{FileServer.Md5(name + ".tar.gz")}}","url":"{{_files}}/{{name}}.tar.gz","version":"{{(type == "APPS" ? "3.4.26057" : "")}}","filesize":"{{FileServer.Blob(name + ".tar.gz").Length}}","notes":"n"{{extra}}}""";
 
         if (q.Contains("_eq: \"APPS\"")) return Json("{\"data\":{\"ivsu\":[{\"version\":\"3.3.19052\"},{\"version\":\"3.4.23188\"},{\"version\":\"3.4.26057\"},{\"version\":\"3.4.26057\"},{\"version\":null},{\"version\":\"\"},{\"version\":\" 3.4.23088 \"}]}}");
