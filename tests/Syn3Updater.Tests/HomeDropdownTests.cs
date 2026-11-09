@@ -22,7 +22,7 @@ public class HomeDropdownTests
         var home = env.Main.Home; home.ReloadSummary();
         await AppEnv.Until(() => home.Releases.Count > 0);
         home.SelectedRelease = home.Releases[0]; await AppEnv.Until(() => home.MapVersions.Count > 0);
-        home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 2);
+        home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 3);
         env.Dialogs.FolderToPick = env.UsbDir; await home.ChooseFolderCommand.ExecuteAsync(null);
     }
 
@@ -116,7 +116,7 @@ public class HomeDropdownTests
         using var env = new AppEnv(); var home = env.Main.Home; await PickEverything(env); var s = env.Main.Settings;
 
         env.Main.Current = s; env.Main.Current = env.Main.Home;                              // visited Settings, changed nothing
-        Assert.NotNull(home.SelectedRegion); Assert.NotNull(home.SelectedMap); Assert.Equal(2, home.Packages.Count);
+        Assert.NotNull(home.SelectedRegion); Assert.NotNull(home.SelectedMap); Assert.Equal(3, home.Packages.Count);
 
         env.Main.Current = s; s.Version = "3.3.19052"; env.Main.Current = env.Main.Home;     // changed the version: the old choices no longer fit
         Assert.Equal(3319052, Ctx.Profile.CurrentVersion);

@@ -194,6 +194,7 @@ public class ApiClient
         var first = r.Ivsus?.FirstOrDefault() ?? throw new ApiException($"Special package '{name}' was not found");
         var ivsu = first.ToIvsu();
         ivsu.FileName = ivsu.FileName.Replace("?dl=1", "");
+        ivsu.SpecialPackage ??= name;                                    // looked up by this name, so it is that special package even if the backend left the field empty
         return ivsu;
     }
 

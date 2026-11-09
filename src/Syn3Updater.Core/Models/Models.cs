@@ -15,6 +15,8 @@ public class Ivsu
     public string FileName { get; set; } = "";
     public string? Source { get; set; }
     public long FileSize { get; set; }
+    /// <summary>Which special package this is (rwdatacleaner, reformat, downgradeapp, ...) when it is one of the tools the app adds itself; null for an ordinary package. From the backend's "specialpackage" field.</summary>
+    public string? SpecialPackage { get; set; }
 }
 
 public record Region(string Code, string Name)
@@ -143,7 +145,7 @@ public class ApiIvsu
     public Ivsu ToIvsu() => new()
     {
         Type = Type, Name = Name, Version = Version ?? "", Notes = Notes ?? "", Url = Url, Md5 = Md5,
-        Selected = true, FileSize = FileSize, Source = Source,
+        Selected = true, FileSize = FileSize, Source = Source, SpecialPackage = string.IsNullOrWhiteSpace(SpecialPackage) ? null : SpecialPackage,
         FileName = UrlToFileName(Url),
     };
 

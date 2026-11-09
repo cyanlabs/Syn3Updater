@@ -103,6 +103,9 @@ public sealed class FakeCyanLabs : DelegatingHandler
     public bool Offline { get; set; }
     /// <summary>Awaited with the query text before the backend answers: lets a test hold a response open to overlap two loads.</summary>
     public Func<string, Task>? Gate { get; set; }
+    /// <summary>The packages (name, type) the backend lists for a release and for a map release, in the order it lists them. A test can replace them.</summary>
+    public List<(string Name, string Type)> ReleasePackages { get; set; } = new() { ("APP1", "APPS"), ("VOICE1", "VOICE") };
+    public List<(string Name, string Type)> MapPackages { get; set; } = new() { ("MAP1", "MAP"), ("LIC1", "MAP_LICENSE") };
     public FakeCyanLabs(string fileServerUrl) : base(new SocketsHttpHandler()) { _files = fileServerUrl; }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage r, CancellationToken ct)
@@ -125,9 +128,9 @@ public sealed class FakeCyanLabs : DelegatingHandler
         if (q.Contains("_eq: \"APPS\"")) return Json("{\"data\":{\"ivsu\":[{\"version\":\"3.3.19052\"},{\"version\":\"3.4.23188\"},{\"version\":\"3.4.26057\"},{\"version\":\"3.4.26057\"},{\"version\":null},{\"version\":\"\"},{\"version\":\" 3.4.23088 \"}]}}");
         if (q.Contains("specialpackage")) { var n = q.Split("_eq: \"")[1].Split('"')[0]; return Json("{\"data\":{\"ivsu\":[" + Ivsu(n, "TOOL") + "]}}"); }
         if (q.Contains("map_releases(sort")) return Json("""{"data":{"map_releases":[{"name":"Map 2025","notes":"map notes","esn":false,"regions":["NA"]},{"name":"Map ESN","notes":"","esn":true,"regions":["NA"]}]}}""");
-        if (q.Contains("map_releases(limit")) return Json("{\"data\":{\"map_releases\":[{\"name\":\"Map 2025\",\"ivsus\":[{\"map_ivsu\":" + Ivsu("MAP1", "MAP") + "},{\"map_ivsu\":" + Ivsu("LIC1", "MAP_LICENSE") + "}]}]}}");
+        if (q.Contains("map_releases(limit")) return Json("{\"data\":{\"map_releases\":[{\"name\":\"Map 2025\",\"ivsus\":[" + string.Join(",", MapPackages.Select(p => "{\"map_ivsu\":" + Ivsu(p.Name, p.Type) + "}")) + "]}]}}");
         if (q.Contains("releases(sort")) return Json("""{"data":{"releases":[{"name":"Sync 3.4.26057","notes":"**Big** release","version":"3.4.26057","feedbackurl":"https://forum/x","regions":["NA"]}]}}""");
-        if (q.Contains("releases(limit")) return Json("{\"data\":{\"releases\":[{\"name\":\"Sync 3.4.26057\",\"ivsus\":[{\"ivsu\":" + Ivsu("APP1", "APPS") + "},{\"ivsu\":" + Ivsu("VOICE1", "VOICE") + "}]}]}}");
+        if (q.Contains("releases(limit")) return Json("{\"data\":{\"releases\":[{\"name\":\"Sync 3.4.26057\",\"ivsus\":[" + string.Join(",", ReleasePackages.Select(p => "{\"ivsu\":" + Ivsu(p.Name, p.Type) + "}")) + "]}]}}");
         if (q.Contains("notices")) return Json("""{"data":{"notices":[{"id":"1","title":"Important","notice":"Read **this**","important":true,"date_created":"2025-01-02"},{"id":"2","title":"Other","notice":"fyi","important":false,"date_created":"2025-01-01"}]}}""");
         if (q.Contains("my20models")) return Json("""{"data":{"my20models":[{"model":"LB5T-14G371"},{"model":"5U5T-14G371"}]}}""");
         if (q.Contains("useragents")) return Json("""{"data":{"useragents":[{"useragent":"UA/[PLACEHOLDER]","min":"1","max":"5"}]}}""");

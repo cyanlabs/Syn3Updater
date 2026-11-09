@@ -47,6 +47,7 @@ public static class PackageStyle
         ["MAP"] = new("Navigation map", "M15,19L9,16.89V5L15,7.11M20.5,3C20.4,3 20.4,3 20.3,3L15,5.1L9,3L3.4,4.9C3.2,5 3,5.2 3,5.5V20.5A0.5,0.5 0 0,0 3.5,21C3.6,21 3.6,21 3.7,21L9,18.9L15,21L20.6,19.1C20.8,19 21,18.8 21,18.5V3.5A0.5,0.5 0 0,0 20.5,3Z", "#4cc38a"),
         ["MAP_LICENSE"] = new("Map licence", "M7,14A2,2 0 0,1 5,12A2,2 0 0,1 7,10A2,2 0 0,1 9,12A2,2 0 0,1 7,14M12.65,10C11.83,7.67 9.61,6 7,6A6,6 0 0,0 1,12A6,6 0 0,0 7,18C9.61,18 11.83,16.33 12.65,14H17V18H21V14H23V10H12.65Z", "#e0b341"),
         ["VOICE"] = new("Voice (navigation prompts)", "M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z", "#a77bff"),
+        ["VOICE_NAV"] = new("Navigation voice", "M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z", "#4cc38a"),     // the navigation voice packages (14G422), "Navigation Voice" in the backend: the same microphone as Voice, in the green of the map
         ["GRACENOTES"] = new("Gracenotes (album info)", "M12,3V13.55C11.41,13.21 10.73,13 10,13A4,4 0 0,0 6,17A4,4 0 0,0 10,21A4,4 0 0,0 14,17V7H18V3H12Z", "#f06fa6"),
         ["ENH_DAB"] = new("DAB radio", "M20,6H8.3L16.8,2.5L16.2,1L3.2,6.4C2.5,6.7 2,7.3 2,8V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V8A2,2 0 0,0 20,6M7,20A3,3 0 0,1 4,17A3,3 0 0,1 7,14A3,3 0 0,1 10,17A3,3 0 0,1 7,20M20,12H18V10H16V12H4V8H20V12Z", "#4f8cff"),
         ["TOOL"] = new("Tool", "M22.7,19L13.6,9.9C14.5,7.6 14,4.9 12.1,3C10.1,1 7.1,0.6 4.7,1.7L9,6L6,9L1.6,4.7C0.4,7.1 0.9,10.1 2.9,12.1C4.8,14 7.5,14.5 9.8,13.6L18.9,22.7C19.3,23.1 19.9,23.1 20.3,22.7L22.6,20.4C23.1,20 23.1,19.3 22.7,19Z", "#f08a3c"),
@@ -60,6 +61,20 @@ public partial class PackageRow : ObservableObject
     public Ivsu Ivsu { get; }
     [ObservableProperty] private bool _selected = true;
     public event Action? SelectionChanged;
+    /// <summary>The special package this row stands for when the app adds it itself (the RW data cleaner, the reformat or downgrade tools), from the package's own "specialpackage" field: always installed with the mode, so it is shown but cannot be unticked.</summary>
+    /// <summary>Where the package was in the backend's list. The list on screen is sorted by type, but the install lists are written in this order, as they always were.</summary>
+    public int LoadOrder { get; init; }
+    public string? ToolName => string.IsNullOrWhiteSpace(Ivsu.SpecialPackage) ? null : Ivsu.SpecialPackage;
+    public bool IsRequiredTool => ToolName != null;
+    /// <summary>The install mode needs this package (the APPS package in Reformat and Downgrade: without it the unit would not boot), so it is shown ticked and cannot be unticked.</summary>
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(IsLocked), nameof(IsOptional), nameof(Subtitle))] private bool _requiredByMode;
+    partial void OnRequiredByModeChanged(bool value) { if (value && !Selected) Selected = true; }
+    /// <summary>Ticked and fixed: a required tool, or a package the install mode needs.</summary>
+    public bool IsLocked => IsRequiredTool || RequiredByMode;
+    /// <summary>Free to tick and untick.</summary>
+    public bool IsOptional => !IsLocked;
+    /// <summary>Why a locked row cannot be unticked: the lock's tooltip.</summary>
+    public string LockHint => IsRequiredTool ? Ctx.T("Download.RequiredTool") : Ctx.T("Home.RequiredForMode");
     public PackageRow(Ivsu i)
     {
         Ivsu = i;
@@ -69,8 +84,8 @@ public partial class PackageRow : ObservableObject
         IconBrush = new Avalonia.Media.SolidColorBrush(c);
         IconBackground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromArgb(0x33, c.R, c.G, c.B));
     }
-    partial void OnSelectedChanged(bool value) => SelectionChanged?.Invoke();
-    [RelayCommand] private void Toggle() => Selected = !Selected;
+    partial void OnSelectedChanged(bool value) { if (IsLocked && !value) { Selected = true; return; } SelectionChanged?.Invoke(); }       // a locked row cannot be unticked, whatever asks
+    [RelayCommand] private void Toggle() { if (IsOptional) Selected = !Selected; }
 
     public string TypeLabel { get; }
     public string IconData { get; }
@@ -83,7 +98,31 @@ public partial class PackageRow : ObservableObject
     public string InfoUrl => InfoBase + Uri.EscapeDataString(Ivsu.Name);
     public bool HasInfo => !string.IsNullOrWhiteSpace(Ivsu.Name);
     [RelayCommand] private Task OpenInfo() => Dialogs.OpenUrl(InfoUrl);
-    public string Subtitle => string.IsNullOrEmpty(Ivsu.Version) ? TypeLabel : $"{TypeLabel}  ·  {Ivsu.Version}";
+    /// <summary>The first line of the package's notes, as plain text, for the row (empty when it has none).</summary>
+    public string NoteLine => FirstLine(Ivsu.Notes);
+    public bool HasNoteLine => NoteLine.Length > 0;
+    /// <summary>The full notes, for the tooltip.</summary>
+    public string FullNotes => (Ivsu.Notes ?? "").Trim();
+
+    /// <summary>
+    /// The first line with any text, without the Markdown the notes are written in: a leading heading, quote or bullet marker, and emphasis and code marks. One line is all the row has room for;
+    /// the view trims it with an ellipsis.
+    /// </summary>
+    public static string FirstLine(string? notes)
+    {
+        foreach (var raw in (notes ?? "").Replace("\r\n", "\n").Replace('\r', '\n').Split('\n'))
+        {
+            var line = raw.Trim();
+            line = System.Text.RegularExpressions.Regex.Replace(line, @"^(#{1,6}(\s+|$)|>\s*|[-*+](\s+|$))+", "");
+            line = line.Replace("**", "").Replace("__", "").Replace("`", "");
+            line = line.Trim();
+            if (line.Length > 0) return line;
+        }
+        return "";
+    }
+
+    public string Subtitle => IsRequiredTool ? Ctx.T("Download.RequiredTool")
+        : (string.IsNullOrEmpty(Ivsu.Version) ? TypeLabel : $"{TypeLabel}  ·  {Ivsu.Version}") + (RequiredByMode ? "  ·  " + Ctx.T("Home.RequiredForMode") : "");
     public string SizeText => Format.Bytes(Ivsu.FileSize);
 }
 
@@ -153,11 +192,17 @@ public partial class HomeViewModel : PageViewModel
         OnPropertyChanged(nameof(HasMode)); OnPropertyChanged(nameof(ModeIsForced));
         InstallDocsUrl = value.Length > 0 ? ApiEndpoints.InstallDocsUrl(value) : "";
         UpdateModePresentation();
-        UpdateSelectionSummary();                                                // the note about the tool files follows the mode
+        LockRowsForMode();
     }
 
-    /// <summary>Reformat and Downgrade need extra tool files that the app adds to the download itself (they are not in the package list).</summary>
-    private bool AddsToolFiles => InstallMode is InstallModes.Reformat or InstallModes.Downgrade;
+    /// <summary>Reformat and Downgrade wipe the unit and install from the packages, so the APPS package must be one of them: without it the unit would not boot.</summary>
+    private bool ModeNeedsApps => InstallMode is InstallModes.Reformat or InstallModes.Downgrade;
+
+    private void LockRowsForMode()
+    {
+        foreach (var r in Packages) r.RequiredByMode = ModeNeedsApps && !r.IsRequiredTool && string.Equals(r.Ivsu.Type, "APPS", StringComparison.OrdinalIgnoreCase);
+        UpdateSelectionSummary();
+    }
 
     /// <summary>
     /// With nothing selected yet the mode is unknown, unless it was forced in Settings: then it is already decided
@@ -476,7 +521,7 @@ public partial class HomeViewModel : PageViewModel
         BeginLoading();
         try
         {
-            var found = new List<Ivsu>();                                         // nothing is shown until every part has arrived and this load is still the newest
+            var releasePart = new List<Ivsu>(); var mapPart = new List<Ivsu>();     // nothing is shown until every part has arrived and this load is still the newest
             if (!rel.OnlyMaps)
             {
                 var navType = Ctx.Profile.CurrentNav ? "nav" : "nonnav";
@@ -484,7 +529,7 @@ public partial class HomeViewModel : PageViewModel
                 if (gen != _packagesGen) return;
                 foreach (var ri in root.Releases?.FirstOrDefault()?.Ivsus?.Where(x => x.Ivsu != null) ?? Enumerable.Empty<ReleaseIvsu>())
                     if (ri.Ivsu!.Regions?.Contains("ALL") == true || ri.Ivsu.Regions?.Contains(region.Code) == true)
-                        found.Add(ri.Ivsu.ToIvsu());
+                        releasePart.Add(ri.Ivsu.ToIvsu());
             }
             if (map.Kind == MapChoice.MapPackage && map.Release != null)
             {
@@ -492,9 +537,16 @@ public partial class HomeViewModel : PageViewModel
                 if (gen != _packagesGen) return;
                 foreach (var ri in root.MapReleases?.FirstOrDefault()?.Ivsus?.Where(x => x.MapIvsu != null) ?? Enumerable.Empty<ReleaseIvsu>())
                     if (ri.MapIvsu!.Regions?.Contains("ALL") == true || ri.MapIvsu.Regions?.Contains(region.Code) == true)
-                        found.Add(ri.MapIvsu.ToIvsu());
+                        mapPart.Add(ri.MapIvsu.ToIvsu());
             }
-            foreach (var ivsu in found) AddRow(ivsu);
+            // the tools this install mode needs (the RW data cleaner always; the reformat and downgrade tools for those modes): listed last, locked, and counted like any package
+            var toolNames = ToolPlan.For(InstallMode);
+            var toolPackages = await Task.WhenAll(toolNames.Select(n => Ctx.Api.GetSpecialPackage(n)));
+            if (gen != _packagesGen) return;
+            // shown: the release's packages A-Z by type, then the map release's packages A-Z by type (then the tools below). The job still gets them in the backend's order (LoadOrder).
+            var backendOrder = releasePart.Concat(mapPart).ToList();
+            foreach (var ivsu in ByType(releasePart).Concat(ByType(mapPart))) AddRow(ivsu, backendOrder.IndexOf(ivsu));
+            for (var t = 0; t < toolPackages.Length; t++) AddRow(toolPackages[t], backendOrder.Count + t);                                  // each carries its own SpecialPackage, which is what makes its row locked
         }
         catch (ApiException e) { if (gen == _packagesGen) await ShowApiError(e); }
         finally { EndLoading(); }
@@ -506,9 +558,14 @@ public partial class HomeViewModel : PageViewModel
         release.Length > 0 && map.Length > 0 ? $"### Release notes\n{release}\n\n### Map release notes\n{map}"
         : release.Length > 0 ? release : map;
 
-    private void AddRow(Ivsu ivsu)
+    /// <summary>A-Z by package type (APPS, ENH_DAB, GRACENOTES, MAP, MAP_LICENSE, VOICE, VOICE_NAV), then by name, so equal types keep a steady order.</summary>
+    public static IEnumerable<Ivsu> ByType(IEnumerable<Ivsu> packages) =>
+        packages.OrderBy(p => p.Type, StringComparer.OrdinalIgnoreCase).ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase);
+
+    private void AddRow(Ivsu ivsu, int loadOrder)
     {
-        var row = new PackageRow(ivsu);
+        var row = new PackageRow(ivsu) { LoadOrder = loadOrder };
+        row.RequiredByMode = ModeNeedsApps && !row.IsRequiredTool && string.Equals(ivsu.Type, "APPS", StringComparison.OrdinalIgnoreCase);
         row.SelectionChanged += UpdateSelectionSummary;
         Packages.Add(row);
         UpdateSelectionSummary();
@@ -517,7 +574,7 @@ public partial class HomeViewModel : PageViewModel
     private void UpdateSelectionSummary()
     {
         var chosen = Packages.Where(r => r.Selected).ToList();
-        SelectionSummary = Packages.Count == 0 ? "" : $"{Ctx.T("App.SelectedSummary", chosen.Count, Packages.Count)}  ·  {Format.Bytes(chosen.Sum(r => r.Ivsu.FileSize))}" + (AddsToolFiles ? "  ·  " + Ctx.T("App.SelectedExtraTools") : "");
+        SelectionSummary = Packages.Count == 0 ? "" : $"{Ctx.T("App.SelectedSummary", chosen.Count, Packages.Count)}  ·  {Format.Bytes(chosen.Sum(r => r.Ivsu.FileSize))}";
     }
 
     /// <summary>Title, one-line explanation, colour and icon for the install mode shown in the action bar.</summary>
@@ -579,7 +636,7 @@ public partial class HomeViewModel : PageViewModel
             MainWindowViewModel.Instance.ShowSettings();
             return;
         }
-        var selected = Packages.Where(r => r.Selected).Select(r => r.Ivsu).ToList();
+        var selected = Packages.Where(r => !r.IsRequiredTool && r.Selected).OrderBy(r => r.LoadOrder).Select(r => r.Ivsu).ToList();          // the backend's order, whatever order they are shown in; the required tools go along separately, via Preloaded below
         if (selected.Count == 0) { await Dialogs.Error(Ctx.T("MessageBox.NoPackagesSelected")); return; }
 
         if (downloadOnly && !await Dialogs.Confirm(Ctx.T("MessageBox.DownloadOnlyMode"), Ctx.T("String.Warning") + "!", warning: true)) return;
@@ -609,14 +666,15 @@ public partial class HomeViewModel : PageViewModel
             Packages = selected, Mode = InstallMode, Action = UpdateAction.Main, Release = SelectedRelease.Display,
             Region = SelectedRegion.Code, MapVersion = SelectedMap.Display, Drive = SelectedDrive, DownloadOnly = downloadOnly,
             NeedDowngradeTools = InstallMode == InstallModes.Downgrade, NeedReformat = reformatLike,
+            Preloaded = ToolPlan.Collect(Packages.Where(r => r.IsRequiredTool).Select(r => r.Ivsu)),
         });
         if (!ok) UpdateButtons();
     }
 
     [RelayCommand] private void EditConfig() => MainWindowViewModel.Instance.ShowSettings();
     [RelayCommand] private Task OpenInstructionsAsync() => Dialogs.OpenUrl(string.IsNullOrEmpty(InstallDocsUrl) ? ApiEndpoints.DocsBase : InstallDocsUrl);
-    [RelayCommand] private void SelectAll() { foreach (var r in Packages) r.Selected = true; UpdateSelectionSummary(); }
-    [RelayCommand] private void SelectNone() { foreach (var r in Packages) r.Selected = false; UpdateSelectionSummary(); }
+    [RelayCommand] private void SelectAll() { foreach (var r in Packages.Where(r => r.IsOptional)) r.Selected = true; UpdateSelectionSummary(); }
+    [RelayCommand] private void SelectNone() { foreach (var r in Packages.Where(r => r.IsOptional)) r.Selected = false; UpdateSelectionSummary(); }
 
     [RelayCommand] private Task OpenFeedbackAsync() => FeedbackUrl is { Length: > 0 } u ? Dialogs.OpenUrl(u) : Task.CompletedTask;
 }

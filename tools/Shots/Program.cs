@@ -66,7 +66,9 @@ var work = Dispatcher.UIThread.InvokeAsync(async () =>
             ("APPS", "PU5T-14G381-AB", "3.4.26057", 1_400_000_000L, true), ("VOICE", "PU5T-14G391-AC", "", 310_000_000L, true),
             ("GRACENOTES", "PU5T-14G423-AB", "", 90_000_000L, false), ("ENH_DAB", "PU5T-14G658-AF", "", 48_000_000L, true),
             ("MAP_LICENSE", "4U5T-14G424-AA", "", 12_000L, true), ("MAP", "4U5T-14G421-CAC", "", 2_300_000_000L, true) })
-        { var row = new PackageRow(new Ivsu { Type = t, Name = n, Version = v, FileSize = sz }) { Selected = sel }; vm.Home.Packages.Add(row); }
+        { var row = new PackageRow(new Ivsu { Type = t, Name = n, Version = v, FileSize = sz, Notes = t == "APPS" ? "## Sync 3.4.26057\n- Improved Bluetooth stability" : t == "MAP" ? "**North America** map data, Q3 release" : "" }) { Selected = sel }; vm.Home.Packages.Add(row); }
+        foreach (var (name, type, notes, size) in new[] { ("reformat", "TOOL", "Prepares the unit for a clean install.\nRuns before everything else.", 4_000_000L), ("rwdatacleaner", "TOOL", "Clears old user data before the update.", 2_000_000L) })
+            vm.Home.Packages.Add(new PackageRow(new Ivsu { Type = type, Name = name, FileSize = size, Notes = notes, SpecialPackage = name }));
         vm.Home.InstallMode = Environment.GetEnvironmentVariable("DEMO_MODE") ?? "downgrade"; vm.Home.StartEnabled = true; vm.Home.DownloadOnlyEnabled = true;
         vm.Home.Notes = "**Sync 3.4.26057** brings:\n- Improved Bluetooth stability\n- New `AppLink` fixes\n\nFull details: https://community.cyanlabs.net/t/sync-3-4/123 and [the forum](https://community.cyanlabs.net).";
         Directory.CreateDirectory(Ctx.Main.LogPath!);

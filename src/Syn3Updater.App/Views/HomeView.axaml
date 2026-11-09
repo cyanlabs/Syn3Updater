@@ -160,7 +160,7 @@
             <ItemsControl ItemsSource="{Binding Packages}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:PackageRow">
-                  <Button Classes="tile" Classes.selected="{Binding Selected}" Command="{Binding ToggleCommand}" Margin="0,0,0,8">
+                  <Button Classes="tile" Classes.selected="{Binding Selected}" Classes.tool="{Binding IsRequiredTool}" Command="{Binding ToggleCommand}" Margin="0,0,0,8">
                     <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="14">
                       <Border Width="44" Height="44" CornerRadius="12" Background="{Binding IconBackground}">
                         <PathIcon Data="{Binding IconData}" Foreground="{Binding IconBrush}" Width="22" Height="22" />
@@ -168,12 +168,16 @@
                       <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
                         <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                         <TextBlock Text="{Binding Subtitle}" Classes="label" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding NoteLine}" Classes="muted" FontSize="12" TextTrimming="CharacterEllipsis" IsVisible="{Binding HasNoteLine}" ToolTip.Tip="{Binding FullNotes}" />
                       </StackPanel>
                       <Button Grid.Column="2" Classes="help" Command="{Binding OpenInfoCommand}" IsVisible="{Binding HasInfo}" ToolTip.Tip="{svc:T Home.PackageInfo}" AutomationProperties.Name="{svc:T Home.PackageInfo}">
                         <PathIcon Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z" />
                       </Button>
                       <TextBlock Grid.Column="3" Text="{Binding SizeText}" Classes="label" VerticalAlignment="Center" MinWidth="64" TextAlignment="Right" />
-                      <CheckBox Grid.Column="4" IsChecked="{Binding Selected}" IsHitTestVisible="False" MinWidth="0" Padding="0" />
+                      <Panel Grid.Column="4" VerticalAlignment="Center">
+                        <CheckBox IsChecked="{Binding Selected}" IsVisible="{Binding IsOptional}" IsHitTestVisible="False" MinWidth="0" Padding="0" />
+                        <PathIcon Classes="lock" Data="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z" Width="18" Height="18" Margin="1,0" IsVisible="{Binding IsLocked}" ToolTip.Tip="{Binding LockHint}" AutomationProperties.Name="{Binding LockHint}" />
+                      </Panel>
                     </Grid>
                   </Button>
                 </DataTemplate>
