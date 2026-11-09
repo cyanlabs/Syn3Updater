@@ -47,7 +47,7 @@ compiled into it (`UpdateKeys` in `src/Syn3Updater.Core/Services/Updates/Minisig
   missing, and verifies its own signature against the public keys, so a wrong key or password stops the release instead of reaching users.
 - **The signed comment** is `version:<v> channel:<c>`, so a signature cannot be moved onto another release's manifest. Updates only ever move forward; the one exception is the user
   explicitly choosing another channel in Settings.
-- **Release notes** shown in the update banner and the *What's new* box: the *notes* input of the Release workflow, or else the file `release-notes/<version>.md`. Plain text, a line or two.
+- **Release notes** shown in the update banner and the *What's new* box: the *notes* input of the Release workflow, or else the file `release-notes/<version>.md`. Plain text. In the *notes* input type `\n` for a new line and start lines with `- ` for a list (`scripts/format-release-notes.sh` turns them into real lines and tidies the spacing); a `release-notes/<version>.md` file can simply use real lines. Example: `-f notes="- Fixes duplicated packages\n- Windows 11 is shown correctly"`.
 - **Keys:** the *primary* private key is the GitHub secret pair `MINISIGN_PRIMARY_KEY` (the `.key` file contents) and `MINISIGN_PASSWORD`. The *backup* private key is **never** in CI: it
   is kept offline and is only used to sign a release if the primary is lost or leaked (then replace the primary public key in a release signed by the backup). Both are in 1Password
   (vault Private, "Syn3Updater minisign PRIMARY" / "BACKUP"). Forks without the secrets publish releases without a manifest: the app then only tells people about them.
