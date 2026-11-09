@@ -27,6 +27,8 @@
           <SolidColorBrush x:Key="Muted">#93a3a9</SolidColorBrush>
           <SolidColorBrush x:Key="Brand">#2fa1ab</SolidColorBrush>
           <SolidColorBrush x:Key="BrandSoft">#262fa1ab</SolidColorBrush>
+          <SolidColorBrush x:Key="ToolBorder">#f08a3c</SolidColorBrush>
+          <SolidColorBrush x:Key="ToolBg">#24f08a3c</SolidColorBrush>
           <SolidColorBrush x:Key="WarnBg">#33f0a43c</SolidColorBrush>
           <SolidColorBrush x:Key="WarnFg">#f0b45a</SolidColorBrush>
           <SolidColorBrush x:Key="ErrBg">#33ef6b62</SolidColorBrush>
@@ -47,6 +49,8 @@
           <SolidColorBrush x:Key="Muted">#5d6d73</SolidColorBrush>
           <SolidColorBrush x:Key="Brand">#1f8a94</SolidColorBrush>
           <SolidColorBrush x:Key="BrandSoft">#1f1f8a94</SolidColorBrush>
+          <SolidColorBrush x:Key="ToolBorder">#c26a1a</SolidColorBrush>
+          <SolidColorBrush x:Key="ToolBg">#1ec26a1a</SolidColorBrush>
           <SolidColorBrush x:Key="WarnBg">#26e8920a</SolidColorBrush>
           <SolidColorBrush x:Key="WarnFg">#9a5a00</SolidColorBrush>
           <SolidColorBrush x:Key="ErrBg">#26d93a30</SolidColorBrush>
@@ -116,6 +120,11 @@
     <Style Selector="Button.tile"><Setter Property="Background" Value="Transparent" /><Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="12" /><Setter Property="Padding" Value="12" /><Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /></Style>
     <Style Selector="Button.tile:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource ChipBg}" /><Setter Property="BorderBrush" Value="{DynamicResource Muted}" /></Style>
     <Style Selector="Button.tile.selected /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource BrandSoft}" /><Setter Property="BorderBrush" Value="{DynamicResource Brand}" /></Style>
+    <!-- the lock shown instead of the checkbox on a row that cannot be unticked: teal on a package the mode needs, orange on a required tool -->
+    <Style Selector="PathIcon.lock"><Setter Property="Foreground" Value="{DynamicResource Brand}" /></Style>
+    <Style Selector="Button.tile.tool PathIcon.lock"><Setter Property="Foreground" Value="{DynamicResource ToolBorder}" /></Style>
+    <!-- a required tool (always installed with the mode, cannot be unticked): its own colour, also under the pointer, so it is never mistaken for a package you ticked -->
+    <Style Selector="Button.tile.tool /template/ ContentPresenter#PART_ContentPresenter, Button.tile.tool:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource ToolBg}" /><Setter Property="BorderBrush" Value="{DynamicResource ToolBorder}" /></Style>
     <Style Selector="Border.callout"><Setter Property="Background" Value="{DynamicResource BrandSoft}" /><Setter Property="BorderBrush" Value="{DynamicResource Brand}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="12" /><Setter Property="Padding" Value="18,14" /></Style>
 
     <Style Selector="Border.ico"><Setter Property="HorizontalAlignment" Value="Left" /><Setter Property="Width" Value="38" /><Setter Property="Height" Value="38" /><Setter Property="CornerRadius" Value="11" /></Style>

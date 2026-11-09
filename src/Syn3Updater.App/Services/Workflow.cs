@@ -18,6 +18,8 @@ public class JobSpec
     public bool NeedDowngradeTools { get; init; }
     public bool NeedReformat { get; init; }
     public bool NeedRwCleaner { get; init; } = true;
+    /// <summary>Tool packages Home already looked up and showed in the package list: used as they are, so what was shown is what is downloaded. Anything missing is looked up here.</summary>
+    public SpecialTools? Preloaded { get; init; }
     public string? SpecialPackage { get; init; }   // single utility package (gracenotes, voice, ...)
 }
 
@@ -40,20 +42,21 @@ public static class Workflow
         var queue = new List<Ivsu>();
         try
         {
+            var pre = spec.Preloaded;
             if (spec.NeedDowngradeTools)
             {
-                tools.DowngradeApp = await Ctx.Api.GetSpecialPackage(SpecialPackages.DowngradeApp);
-                tools.DowngradeTool = await Ctx.Api.GetSpecialPackage(SpecialPackages.DowngradeTool);
+                tools.DowngradeApp = pre?.DowngradeApp ?? await Ctx.Api.GetSpecialPackage(SpecialPackages.DowngradeApp);
+                tools.DowngradeTool = pre?.DowngradeTool ?? await Ctx.Api.GetSpecialPackage(SpecialPackages.DowngradeTool);
                 queue.Add(tools.DowngradeApp); queue.Add(tools.DowngradeTool);
             }
             if (spec.NeedReformat)
             {
-                tools.ReformatTool = await Ctx.Api.GetSpecialPackage(SpecialPackages.Reformat);
+                tools.ReformatTool = pre?.ReformatTool ?? await Ctx.Api.GetSpecialPackage(SpecialPackages.Reformat);
                 queue.Add(tools.ReformatTool);
             }
             if (spec.NeedRwCleaner)
             {
-                tools.RwDataCleaner = await Ctx.Api.GetSpecialPackage(SpecialPackages.RWDataCleaner);
+                tools.RwDataCleaner = pre?.RwDataCleaner ?? await Ctx.Api.GetSpecialPackage(SpecialPackages.RWDataCleaner);
                 queue.Add(tools.RwDataCleaner);
             }
             if (spec.SpecialPackage != null) queue.Add(await Ctx.Api.GetSpecialPackage(spec.SpecialPackage));
@@ -68,7 +71,7 @@ public static class Workflow
         // The autoinstall builder needs the RWDataCleaner object even for utility actions that never list it.
         if (tools.RwDataCleaner == null)
         {
-            try { tools.RwDataCleaner = await Ctx.Api.GetSpecialPackage(SpecialPackages.RWDataCleaner); }
+            try { tools.RwDataCleaner = spec.Preloaded?.RwDataCleaner ?? await Ctx.Api.GetSpecialPackage(SpecialPackages.RWDataCleaner); }
             catch (ApiException e) { await Dialogs.Error(e.Message); return false; }
         }
 

@@ -35,7 +35,7 @@ public class HomeLoadRaceTests
         home.SelectedMap = null; home.SelectedMap = map; await AppEnv.Until(() => hold.Held == 2);          // the selection fires again
         hold.Release();
         await AppEnv.Until(() => home.Packages.Count > 0); await Task.Delay(300);
-        Assert.Equal(2, home.Packages.Count);
+        Assert.Equal(3, home.Packages.Count);                                                  // two packages and the RW data cleaner
         Assert.Equal(home.Packages.Select(p => p.Ivsu.Name).Distinct().Count(), home.Packages.Count);
         Assert.False(home.Loading);
     }
@@ -49,7 +49,7 @@ public class HomeLoadRaceTests
         for (var i = 1; i <= 5; i++) { home.SelectedMap = null; home.SelectedMap = map; await AppEnv.Until(() => hold.Held == i); }
         hold.Release();
         await AppEnv.Until(() => home.Packages.Count > 0); await Task.Delay(300);
-        Assert.Equal(new[] { "APP1", "VOICE1" }, home.Packages.Select(p => p.Ivsu.Name).OrderBy(n => n));
+        Assert.Equal(new[] { "APP1", "VOICE1", "rwdatacleaner" }, home.Packages.Select(p => p.Ivsu.Name).OrderBy(n => n, StringComparer.Ordinal));
     }
 
     [AvaloniaFact]

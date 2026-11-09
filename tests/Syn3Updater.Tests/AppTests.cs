@@ -33,15 +33,15 @@ public class HomeFlowTests
         Assert.Equal(MapChoice.NonNavApim, home.MapVersions[0].Kind);
 
         home.SelectedMap = home.MapVersions[0];
-        await AppEnv.Until(() => home.Packages.Count == 2);
+        await AppEnv.Until(() => home.Packages.Count == 3);
         Assert.Equal("autoinstall", home.InstallMode); Assert.Equal("AutoInstall", home.ModeTitle); Assert.True(home.HasMode);
         Assert.Equal(ApiEndpoints.InstallDocsUrl("autoinstall"), home.InstallDocsUrl);
         Assert.True(home.DownloadOnlyEnabled);
-        Assert.StartsWith("2 of 2 selected", home.SelectionSummary);
+        Assert.StartsWith("3 of 3 selected", home.SelectionSummary);
 
-        home.SelectNoneCommand.Execute(null); Assert.StartsWith("0 of 2", home.SelectionSummary);
-        home.SelectAllCommand.Execute(null); Assert.StartsWith("2 of 2", home.SelectionSummary);
-        home.Packages[0].ToggleCommand.Execute(null); Assert.False(home.Packages[0].Selected); Assert.StartsWith("1 of 2", home.SelectionSummary);
+        home.SelectNoneCommand.Execute(null); Assert.StartsWith("1 of 3", home.SelectionSummary);
+        home.SelectAllCommand.Execute(null); Assert.StartsWith("3 of 3", home.SelectionSummary);
+        home.Packages[0].ToggleCommand.Execute(null); Assert.False(home.Packages[0].Selected); Assert.StartsWith("2 of 3", home.SelectionSummary);
 
         await home.OpenInstructionsCommand.ExecuteAsync(null);
         await home.OpenFeedbackCommand.ExecuteAsync(null);
@@ -60,7 +60,7 @@ public class HomeFlowTests
         await AppEnv.Until(() => home.MapVersions.Count == 3);              // keep existing + 2 maps
         Assert.Equal(MapChoice.KeepExisting, home.MapVersions[0].Kind);
         home.SelectedMap = home.MapVersions[1];
-        await AppEnv.Until(() => home.Packages.Count == 4);                 // 2 release + map + licence
+        await AppEnv.Until(() => home.Packages.Count == 6);                 // 2 release + map + licence, and the reformat tool and the RW data cleaner the mode needs
         Assert.Equal("reformat", home.InstallMode);
         Assert.Equal("MY20 Check", home.ModeTitle); Assert.Equal(Ctx.T("App.Mode.my20check"), home.ModeDescription);   // MY20 protection is Auto-Detect: the banner does not claim a mode before the question is answered
         Ctx.Profile.My20v2 = false; home.ReloadSummary();
@@ -76,11 +76,11 @@ public class HomeFlowTests
         var home = env.Main.Home; home.ReloadSummary();
         await AppEnv.Until(() => home.Releases.Count == 2);
         home.SelectedRelease = home.Releases[1]; await AppEnv.Until(() => home.MapVersions.Count == 3);
-        home.SelectedMap = home.MapVersions[1]; await AppEnv.Until(() => home.Packages.Count == 4);
+        home.SelectedMap = home.MapVersions[1]; await AppEnv.Until(() => home.Packages.Count == 8);
         Assert.Equal("downgrade", home.InstallMode);
 
         home.SelectedRelease = home.Releases[0]; await AppEnv.Until(() => home.MapVersions.Count == 2);   // only-maps: no keep-existing entry
-        home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 2);       // map + licence only
+        home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 3);       // map + licence only, and the RW data cleaner
         Assert.Equal("autoinstall", home.InstallMode);
     }
 
@@ -145,10 +145,10 @@ public class HomeFlowTests
         var home = env.Main.Home; home.ReloadSummary();
         await AppEnv.Until(() => home.Releases.Count == 2);
         home.SelectedRelease = home.Releases[1]; await AppEnv.Until(() => home.MapVersions.Count == 3);
-        home.SelectedMap = home.MapVersions[1]; await AppEnv.Until(() => home.Packages.Count == 4);
+        home.SelectedMap = home.MapVersions[1]; await AppEnv.Until(() => home.Packages.Count == (forced == "downgrade" ? 8 : 6));
         Assert.Equal(forced, home.InstallMode);                                    // a normal release: the forced mode is used (v2 options A/D/G)
         home.SelectedRelease = home.Releases[0]; await AppEnv.Until(() => home.MapVersions.Count == 2);
-        home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 2);
+        home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 3);
         Assert.Equal("autoinstall", home.InstallMode);                             // only maps: v2 uses autoinstall whatever was forced
     }
 
@@ -157,7 +157,7 @@ public class HomeFlowTests
     {
         using var env = new AppEnv(); Ctx.Profile.My20v2 = false; Ctx.Profile.InstallMode = "reformat";
         var home = env.Main.Home; home.ReloadSummary();
-        await PickAll(home); home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 2);
+        await PickAll(home); home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 4);
         Assert.Equal("reformat", home.InstallMode); Assert.True(home.ModeIsForced); Assert.Equal("Yes", home.ModeForcedText);
     }
 
@@ -177,7 +177,7 @@ public class HomeFlowTests
 
         await AppEnv.Until(() => home.Releases.Count > 0);
         home.SelectedRelease = home.Releases[0]; await AppEnv.Until(() => home.MapVersions.Count > 0);
-        home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 2);
+        home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 6);
         Assert.Equal("downgrade", home.InstallMode);                                                    // picking things does not change a forced mode
 
         home.ClearSelections();
@@ -276,7 +276,7 @@ public class WorkflowTests
         var home = env.Main.Home; home.ReloadSummary();
         await AppEnv.Until(() => home.Releases.Count > 0);
         home.SelectedRelease = home.Releases[0]; await AppEnv.Until(() => home.MapVersions.Count > 0);
-        home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 2);
+        home.SelectedMap = home.MapVersions[0]; await AppEnv.Until(() => home.Packages.Count == 3);
     }
 
     [AvaloniaFact]
@@ -379,7 +379,7 @@ public class WorkflowTests
         var home = env.Main.Home; home.ReloadSummary();
         await AppEnv.Until(() => home.Releases.Count == 2);
         home.SelectedRelease = home.Releases[1]; await AppEnv.Until(() => home.MapVersions.Count == 3);
-        home.SelectedMap = home.MapVersions[1]; await AppEnv.Until(() => home.Packages.Count == 4);
+        home.SelectedMap = home.MapVersions[1]; await AppEnv.Until(() => home.Packages.Count == 6);
         env.Dialogs.FolderToPick = env.UsbDir; await home.ChooseFolderCommand.ExecuteAsync(null);
         env.Dialogs.Say(m => m == Ctx.T("MessageBox.My20CheckV2"), true);
         await home.StartCommand.ExecuteAsync(null);
@@ -618,6 +618,7 @@ public class SmallPieceTests
     [Theory]
     [InlineData("APPS", "Apps")] [InlineData("map", "Navigation map")] [InlineData("MAP_LICENSE", "Map licence")] [InlineData("VOICE", "Voice (navigation prompts)")]
     [InlineData("GRACENOTES", "Gracenotes (album info)")] [InlineData("ENH_DAB", "DAB radio")] [InlineData("TOOL", "Tool")] [InlineData("???", "Package")] [InlineData(null, "Package")]
+    [InlineData("VOICE_NAV", "Navigation voice")] [InlineData("voice_nav", "Navigation voice")]                                  // the 14G422 navigation voice packages ("Navigation Voice" in the backend)
     public void PackageStyle_MapsTypes(string? type, string label) => Assert.Equal(label, PackageStyle.For(type).Label);
 
     [Fact]
