@@ -14,6 +14,8 @@ public partial class QueueItem : ObservableObject
     public string Name { get; }
     public string Size { get; }
     public int Order { get; }
+    /// <summary>A tool file the app added to the download itself (reformat, downgrade, data cleaner): it is not one of the packages that were ticked.</summary>
+    public bool IsTool { get; init; }
     [ObservableProperty] private bool _isActive;
     [ObservableProperty] private bool _isDone;
     public QueueItem(string name, string size, int order = 0) { Name = name; Size = size; Order = order; }
@@ -139,7 +141,8 @@ public partial class DownloadViewModel : PageViewModel
         CanEject = false; _ejectDrive = null; _ejectPath = null;
         _tick ??= new Avalonia.Threading.DispatcherTimer(TimeSpan.FromMilliseconds(500), Avalonia.Threading.DispatcherPriority.Background, (_, _) => RefreshStats());
         _tick.Start();
-        _all = req.Queue.Select((i, n) => new QueueItem(i.FileName, Format.Bytes(i.FileSize), n)).ToList();
+        // in a main update the ticked packages are spec.Packages; anything else in the queue was added by the app. (A utility has no ticked packages: everything is its own, so nothing is tagged.)
+        _all = req.Queue.Select((i, n) => new QueueItem(i.FileName, Format.Bytes(i.FileSize), n) { IsTool = spec.Packages.Count > 0 && !spec.Packages.Contains(i) }).ToList();
         ResetQueue(); PhaseLabel = "";
         Ctx.Log.Info($"Install mode: {req.InstallMode}");
 
