@@ -124,6 +124,7 @@
   "MessageBox.NoBrowser": "无法使用默认的网络浏览器打开网页，链接已复制到剪贴板，请将链接粘贴到浏览器中打开以获得更多指导。",
   "MessageBox.MY20InvalidConfiguration": "您当前设置为 MY20 版本的 SYNC 主机，在启用 MY20 保护时，您不能建一个USB从3.0或以下到3.4的安装包。\n\n请重新检查您的设置，如果您需要进一步的帮助，请访问我们的论坛https://community.cyanlabs.net\n\n如果您不确定，请不要禁用MY20保护！\n",
   "Settings.MapKey": "生成密钥",
+  "Settings.GeneratorKeyHint": "可选。解锁为您的密钥制作的私有版本和地图。每个配置文件都有自己的密钥。",
   "MessageBox.LogUtilityNoModelFound": "您选择的XML文件不包含有效的 “ECU Delivery Assembly Number”，因此Syn3 Updater 无法确定这是否是2020年后的主机！\n\n在我们的社区论坛或我们的Discord服务器上发帖，看看如何从这里开始！\n\n没有获得专家的帮助，请不要继续操作！",
   "MessageBox.My20CheckV2": "!!!回答错误可能导致您的 APIM 变砖!!!\n\n您的 SYNC 3 主机是 MY20（2020 年或之后生产）吗？\n符合以下任一情况即是：\n• 您的汽车是 2020 年或之后生产的\n• 您的 SYNC 3 主机（APIM）是 2020 年或之后生产的（保修维修、更换设备等）\n• 您的 SYNC 3 屏幕是 2020 年或之后生产的（保修维修、更换部件等）\n\n不确定？请运行 MY20 检查，Syn3 Updater 会引导您使用官方 interrogator 工具。该检查并非 100% 准确。唯一能确定的方法是取出 APIM 查看生产年份。\n\n如果您回答错误，CyanLabs 概不负责！",
   "MessageBox.My20CheckYes": "是，或不确定：运行 MY20 检查",

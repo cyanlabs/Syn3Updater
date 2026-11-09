@@ -19,9 +19,23 @@ public class SettingsStore
         if (string.IsNullOrWhiteSpace(Main.Profile)) Main.Profile = "default";
         Profile = ReadOrNew<ProfileSettings>(_paths.ProfileFile(Main.Profile));
         MigrateProfile();
+        var movedKey = MoveGlobalKeyToProfile();
         if (string.IsNullOrWhiteSpace(Main.DownloadPath)) Main.DownloadPath = AppPaths.DefaultDownloadDir();
         if (string.IsNullOrWhiteSpace(Main.LogPath)) Main.LogPath = _paths.DefaultLogDir;
         TryCreate(Main.DownloadPath); TryCreate(Main.LogPath);
+        if (movedKey) Save();                       // write the move at once: the key is in the profile file before it is gone from the main one
+    }
+
+    /// <summary>
+    /// First start with a Generator key kept application-wide (v2, and v3 before it was per profile): it moves into the active profile and is cleared from the main settings, once.
+    /// A key the profile already has wins (the old one is simply dropped). An empty old value is just cleared. Returns true when something changed and needs saving.
+    /// </summary>
+    private bool MoveGlobalKeyToProfile()
+    {
+        if (Main.LegacyLicenseKey is not { } old) return false;
+        if (!string.IsNullOrWhiteSpace(old) && string.IsNullOrWhiteSpace(Profile.LicenseKey)) Profile.LicenseKey = old.Trim();
+        Main.LegacyLicenseKey = null;
+        return true;
     }
 
     public void SwitchProfile(string name)
@@ -65,8 +79,9 @@ public class SettingsStore
     {
         try
         {
-            File.WriteAllText(_paths.MainConfigFile, JsonSerializer.Serialize(Main, Json));
+            // the profile first: when the Generator key moves into it, a failed write must not leave the key gone from the main file and not yet in the profile
             File.WriteAllText(_paths.ProfileFile(Main.Profile), JsonSerializer.Serialize(Profile, Json));
+            File.WriteAllText(_paths.MainConfigFile, JsonSerializer.Serialize(Main, Json));
         }
         catch (IOException) { /* another process holds the file; try again on next save */ }
     }

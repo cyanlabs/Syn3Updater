@@ -29,6 +29,15 @@
         </StackPanel>
       </Border>
 
+      <!-- the Generator key: per profile (each car or customer can have its own), optional, and harmless, so it is its own card and not under the Advanced warning -->
+      <Border Classes="card blue">
+        <StackPanel Spacing="8">
+          <TextBlock Text="{svc:T Settings.MapKey}" Classes="section" />
+          <TextBlock Text="{svc:T Settings.GeneratorKeyHint}" Classes="muted" FontSize="13" TextWrapping="Wrap" />
+          <TextBox x:Name="GeneratorKeyBox" Text="{Binding LicenseKey}" AutomationProperties.Name="{svc:T Settings.MapKey}" />
+        </StackPanel>
+      </Border>
+
       <Border Classes="card blue">
         <StackPanel Spacing="12">
           <TextBlock Text="{svc:T Settings.AdvancedOptions}" Classes="section" />
@@ -62,9 +71,8 @@
           <StackPanel Spacing="6"><TextBlock Text="{svc:T Settings.LogLocation}" Classes="label" /><Grid ColumnDefinitions="*,Auto" ColumnSpacing="8"><TextBox Text="{Binding LogPath}" /><Button Grid.Column="1" Content="{svc:T App.Choose}" Command="{Binding PickLogPathCommand}" /></Grid></StackPanel>
           <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
             <StackPanel Spacing="6"><TextBlock Text="{svc:T Settings.DownloadConnections}" Classes="label" /><ComboBox ItemsSource="{Binding ConnectionOptions}" SelectedItem="{Binding Connections}" /></StackPanel>
-            <StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="{svc:T Settings.MapKey}" Classes="label" /><TextBox Text="{Binding LicenseKey}" /></StackPanel>
+            <StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="{svc:T Settings.UpdateChannel}" Classes="label" /><ComboBox ItemsSource="{Binding ChannelOptions}" SelectedItem="{Binding Channel}" HorizontalAlignment="Stretch" /></StackPanel>
           </Grid>
-          <StackPanel Spacing="6"><TextBlock Text="{svc:T Settings.UpdateChannel}" Classes="label" /><ComboBox ItemsSource="{Binding ChannelOptions}" SelectedItem="{Binding Channel}" HorizontalAlignment="Stretch" /></StackPanel>
         </StackPanel>
       </Border>
 

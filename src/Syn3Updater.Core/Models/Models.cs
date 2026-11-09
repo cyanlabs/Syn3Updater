@@ -186,7 +186,13 @@ public class MainSettings
 {
     public string? Lang { get; set; }
     public string? DownloadPath { get; set; }
-    public string LicenseKey { get; set; } = "";
+    /// <summary>
+    /// Only ever read: the Generator key used to be application-wide and is now kept in the profile (see <see cref="ProfileSettings.LicenseKey"/>). SettingsStore moves a value found here into the
+    /// active profile once and clears it, so it is never written back (the null is skipped when saving).
+    /// </summary>
+    [JsonPropertyName("LicenseKey")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? LegacyLicenseKey { get; set; }
     public bool DisclaimerAccepted { get; set; }
     public string? Theme { get; set; }
     public string? LogPath { get; set; }
@@ -209,6 +215,8 @@ public class MainSettings
 
 public class ProfileSettings
 {
+    /// <summary>The Generator key: unlocks the private releases and map releases made for it. Per profile, because a profile is one car (or one customer's) and each can have its own key.</summary>
+    public string LicenseKey { get; set; } = "";
     public string? CurrentRegion { get; set; }
     public int? CurrentVersion { get; set; } = 0;
     public bool CurrentNav { get; set; }

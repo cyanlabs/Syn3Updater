@@ -58,7 +58,7 @@ public static class Ctx
         { Timeout = TimeSpan.FromMinutes(5) };
         Http.DefaultRequestHeaders.UserAgent.TryParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/86.0");
 
-        Api = new ApiClient(Http, ApiClient.ResolveToken, () => Main.LicenseKey ?? "");
+        Api = new ApiClient(Http, ApiClient.ResolveToken, () => Profile.LicenseKey ?? "");          // the active profile's Generator key, read at each query so a profile switch takes effect at once
         Files = new FileService(Http);
         Drives = drives ?? DriveServiceFactory.Create();
         Runner = new UpdateRunner(Drives, Files, Log);

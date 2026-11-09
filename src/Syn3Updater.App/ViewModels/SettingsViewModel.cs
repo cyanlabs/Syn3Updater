@@ -154,7 +154,7 @@ public partial class SettingsViewModel : PageViewModel
         Connections = Math.Clamp(m.DownloadConnections, 1, 8);
         Channel = ChannelOptions.FirstOrDefault(o => o.Value == Ctx.UpdateChannel.ToString()) ?? ChannelOptions[0];
         DownloadPath = m.DownloadPath ?? ""; LogPath = m.LogPath ?? "";
-        LicenseKey = m.LicenseKey ?? "";
+        LicenseKey = p.LicenseKey ?? "";
         Advanced = Ctx.ModeForced; Message = "";          // a mode the user fixed would otherwise be in effect but hidden behind an unticked box (MY20 alone is not a sign: the log reader sets it too)
         _loading = false; _dirty = false;
     }
@@ -260,8 +260,8 @@ public partial class SettingsViewModel : PageViewModel
         if (Ctx.UpdateChannel != channelBefore) _ = MainWindowViewModel.Instance.CheckForUpdateAsync();       // the notice should follow the new channel straight away
         m.Lang = Language?.Code ?? m.Lang;
         m.Theme = Theme?.Value ?? "Default";
-        m.LicenseKey = LicenseKey.Trim();
-        var before = (p.CurrentRegion, p.CurrentVersion, p.CurrentNav, p.My20v2, p.InstallMode);
+        var before = (p.CurrentRegion, p.CurrentVersion, p.CurrentNav, p.My20v2, p.InstallMode, p.LicenseKey);          // the key counts: it decides which releases and maps are offered
+        p.LicenseKey = LicenseKey.Trim();
         p.CurrentRegion = Region?.Code;
         p.CurrentVersion = digits.Length == 7 ? int.Parse(digits) : 0;
         p.CurrentNav = Nav;
@@ -275,7 +275,7 @@ public partial class SettingsViewModel : PageViewModel
         MainWindowViewModel.Instance.Home.ReloadSummary();
         // pressing Apply always starts the Home choices afresh (region, version, maps - not the USB drive); leaving the tab only does so
         // when the car configuration actually changed, because then the old choices no longer make sense
-        if (!quiet || before != (p.CurrentRegion, p.CurrentVersion, p.CurrentNav, p.My20v2, p.InstallMode))
+        if (!quiet || before != (p.CurrentRegion, p.CurrentVersion, p.CurrentNav, p.My20v2, p.InstallMode, p.LicenseKey))
             MainWindowViewModel.Instance.Home.ClearSelections(includeRegion: true);
         return true;
     }
