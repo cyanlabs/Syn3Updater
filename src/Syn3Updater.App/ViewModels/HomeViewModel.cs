@@ -223,6 +223,14 @@ public partial class HomeViewModel : PageViewModel
     // The dropdown cascade (region -> releases -> maps -> packages) loads in the background; these let a syn3updater:// link wait for each step.
     private Task _releasesTask = Task.CompletedTask, _mapsTask = Task.CompletedTask, _packagesTask = Task.CompletedTask;
 
+    // Each load waits for the server and then fills a list. When a newer load starts in the meantime (the user picked something else, or a selection event fired twice) the older one must not
+    // add its rows as well: that is how every package showed up several times. A load takes a ticket when it starts and only applies its result while the ticket is still the newest; starting a
+    // load also outdates everything below it (a new release invalidates maps and packages still loading).
+    private int _releasesGen, _mapsGen, _packagesGen, _loads;
+    private void OutdateLoads() { _releasesGen++; _mapsGen++; _packagesGen++; }
+    private void BeginLoading() { _loads++; Loading = true; }
+    private void EndLoading() { if (--_loads <= 0) { _loads = 0; Loading = false; } }              // a finished load must not hide the spinner while another is still running
+
     /// <summary>
     /// Preselects what a syn3updater:// link asks for, in v2's order: region, then SYNC release ("Sync " + Release), then maps. Like v2 it needs the Region
     /// to do anything. It only picks among the options the app offers (an unknown or disabled one is skipped) and never presses Start.
@@ -254,6 +262,7 @@ public partial class HomeViewModel : PageViewModel
     /// </summary>
     public void ClearSelections(bool includeRegion = false)
     {
+        OutdateLoads();                                                           // whatever is still loading belongs to the choices being cleared
         _suppress = true;
         if (includeRegion) SelectedRegion = null;
         SelectedMap = null; SelectedRelease = null; Releases.Clear(); MapVersions.Clear(); Packages.Clear();
@@ -367,21 +376,25 @@ public partial class HomeViewModel : PageViewModel
     private async Task LoadReleasesAsync()
     {
         if (SelectedRegion == null) return;
+        var gen = ++_releasesGen; _mapsGen++; _packagesGen++;                     // this load is now the newest, and maps / packages still loading are out of date
         _suppress = true;
         SelectedRelease = null; SelectedMap = null; Releases.Clear(); MapVersions.Clear(); Packages.Clear(); Notes = ""; FeedbackUrl = null;
         _suppress = false;
         ResetInstallMode();
         UpdateButtons();
-        Loading = true;
+        BeginLoading();
         try
         {
             var root = await Ctx.Api.GetReleases(SelectedRegion.Code);
+            if (gen != _releasesGen) return;                                      // replaced while waiting for the server
+            var items = new List<ReleaseItem>();
             if (Ctx.Profile.CurrentNav && Ctx.Profile.CurrentVersion >= ApiEndpoints.ReformatVersion)
-                Releases.Add(new ReleaseItem { OnlyMaps = true, Display = Ctx.T("String.OnlyMaps") });
-            foreach (var r in root.Releases ?? new()) Releases.Add(new ReleaseItem { Release = r, Display = r.Name });
+                items.Add(new ReleaseItem { OnlyMaps = true, Display = Ctx.T("String.OnlyMaps") });
+            foreach (var r in root.Releases ?? new()) items.Add(new ReleaseItem { Release = r, Display = r.Name });
+            foreach (var item in items) Releases.Add(item);
         }
-        catch (ApiException e) { await ShowApiError(e); }
-        finally { Loading = false; }
+        catch (ApiException e) { if (gen == _releasesGen) await ShowApiError(e); }
+        finally { EndLoading(); }
     }
 
     /// <summary>The backend cannot be used: say what is likely wrong, with the technical reason underneath, and a button for CyanLabs' status page.</summary>
@@ -399,6 +412,7 @@ public partial class HomeViewModel : PageViewModel
 
     private async Task LoadMapsAsync(ReleaseItem rel)
     {
+        var gen = ++_mapsGen; _packagesGen++;
         _suppress = true;
         SelectedMap = null; MapVersions.Clear(); Packages.Clear(); _mapNotes = "";
         _suppress = false;
@@ -415,11 +429,13 @@ public partial class HomeViewModel : PageViewModel
 
         if (p.CurrentNav)
         {
-            Loading = true;
+            BeginLoading();
             try
             {
                 var compat = rel.OnlyMaps ? "3.4" : (rel.Release?.Version ?? "3.4.00000")[..3];
                 var maps = await Ctx.Api.GetMapReleases(SelectedRegion!.Code, compat);
+                if (gen != _mapsGen) return;                                      // replaced while waiting for the server
+                var items = new List<MapItem>();
                 foreach (var m in maps.MapReleases ?? new())
                 {
                     bool esnBlocked = InstallModeResolver.EsnBlocked(rel.OnlyMaps, p.My20v2, m.Esn);
@@ -428,11 +444,12 @@ public partial class HomeViewModel : PageViewModel
                         : !esnBlocked ? Ctx.T("Home.MapEsnLocked")
                         : p.My20v2 == true ? Ctx.T("Home.MapEsnLocked")                          // dimmed and unpickable: the same line says why (MY20 units are not pre-MY20)
                         : Ctx.T("Home.MapEsnBlockedOnlyMaps", Ctx.T("String.OnlyMaps"));
-                    MapVersions.Add(new MapItem { Kind = MapChoice.MapPackage, Release = m, Display = m.Name, Esn = m.Esn, Blocked = esnBlocked, Detail = detail });
+                    items.Add(new MapItem { Kind = MapChoice.MapPackage, Release = m, Display = m.Name, Esn = m.Esn, Blocked = esnBlocked, Detail = detail });
                 }
+                foreach (var item in items) MapVersions.Add(item);
             }
-            catch (ApiException e) { await ShowApiError(e); }
-            finally { Loading = false; }
+            catch (ApiException e) { if (gen == _mapsGen) await ShowApiError(e); }
+            finally { EndLoading(); }
         }
     }
 
@@ -444,6 +461,7 @@ public partial class HomeViewModel : PageViewModel
 
     private async Task LoadPackagesAsync(MapItem map)
     {
+        var gen = ++_packagesGen;
         var rel = SelectedRelease; var region = SelectedRegion;
         if (rel == null || region == null) return;
         Packages.Clear(); UpdateSelectionSummary();
@@ -451,28 +469,32 @@ public partial class HomeViewModel : PageViewModel
         Notes = ComposeNotes(_releaseNotes, _mapNotes);
         ResolveInstallMode();
 
-        Loading = true;
+        BeginLoading();
         try
         {
+            var found = new List<Ivsu>();                                         // nothing is shown until every part has arrived and this load is still the newest
             if (!rel.OnlyMaps)
             {
                 var navType = Ctx.Profile.CurrentNav ? "nav" : "nonnav";
                 var root = await Ctx.Api.GetReleaseIvsus(rel.Release!.Name, navType);
+                if (gen != _packagesGen) return;
                 foreach (var ri in root.Releases?.FirstOrDefault()?.Ivsus?.Where(x => x.Ivsu != null) ?? Enumerable.Empty<ReleaseIvsu>())
                     if (ri.Ivsu!.Regions?.Contains("ALL") == true || ri.Ivsu.Regions?.Contains(region.Code) == true)
-                        AddRow(ri.Ivsu.ToIvsu());
+                        found.Add(ri.Ivsu.ToIvsu());
             }
             if (map.Kind == MapChoice.MapPackage && map.Release != null)
             {
                 var root = await Ctx.Api.GetMapReleaseIvsus(map.Release.Name);
+                if (gen != _packagesGen) return;
                 foreach (var ri in root.MapReleases?.FirstOrDefault()?.Ivsus?.Where(x => x.MapIvsu != null) ?? Enumerable.Empty<ReleaseIvsu>())
                     if (ri.MapIvsu!.Regions?.Contains("ALL") == true || ri.MapIvsu.Regions?.Contains(region.Code) == true)
-                        AddRow(ri.MapIvsu.ToIvsu());
+                        found.Add(ri.MapIvsu.ToIvsu());
             }
+            foreach (var ivsu in found) AddRow(ivsu);
         }
-        catch (ApiException e) { await ShowApiError(e); }
-        finally { Loading = false; }
-        UpdateButtons();
+        catch (ApiException e) { if (gen == _packagesGen) await ShowApiError(e); }
+        finally { EndLoading(); }
+        if (gen == _packagesGen) UpdateButtons();
     }
 
     /// <summary>Release and map notes share one callout; headings are only needed when both are present.</summary>
