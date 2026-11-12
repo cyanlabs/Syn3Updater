@@ -30,6 +30,11 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <!-- where the files are saved before they are copied to the USB drive (changed in Settings) -->
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+              <TextBlock Text="{svc:T Settings.DownloadLocation}" Classes="muted" FontSize="13" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="{Binding DownloadPath}" Classes="muted mono" FontSize="13" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip.Tip="{Binding DownloadPath}" />
+            </Grid>
           </StackPanel>
           <Button Grid.Column="1" Content="{svc:T App.Edit}" Command="{Binding EditConfigCommand}" VerticalAlignment="Top" />
         </Grid>
