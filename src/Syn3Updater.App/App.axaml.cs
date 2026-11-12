@@ -42,14 +42,22 @@ public class App : Application
                 if (message != "activate") await UrlIntents.HandleAsync(message);
             });
             AppLaunch.Primary?.Listen(AppLaunch.OnMessage);
+            // macOS delivers links as OS events. Avalonia raises the older UrlsOpened first with the raw text, then (only if its storage provider is available) Activated; listen to both,
+            // and drop the repeat when both fire for one link. A macOS log of 3.0.0-test26 showed no Activated event at all, so UrlsOpened is the one that must work.
+            var lastLink = ""; var lastAt = DateTime.MinValue;
+            void OnOsLink(string link, string via)
+            {
+                Ctx.Log.Info($"Link received from the OS ({via}): {link}");
+                if (link == lastLink && DateTime.UtcNow - lastAt < TimeSpan.FromSeconds(3)) return;
+                lastLink = link; lastAt = DateTime.UtcNow;
+                _ = UrlIntents.HandleAsync(link);
+            }
+#pragma warning disable CS0618 // UrlsOpened is marked obsolete in favour of Activated, but it is the event that fires reliably on macOS
+            UrlsOpened += (_, e) => { foreach (var u in e.Urls) if (Cyanlabs.Syn3Updater.Core.Services.UrlIntentParser.Find(new[] { u }) is { } link) OnOsLink(link, "UrlsOpened"); };
+#pragma warning restore CS0618
             if (TryGetFeature(typeof(IActivatableLifetime)) is IActivatableLifetime activatable)
                 activatable.Activated += (_, e) =>
-                {
-                    // macOS hands the link over as a Uri. Uri.ToString() lowercases and re-encodes it, so pass the text exactly as the OS gave it (what Windows and Linux pass as an argument)
-                    if (e is not ProtocolActivatedEventArgs { Kind: ActivationKind.OpenUri } p) return;
-                    Ctx.Log.Info($"Link received from the OS: {p.Uri.OriginalString}");
-                    _ = UrlIntents.HandleAsync(p.Uri.OriginalString);
-                };
+                    { if (e is ProtocolActivatedEventArgs { Kind: ActivationKind.OpenUri } p) OnOsLink(p.Uri.OriginalString, "Activated"); };
             desktop.Exit += (_, _) => AppLaunch.Primary?.Dispose();
             // Debug aid: SYN3_PAGE=Settings opens that page first.
             if (Environment.GetEnvironmentVariable("SYN3_PAGE") is { Length: > 0 } page &&
