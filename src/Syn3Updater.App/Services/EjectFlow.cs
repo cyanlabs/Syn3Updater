@@ -11,6 +11,7 @@ public static class EjectFlow
     public static async Task<bool> RunAsync(DriveInfoModel drive, string? mountPath)
     {
         if (drive.IsFolder || drive.IsChooser || _busy) return false;
+        if (Workflow.Busy) { await Dialogs.Error(Ctx.T("MessageBox.DownloadInProgress")); return false; }          // the drive may be the one being written to
         _busy = true;
         try
         {
