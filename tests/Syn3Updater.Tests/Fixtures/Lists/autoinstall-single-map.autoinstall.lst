@@ -1,0 +1,9 @@
+; CyanLabs Syn3Updater 3.0.0 Stable - Autoinstall FORCED Mode - Sync 3.4.20282 NA
+
+[SYNCGen3.0_3.0.1_PRODUCT]
+Item1 = RWDataCleaner TOOL - RWDATACLEANER.TAR.GZ
+Open1 = SyncMyRide\RWDATACLEANER.TAR.GZ
+Item2 = MAP - ONLY-MAP.TAR.GZ
+Open2 = SyncMyRide\ONLY-MAP.TAR.GZ
+Options = AutoInstall
+

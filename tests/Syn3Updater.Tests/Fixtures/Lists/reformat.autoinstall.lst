@@ -1,0 +1,8 @@
+; CyanLabs Syn3Updater 3.0.0 Stable - reformat FORCED  Mode - Sync 3.4.20282 NA
+
+[SYNCGen3.0_ALL_PRODUCT]
+Item1 = RWDataCleaner TOOL - RWDATACLEANER.TAR.GZ
+Open1= SyncMyRide\RWDATACLEANER.TAR.GZ
+Item2 = REFORMAT TOOL  - REFORMAT.TAR.GZ
+Open2= SyncMyRide\REFORMAT.TAR.GZ
+Options = AutoInstall
