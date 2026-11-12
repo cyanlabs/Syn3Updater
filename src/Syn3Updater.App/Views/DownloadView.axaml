@@ -4,6 +4,10 @@
       <StackPanel Spacing="4">
         <TextBlock Text="{svc:T Main.Downloads}" Classes="title" />
         <TextBlock Text="{Binding Headline}" Classes="muted" />
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+          <TextBlock Text="{svc:T Settings.DownloadLocation}" Classes="muted" FontSize="13" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Text="{Binding DownloadPath}" Classes="muted mono" FontSize="13" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip.Tip="{Binding DownloadPath}" />
+        </Grid>
       </StackPanel>
 
       <Border Classes="card" IsVisible="{Binding IsIdle}">

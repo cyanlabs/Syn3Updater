@@ -30,6 +30,9 @@ public partial class DownloadViewModel : PageViewModel
     public ObservableCollection<QueueItem> Queue { get; } = new();
     public ObservableCollection<QueueItem> Completed { get; } = new();
     [ObservableProperty] private string _phaseLabel = "";
+    /// <summary>The folder the files are saved to (Settings), shown under the title so it is clear where they go. Re-read whenever the page is shown, because Settings can change it.</summary>
+    public string DownloadPath => Ctx.Main.DownloadPath ?? "";
+    public override void OnShown() => OnPropertyChanged(nameof(DownloadPath));
     private string _phase = "";
     private List<QueueItem> _all = new();
 
