@@ -53,7 +53,7 @@ public class App : Application
                 _ = UrlIntents.HandleAsync(link);
             }
 #pragma warning disable CS0618 // UrlsOpened is marked obsolete in favour of Activated, but it is the event that fires reliably on macOS
-            UrlsOpened += (_, e) => { foreach (var u in e.Urls) if (UrlIntentParser.Find(new[] { u }) is { } link) OnOsLink(link, "UrlsOpened"); };
+            UrlsOpened += (_, e) => { foreach (var u in e.Urls) if (Cyanlabs.Syn3Updater.Core.Services.UrlIntentParser.Find(new[] { u }) is { } link) OnOsLink(link, "UrlsOpened"); };
 #pragma warning restore CS0618
             if (TryGetFeature(typeof(IActivatableLifetime)) is IActivatableLifetime activatable)
                 activatable.Activated += (_, e) =>
