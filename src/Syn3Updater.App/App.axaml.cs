@@ -43,7 +43,13 @@ public class App : Application
             });
             AppLaunch.Primary?.Listen(AppLaunch.OnMessage);
             if (TryGetFeature(typeof(IActivatableLifetime)) is IActivatableLifetime activatable)
-                activatable.Activated += (_, e) => { if (e is ProtocolActivatedEventArgs { Kind: ActivationKind.OpenUri } p) _ = UrlIntents.HandleAsync(p.Uri.ToString()); };
+                activatable.Activated += (_, e) =>
+                {
+                    // macOS hands the link over as a Uri. Uri.ToString() lowercases and re-encodes it, so pass the text exactly as the OS gave it (what Windows and Linux pass as an argument)
+                    if (e is not ProtocolActivatedEventArgs { Kind: ActivationKind.OpenUri } p) return;
+                    Ctx.Log.Info($"Link received from the OS: {p.Uri.OriginalString}");
+                    _ = UrlIntents.HandleAsync(p.Uri.OriginalString);
+                };
             desktop.Exit += (_, _) => AppLaunch.Primary?.Dispose();
             // Debug aid: SYN3_PAGE=Settings opens that page first.
             if (Environment.GetEnvironmentVariable("SYN3_PAGE") is { Length: > 0 } page &&
