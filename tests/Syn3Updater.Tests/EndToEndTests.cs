@@ -130,6 +130,35 @@ public class EndToEndTests : IDisposable
         Assert.False(string.IsNullOrEmpty(rw.Url));
         Assert.NotEmpty(rw.FileName);
     }
+
+    /// <summary>
+    /// The one test that touches the real CyanLabs download side: the URL the API hands out must still resolve, the server must honour Range (the parallel path depends on it), and the
+    /// md5 and size the API reports must match the real file. All the other download tests use a local server, so a CDN move or a stale md5 would pass them and fail every user's MD5 check.
+    /// Uses the RW data cleaner, the smallest package every install needs, and skips without an API token like <see cref="LiveApi_ReturnsReleasesAndSpecialPackages"/>.
+    /// </summary>
+    [SkippableLiveFact]
+    public async Task LiveDownload_RealPackage_HonoursRangeAndMatchesTheApisMd5AndSize()
+    {
+        using var http = new HttpClient();
+        var api = new ApiClient(http, ApiClient.ResolveToken, () => "");
+        var rw = await api.GetSpecialPackage(SpecialPackages.RWDataCleaner);
+        Assert.False(string.IsNullOrEmpty(rw.Md5), "the API reports no md5 for the RW data cleaner");
+
+        // the real server answers a ranged request with 206 and the requested slice, which is what makes parallel downloads possible
+        using (var probe = new HttpRequestMessage(HttpMethod.Get, rw.Url) { Headers = { Range = new System.Net.Http.Headers.RangeHeaderValue(0, 0) } })
+        using (var resp = await http.SendAsync(probe, HttpCompletionOption.ResponseHeadersRead))
+        {
+            Assert.Equal(HttpStatusCode.PartialContent, resp.StatusCode);
+            Assert.Equal(1, resp.Content.Headers.ContentLength);
+        }
+
+        var dest = Path.Combine(_root, "dl", rw.FileName);
+        Assert.True(await new FileService(http).DownloadAsync(rw.Url, dest, 4, new Progress<int>(), default), "the real download failed");
+
+        Assert.Equal(rw.Md5, Convert.ToHexString(MD5.HashData(await File.ReadAllBytesAsync(dest))), ignoreCase: true);
+        if (rw.FileSize > 0) Assert.Equal(rw.FileSize, new FileInfo(dest).Length);
+        Assert.Empty(Directory.GetFiles(Path.GetDirectoryName(dest)!, "*.part"));
+    }
 }
 
 public sealed class SkippableLiveFactAttribute : FactAttribute

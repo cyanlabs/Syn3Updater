@@ -1,0 +1,6 @@
+; CyanLabs Syn3Updater 3.0.0 Stable - Autoinstall Mode - Sync 3.4.20282 NA
+
+[SYNCGen3.0_ALL_PRODUCT]
+Item1 = TOOL - LOGUTILITY.TAR.GZ
+Open1 = SyncMyRide\LOGUTILITY.TAR.GZ
+Options = AutoInstall

@@ -1,0 +1,10 @@
+; CyanLabs Syn3Updater 3.0.0 Stable - Autoinstall Mode - Sync 3.4.20282 NA
+
+[SYNCGen3.0_ALL_PRODUCT]
+Item1 = RWDataCleaner TOOL - RWDATACLEANER.TAR.GZ
+Open1= SyncMyRide\RWDATACLEANER.TAR.GZ
+Item2 = APPS - APP.TAR.GZ
+Open2 = SyncMyRide\APP.TAR.GZ
+Item3 = VOICE - VOICE.TAR.GZ
+Open3 = SyncMyRide\VOICE.TAR.GZ
+Options = AutoInstall
