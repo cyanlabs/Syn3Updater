@@ -397,6 +397,10 @@ public partial class MainWindowViewModel : ObservableObject
     public async Task<bool> GoToAsync(PageViewModel page)
     {
         if (page == null || page == Current) return true;
+        if (Workflow.Busy && page is HomeViewModel or UtilityViewModel or SettingsViewModel or DiagnosticsViewModel)      // while a download or USB run is going, the pages that start or change things stay shut; Downloads, Logs, News and About remain
+        {
+            await Dialogs.Info(Ctx.T("MessageBox.DownloadInProgress")); return false;
+        }
         if (Current is SettingsViewModel s && !await s.ConfirmLeaveAsync()) return false;
         if (page == Home && !ProfileReady)               // Home needs a region and version: send them to Settings instead
         {
