@@ -391,6 +391,30 @@ public class InstallRouteListTests : IDisposable
         Assert.Equal(real.Replace("Open1= SyncMyRide", "Open1 = SyncMyRide"), v3);         // v3 = v2 + the one deliberate difference
     }
 
+    /// <summary>
+    /// The autoinstall.lst released v2.14.2.2 wrote for each utility on the Utility page (gracenotes removal, voice shrinker, enforced downgrade, upgrade to 2.2, RW data cleaner): one entry, and no RW data cleaner
+    /// entry except for the RW data cleaner action itself. The fixtures are v2's real files unchanged (the header ends in a space: a utility has no region). Differences from v2, both on purpose: the RW data cleaner's
+    /// <c>Open1=</c> is written <c>Open1 = </c> like every other line, and the release names in the header comment are v3's own task names (v2 said "Upgrade to 2.2" and "RWData Cleaner"; v3's say "Upgrade to Sync 2.2"
+    /// and "RW Data Cleaner"), so the fixtures are built here from v2's names to compare the list itself.
+    /// </summary>
+    [Theory]
+    [InlineData("gracenotes", "Gracenotes Removal", UpdateAction.GracenotesRemoval, "TOOL", "GB5T-14G386-SC_85041.tar.gz")]
+    [InlineData("smallvoice", "Voice Package Shrinker", UpdateAction.VoiceShrinker, "VOICE", "5U5T-14G391-EM_1598637456000.TAR.GZ")]
+    [InlineData("downgrade", "Enforced Downgrade", UpdateAction.Downgrade, "APPS", "4U5T-14G381-AN_1552583626000.TAR.GZ")]
+    [InlineData("upgrade", "Upgrade to 2.2", UpdateAction.Upgrade22, "APPS", "HN1T-14G381-SA_64817.tar.gz")]
+    [InlineData("rwdata", "RWData Cleaner", UpdateAction.RwDataCleaner, "TOOL", "PU5T-14G386-BB_1690840002000.TAR.GZ")]
+    public void The_lists_v2_really_wrote_for_the_utilities_are_reproduced(string fixture, string release, UpdateAction action, string type, string file)
+    {
+        var rw = new Ivsu { Type = "TOOL", Name = "rw", FileName = "PU5T-14G386-BB_1690840002000.TAR.GZ", Md5 = "rw", FileSize = 3274 };
+        // the queue Workflow builds: the one special package (the RW data cleaner action queues the cleaner itself), and the cleaner is only a SpecialTools slot for the others
+        var queue = action == UpdateAction.RwDataCleaner ? new List<Ivsu> { rw } : new List<Ivsu> { new() { Type = type, Name = file, FileName = file, Md5 = file, FileSize = 1000 } };
+        var v3 = AutoInstallBuilder.CreateAutoInstall(queue, new SpecialTools { RwDataCleaner = rw }, action, release, "", false, "2.14.2.2", "Stable");
+        var real = Golden($"v2-real-utility-{fixture}.autoinstall.lst");
+        Assert.Contains($"Mode - {release} \r\n", real);                                               // the fixture really has the empty region (trailing space)
+        Assert.Equal(real.Replace("Open1= SyncMyRide", "Open1 = SyncMyRide"), v3);                      // v3 = v2 (+ the one spacing difference, which only the RW data cleaner action has)
+        if (action != UpdateAction.RwDataCleaner) Assert.DoesNotContain("RWDataCleaner", v3);
+    }
+
     // ---------------------------------------------------------------- 4. the builders against v2's code
 
     /// <summary>A literal port of v2 <c>DownloadViewModelService.CreateAutoInstallFile</c>. The only change is the size unit: v2 cast bytes to uint (wrong over 4 GB), v3 passes KiB.</summary>

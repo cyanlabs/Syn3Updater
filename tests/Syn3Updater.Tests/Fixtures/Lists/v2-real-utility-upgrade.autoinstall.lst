@@ -1,0 +1,6 @@
+; CyanLabs Syn3Updater 2.14.2.2 Stable - Autoinstall Mode - Upgrade to 2.2 
+
+[SYNCGen3.0_ALL_PRODUCT]
+Item1 = APPS - HN1T-14G381-SA_64817.tar.gz
+Open1 = SyncMyRide\HN1T-14G381-SA_64817.tar.gz
+Options = AutoInstall

@@ -1,0 +1,6 @@
+; CyanLabs Syn3Updater 2.14.2.2 Stable - Autoinstall Mode - RWData Cleaner 
+
+[SYNCGen3.0_ALL_PRODUCT]
+Item1 = RWDataCleaner TOOL - PU5T-14G386-BB_1690840002000.TAR.GZ
+Open1= SyncMyRide\PU5T-14G386-BB_1690840002000.TAR.GZ
+Options = AutoInstall

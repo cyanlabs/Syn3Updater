@@ -1,0 +1,6 @@
+; CyanLabs Syn3Updater 2.14.2.2 Stable - Autoinstall Mode - Enforced Downgrade 
+
+[SYNCGen3.0_ALL_PRODUCT]
+Item1 = APPS - 4U5T-14G381-AN_1552583626000.TAR.GZ
+Open1 = SyncMyRide\4U5T-14G381-AN_1552583626000.TAR.GZ
+Options = AutoInstall
