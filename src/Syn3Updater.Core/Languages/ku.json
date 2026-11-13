@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "هەڵبژاردە پێشکەوتووەکان دەستکاری بکەیت؟",
   "Settings.LogLocation": "شوێنی فایلی لۆگ",
   "MessageBox.My20CheckCancelled": "هیچ فایلی لۆگی Interrogator هەڵنەبژێردرا، پرۆسەکە هەڵدەوەشێتەوە!",
+  "MessageBox.My20CheckBackHomeKnown": "پشکنینی MY20 تەواو بوو و ئەنجامەکە پاشەکەوت کرا، بۆیە Syn3 Updater دەتگەڕێنێتەوە بۆ پەڕەی سه‌ره‌كی.\n\nهەڵبژاردنی وەشان و نەخشەکانت سڕایەوە چونکە شێوازی دامەزراندن بەندە بەم ئەنجامە. دووبارە هەڵیانبژێرە، پاشان ده‌سپێك دابگرە.",
+  "MessageBox.My20CheckBackHomeUnknown": "پشکنینی MY20 تەواو نەبوو، بۆیە MY20 هێشتا نەزانراوە. Syn3 Updater دەتگەڕێنێتەوە بۆ پەڕەی سه‌ره‌كی.\n\nهەڵبژاردنەکەت هێڵرایەوە. ده‌سپێك دابگرە بۆ دووبارە ئەنجامدانی پشکنینەکە.",
   "Profiles.DeleteProfile": "Delete",
   "Profiles.NewProfile": "ناوی پرۆفایل",
   "Home.Profile": "Profile",

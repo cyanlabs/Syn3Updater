@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Erweitere Optionen bearbeiten?",
   "Settings.LogLocation": "Pfad zur Logdatei",
   "MessageBox.My20CheckCancelled": "Es wurde keine Logdatei ausgewählt, der Vorgang wird abgebrochen!",
+  "MessageBox.My20CheckBackHomeKnown": "Die MY20-Prüfung ist abgeschlossen und das Ergebnis gespeichert, daher bringt Syn3 Updater Sie zurück zur Seite „Start“.\n\nIhre Auswahl von Version und Karten wurde gelöscht, weil der Installationsmodus von diesem Ergebnis abhängt. Wählen Sie sie erneut aus und klicken Sie dann auf die Schaltfläche „Start“.",
+  "MessageBox.My20CheckBackHomeUnknown": "Die MY20-Prüfung wurde nicht abgeschlossen, daher ist MY20 weiterhin unbekannt. Syn3 Updater bringt Sie zurück zur Seite „Start“.\n\nIhre Auswahl wurde beibehalten. Klicken Sie auf die Schaltfläche „Start“, um die Prüfung erneut auszuführen.",
   "Profiles.DeleteProfile": "Löschen",
   "Profiles.NewProfile": "Profilname",
   "Home.Profile": "Profil",

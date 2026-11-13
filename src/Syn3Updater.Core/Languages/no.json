@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Redigere avanserte alternativer?",
   "Settings.LogLocation": "Plassering av loggfil",
   "MessageBox.My20CheckCancelled": "Ingen Interrogator-loggfil ble valgt, avbryter!",
+  "MessageBox.My20CheckBackHomeKnown": "MY20-kontrollen er fullført og resultatet er lagret, så Syn3 Updater tar deg tilbake til siden Hjem.\n\nValget ditt av versjon og kart er tømt fordi installasjonsmodusen avhenger av dette resultatet. Velg dem på nytt, og trykk deretter på Start.",
+  "MessageBox.My20CheckBackHomeUnknown": "MY20-kontrollen ble ikke fullført, så MY20 er fortsatt ukjent. Syn3 Updater tar deg tilbake til siden Hjem.\n\nValget ditt er beholdt. Trykk på Start for å kjøre kontrollen på nytt.",
   "Profiles.DeleteProfile": "Delete",
   "Profiles.NewProfile": "Profilnavn",
   "Home.Profile": "Profile",

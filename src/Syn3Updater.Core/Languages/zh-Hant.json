@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "編輯高級選項",
   "Settings.LogLocation": "記錄檔位置",
   "MessageBox.My20CheckCancelled": "沒有interrogator記錄檔被選擇，離開程序！",
+  "MessageBox.My20CheckBackHomeKnown": "MY20 檢查已完成，結果已儲存，因此 Syn3 Updater 將帶您返回「首頁」。\n\n您選擇的版本和地圖已被清除，因為安裝模式取決於此結果。請重新選擇，然後按「開始」。",
+  "MessageBox.My20CheckBackHomeUnknown": "MY20 檢查未完成，因此 MY20 仍然未知。Syn3 Updater 將帶您返回「首頁」。\n\n您的選擇已保留。按「開始」可重新執行檢查。",
   "Profiles.DeleteProfile": "刪除",
   "Profiles.NewProfile": "Profile名字",
   "Home.Profile": "Profiles",

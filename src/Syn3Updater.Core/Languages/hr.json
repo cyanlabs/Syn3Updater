@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Uredi napredne opcije?",
   "Settings.LogLocation": "Mjesto datoteke dnevnika",
   "MessageBox.My20CheckCancelled": "Nije odabrana nijedna datoteka dnevnika ispitivača, prekid postupka!",
+  "MessageBox.My20CheckBackHomeKnown": "MY20 provjera je dovršena i rezultat je spremljen, pa vas Syn3 Updater vraća na stranicu Dom.\n\nVaš odabir verzije i karata je izbrisan jer način instalacije ovisi o ovom rezultatu. Odaberite ih ponovno, a zatim pritisnite Započeti.",
+  "MessageBox.My20CheckBackHomeUnknown": "MY20 provjera nije dovršena, pa je MY20 i dalje nepoznat. Syn3 Updater vas vraća na stranicu Dom.\n\nVaš odabir je zadržan. Pritisnite Započeti za ponovno pokretanje provjere.",
   "Profiles.DeleteProfile": "Izbrisi",
   "Profiles.NewProfile": "Ime Profila",
   "Home.Profile": "Profil",

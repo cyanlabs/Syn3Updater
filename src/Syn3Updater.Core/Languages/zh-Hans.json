@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "编辑高级选项？",
   "Settings.LogLocation": "日志文件位置",
   "MessageBox.My20CheckCancelled": "没有选择侦测日志文件，正在中止进程！",
+  "MessageBox.My20CheckBackHomeKnown": "MY20 检查已完成，结果已保存，因此 Syn3 Updater 将带您返回“首页”。\n\n您选择的版本和地图已被清除，因为安装模式取决于此结果。请重新选择，然后点击“开始”。",
+  "MessageBox.My20CheckBackHomeUnknown": "MY20 检查未完成，因此 MY20 仍然未知。Syn3 Updater 将带您返回“首页”。\n\n您的选择已保留。点击“开始”可重新运行检查。",
   "Profiles.DeleteProfile": "删除",
   "Profiles.NewProfile": "配置文件名称",
   "Home.Profile": "配置文件",

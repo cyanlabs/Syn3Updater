@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Chỉnh sửa Tùy chọn Nâng cao?",
   "Settings.LogLocation": "Vị trí tệp nhật ký",
   "MessageBox.My20CheckCancelled": "Không có tệp nhật ký trình thẩm vấn nào được chọn, quá trình hủy bỏ!",
+  "MessageBox.My20CheckBackHomeKnown": "Kiểm tra MY20 đã hoàn tất và kết quả đã được lưu, vì vậy Syn3 Updater đưa bạn quay lại trang Home.\n\nLựa chọn phiên bản và bản đồ của bạn đã bị xóa vì chế độ cài đặt phụ thuộc vào kết quả này. Hãy chọn lại, rồi nhấn Khởi đầu.",
+  "MessageBox.My20CheckBackHomeUnknown": "Kiểm tra MY20 chưa hoàn tất nên MY20 vẫn chưa xác định. Syn3 Updater đưa bạn quay lại trang Home.\n\nLựa chọn của bạn được giữ nguyên. Nhấn Khởi đầu để chạy lại kiểm tra.",
   "Profiles.DeleteProfile": "Xóa",
   "Profiles.NewProfile": "Tên hồ sơ",
   "Home.Profile": "Hồ sơ",

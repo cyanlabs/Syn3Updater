@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Muokkaa lisäasetuksia?",
   "Settings.LogLocation": "Lokitiedoston sijainti",
   "MessageBox.My20CheckCancelled": "Interrogator-lokitiedostoa ei valittu, keskeytetään!",
+  "MessageBox.My20CheckBackHomeKnown": "MY20-tarkistus on valmis ja tulos on tallennettu, joten Syn3 Updater palauttaa sinut Koti-sivulle.\n\nVersion ja karttojen valinta tyhjennettiin, koska asennustila riippuu tästä tuloksesta. Valitse ne uudelleen ja paina Aloitus.",
+  "MessageBox.My20CheckBackHomeUnknown": "MY20-tarkistusta ei suoritettu loppuun, joten MY20 on edelleen tuntematon. Syn3 Updater palauttaa sinut Koti-sivulle.\n\nValintasi säilytettiin. Suorita tarkistus uudelleen painamalla Aloitus.",
   "Profiles.DeleteProfile": "Delete",
   "Profiles.NewProfile": "Profiilin nimi",
   "Home.Profile": "Profile",

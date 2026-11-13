@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Uprav rozšířené možnosti",
   "Settings.LogLocation": "Umístění souboru Log",
   "MessageBox.My20CheckCancelled": "Nebyl vybrán žádný soubor dotazovacího modulu, proces bude zrušen!",
+  "MessageBox.My20CheckBackHomeKnown": "Kontrola MY20 je dokončena a výsledek je uložen, proto vás Syn3 Updater vrací na stránku Domů.\n\nVáš výběr verze a map byl vymazán, protože režim instalace závisí na tomto výsledku. Vyberte je znovu a stiskněte Spustit.",
+  "MessageBox.My20CheckBackHomeUnknown": "Kontrola MY20 nebyla dokončena, takže MY20 stále není známo. Syn3 Updater vás vrací na stránku Domů.\n\nVáš výběr byl zachován. Stisknutím Spustit kontrolu spustíte znovu.",
   "Profiles.DeleteProfile": "Smazat",
   "Profiles.NewProfile": "Profilové jméno",
   "Home.Profile": "Profil",

@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Bewerk Geavanceerde Opties?",
   "Settings.LogLocation": "Locatie Logbestand",
   "MessageBox.My20CheckCancelled": "Geen Interrogator Log bestand geselecteerd, procedure gestopt!",
+  "MessageBox.My20CheckBackHomeKnown": "De MY20-controle is voltooid en het resultaat is opgeslagen, daarom brengt Syn3 Updater u terug naar de pagina Start.\n\nUw keuze voor versie en kaarten is gewist omdat de installatiemodus van dit resultaat afhangt. Kies ze opnieuw en druk daarna op Begin.",
+  "MessageBox.My20CheckBackHomeUnknown": "De MY20-controle is niet voltooid, dus MY20 is nog onbekend. Syn3 Updater brengt u terug naar de pagina Start.\n\nUw keuze is behouden. Druk op Begin om de controle opnieuw uit te voeren.",
   "Profiles.DeleteProfile": "Verwijder",
   "Profiles.NewProfile": "Naam Profiel",
   "Home.Profile": "Profiel",

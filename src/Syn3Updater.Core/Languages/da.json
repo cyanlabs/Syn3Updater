@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Ændre Avancerede Valg",
   "Settings.LogLocation": "Log Fil sti",
   "MessageBox.My20CheckCancelled": "Der blev ikke valgt nogen interrogator log fil, processen afbrydes!",
+  "MessageBox.My20CheckBackHomeKnown": "MY20-kontrollen er gennemført, og resultatet er gemt, så Syn3 Updater sender dig tilbage til siden Hjem.\n\nDit valg af version og kort er ryddet, fordi installationstilstanden afhænger af dette resultat. Vælg dem igen, og tryk på Start.",
+  "MessageBox.My20CheckBackHomeUnknown": "MY20-kontrollen blev ikke gennemført, så MY20 er stadig ukendt. Syn3 Updater sender dig tilbage til siden Hjem.\n\nDit valg er bevaret. Tryk på Start for at køre kontrollen igen.",
   "Profiles.DeleteProfile": "Slet",
   "Profiles.NewProfile": "Profil Navn",
   "Home.Profile": "Profil",

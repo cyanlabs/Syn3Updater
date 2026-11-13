@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Modifier les options avancées ?",
   "Settings.LogLocation": "Emplacement des fichiers de journalisation",
   "MessageBox.My20CheckCancelled": "Aucun fichier d'interrogation sélectionné, abandon du processus !",
+  "MessageBox.My20CheckBackHomeKnown": "La vérification MY20 est terminée et le résultat est enregistré. Syn3 Updater vous ramène donc à la page Accueil.\n\nVotre sélection de version et de cartes a été effacée, car le mode d'installation dépend de ce résultat. Choisissez-les à nouveau, puis cliquez sur Démarrer.",
+  "MessageBox.My20CheckBackHomeUnknown": "La vérification MY20 n'a pas été terminée ; MY20 reste donc inconnu. Syn3 Updater vous ramène à la page Accueil.\n\nVotre sélection a été conservée. Cliquez sur Démarrer pour relancer la vérification.",
   "Profiles.DeleteProfile": "Supprimer",
   "Profiles.NewProfile": "Nom du profil",
   "Home.Profile": "Profile",

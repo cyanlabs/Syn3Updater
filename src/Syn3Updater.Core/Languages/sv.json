@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Redigera avancerade inställningar",
   "Settings.LogLocation": "Loggfilens plats",
   "MessageBox.My20CheckCancelled": "Ingen förhörsloggfil har valts, processen avbryts!",
+  "MessageBox.My20CheckBackHomeKnown": "MY20-kontrollen är klar och resultatet är sparat, så Syn3 Updater tar dig tillbaka till sidan Hem.\n\nDitt val av version och kartor har rensats eftersom installationsläget beror på detta resultat. Välj dem igen och tryck sedan på Start.",
+  "MessageBox.My20CheckBackHomeUnknown": "MY20-kontrollen slutfördes inte, så MY20 är fortfarande okänt. Syn3 Updater tar dig tillbaka till sidan Hem.\n\nDitt val har behållits. Tryck på Start för att köra kontrollen igen.",
   "Profiles.DeleteProfile": "Radera",
   "Profiles.NewProfile": "Profilnamn",
   "Home.Profile": "Profil",
