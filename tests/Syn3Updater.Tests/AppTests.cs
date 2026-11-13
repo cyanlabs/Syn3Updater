@@ -388,6 +388,56 @@ public class WorkflowTests
         Assert.True(File.Exists(Path.Combine(env.UsbDir, "autoinstall.lst")));
         Assert.Contains("logtool", string.Join("\n", env.Api.Queries));
     }
+
+    private const string My20Xml = """
+        <p:OTAModuleSnapShot xmlns:p="u" xmlns:d="d"><p:VIN>1FA</p:VIN>
+         <d:DID didType="Embedded Consumer Operating System Part Number" didValue="D133"><d:Response>GB5T-14G381-AB</d:Response></d:DID>
+         <d:DID didType="ECU Delivery Assembly Number" didValue="F111"><d:Response>LB5T-14G371-AF</d:Response></d:DID>
+         <d:AdditionalAttributes logGeneratedDateTime="2024-01-02T03:04:05+00:00"><d:PartitionHealth type="/fs/images/" total="28.5G" available="12.0G"/></d:AdditionalAttributes>
+        </p:OTAModuleSnapShot>
+        """;
+
+    /// <summary>A Reformat on an old unit with MY20 not known yet: Start asks, and "Yes, or not sure" prepares the Interrogator USB.</summary>
+    private static async Task StartMy20Check(AppEnv env)
+    {
+        var home = env.Main.Home; home.ReloadSummary();
+        await AppEnv.Until(() => home.Releases.Count == 2);
+        home.SelectedRelease = home.Releases[1]; await AppEnv.Until(() => home.MapVersions.Count == 3);
+        home.SelectedMap = home.MapVersions[1]; await AppEnv.Until(() => home.Packages.Count == 6);
+        env.Dialogs.FolderToPick = env.UsbDir; await home.ChooseFolderCommand.ExecuteAsync(null);
+        env.Dialogs.Say(m => m == Ctx.T("MessageBox.My20CheckV2"), true);
+        await home.StartCommand.ExecuteAsync(null);
+    }
+
+    [AvaloniaFact]
+    public async Task My20Check_OkAfterTheLogUsbIsReady_PicksAndReadsTheXml_AndSetsMy20()
+    {
+        // the notice says "re-insert the USB drive, click 'OK' and select the XML file": OK has to open the file picker and read the log, which is what decides MY20
+        using var env = new AppEnv(version: 3300000, nav: true);
+        var xml = Path.Combine(env.Dir, "Sync_1_VIN.xml"); File.WriteAllText(xml, My20Xml);
+        env.Dialogs.FileToPick = xml;                                                    // what the person picks
+        Assert.Null(Ctx.Profile.My20v2);
+
+        await StartMy20Check(env);
+        await AppEnv.Until(() => env.Dialogs.Messages.Contains(Ctx.T("MessageBox.My20Found")));
+
+        Assert.True(Ctx.Profile.My20v2);                                                 // the log decided
+        Assert.True(File.Exists(Path.Combine(Ctx.Main.LogPath!, "Sync_1_VIN.xml")));      // and was kept with the other logs
+        Assert.Empty(env.Main.Home.Packages);                                            // the install mode is worked out again from scratch now that MY20 is known (as v2 did)
+    }
+
+    [AvaloniaFact]
+    public async Task My20Check_CancellingThePicker_LeavesMy20UnknownAndKeepsTheSelection()
+    {
+        using var env = new AppEnv(version: 3300000, nav: true);
+        env.Dialogs.FileToPick = null;                                                   // the person cancels the file picker
+
+        await StartMy20Check(env);
+        await AppEnv.Until(() => env.Dialogs.Messages.Contains(Ctx.T("MessageBox.My20CheckCancelled")));
+
+        Assert.Null(Ctx.Profile.My20v2);                                                 // still unknown: Start will ask again
+        Assert.NotEmpty(env.Main.Home.Packages);                                         // nothing the person chose was thrown away
+    }
 }
 
 public class PageViewModelTests
