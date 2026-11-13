@@ -175,7 +175,10 @@ public class LinuxTarApplierTests : IDisposable
         var start = packager.IndexOf("<<'INST'\n", StringComparison.Ordinal) + "<<'INST'\n".Length;
         var script = packager[start..packager.IndexOf("\nINST\n", start, StringComparison.Ordinal)] + "\n";
         MakeTarGz(_archive, ("Syn3Updater-9/", "", 0x1ed), ("Syn3Updater-9/install.sh", script, 0x1ed), ("Syn3Updater-9/Syn3Updater", "NEW PROGRAM", 0x1ed),
-                  ("Syn3Updater-9/syn3updater.png", "png", 0x1a4), ("Syn3Updater-9/LICENSE", "licence", 0x1a4));
+                  ("Syn3Updater-9/icons/", "", 0x1ed), ("Syn3Updater-9/icons/hicolor/", "", 0x1ed),
+                  ("Syn3Updater-9/icons/hicolor/16x16/", "", 0x1ed), ("Syn3Updater-9/icons/hicolor/16x16/apps/", "", 0x1ed), ("Syn3Updater-9/icons/hicolor/16x16/apps/syn3updater.png", "png16", 0x1a4),
+                  ("Syn3Updater-9/icons/hicolor/128x128/", "", 0x1ed), ("Syn3Updater-9/icons/hicolor/128x128/apps/", "", 0x1ed), ("Syn3Updater-9/icons/hicolor/128x128/apps/syn3updater.png", "png128", 0x1a4),
+                  ("Syn3Updater-9/LICENSE", "licence", 0x1a4));
         var home = Path.Combine(_root, "home"); Directory.CreateDirectory(home);
         var bin = Path.Combine(_root, "tools"); Directory.CreateDirectory(bin);
         foreach (var t in new[] { "install", "ln", "mkdir", "chmod", "cat", "dirname", "rm" })        // /usr/bin on Linux, partly /bin on macOS
@@ -188,7 +191,9 @@ public class LinuxTarApplierTests : IDisposable
         Assert.Equal("tar", File.ReadAllText(Path.Combine(_appDir, ".install-method")).Trim());          // the marker survives an update
         var desktop = File.ReadAllText(Path.Combine(_xdg, "applications", "syn3updater.desktop"));
         Assert.Contains($"Exec=\"{Program}\" %u", desktop);
-        Assert.True(File.Exists(Path.Combine(_xdg, "icons", "hicolor", "128x128", "apps", "syn3updater.png")));
+        foreach (var size in new[] { "16x16", "128x128" })            // every size the archive carries, each in its own folder
+            Assert.True(File.Exists(Path.Combine(_xdg, "icons", "hicolor", size, "apps", "syn3updater.png")), size);
+        Assert.Equal("png128", File.ReadAllText(Path.Combine(_xdg, "icons", "hicolor", "128x128", "apps", "syn3updater.png")));
         Assert.True(File.Exists(Path.Combine(home, ".local", "bin", "syn3updater")));
     }
 }

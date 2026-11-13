@@ -27,7 +27,9 @@ package() {
   echo pacman > "$pkgdir/opt/syn3updater/.install-method"; chmod 644 "$pkgdir/opt/syn3updater/.install-method"
   install -d "$pkgdir/usr/bin"
   ln -s /opt/syn3updater/Syn3Updater "$pkgdir/usr/bin/syn3updater"
-  install -Dm644 syn3updater.png "$pkgdir/usr/share/icons/hicolor/128x128/apps/syn3updater.png"
+  for icon in icons/hicolor/*/apps/syn3updater.png; do
+    install -Dm644 "$icon" "$pkgdir/usr/share/$icon"
+  done
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
   # keep in step with packaging/linux/syn3updater.desktop (scripts/verify-aur-package.sh compares them)
   install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/syn3updater.desktop" <<'DESKTOP'

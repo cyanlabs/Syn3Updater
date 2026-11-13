@@ -4,11 +4,24 @@ set -euo pipefail
 fail() { echo "FAIL: $*" >&2; exit 1; }
 ok() { echo "ok: $*"; }
 
+# The icon theme spec treats a folder name such as 128x128 as a promise about the images in it, so every icon must really be that size
+# (the first .deb shipped a 100x100 picture in 128x128/). PNG width and height are the big-endian numbers at bytes 16 to 23.
+SIZES="16 24 32 48 64 128 256 512"
+png_size() { od -An -tu1 -j16 -N8 "$1" | awk '{ print ($1*16777216+$2*65536+$3*256+$4) "x" ($5*16777216+$6*65536+$7*256+$8) }'; }
+check_icons() {   # check_icons <icon-theme root holding hicolor/> <where, for the message>
+  local s f
+  for s in $SIZES; do
+    f="$1/hicolor/${s}x${s}/apps/syn3updater.png"
+    [[ -f "$f" ]] || fail "the $s pixel icon is missing from $2 ($f)"
+    [[ "$(png_size "$f")" == "${s}x${s}" ]] || fail "$f is $(png_size "$f"), not ${s}x${s}"
+  done
+}
+
 APP=/opt/syn3updater/Syn3Updater
 DESK=/usr/share/applications/syn3updater.desktop
 [[ -x "$APP" ]] || fail "$APP is missing or not executable"
 [[ "$(readlink /usr/bin/syn3updater)" == "$APP" ]] || fail "/usr/bin/syn3updater does not point at $APP"
-[[ -f /usr/share/icons/hicolor/128x128/apps/syn3updater.png ]] || fail "icon is missing"
+check_icons /usr/share/icons "the installed package"
 compgen -G "/usr/share/licenses/syn3updater*/LICENSE" >/dev/null || [[ -f /usr/share/doc/syn3updater/copyright ]] || fail "licence file is missing"
 ok "files installed"
 

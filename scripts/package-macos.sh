@@ -25,9 +25,9 @@ chmod +x "$APP/Contents/MacOS/Syn3Updater"
 # 2. Info.plist
 sed -e "s/@VERSION@/$NUMERIC/g" -e "s/@BUILD@/$BUILD/g" packaging/macos/Info.plist.template > "$APP/Contents/Info.plist"
 
-# 3. icon: logo.png -> .icns (the source is small, so the large sizes are upscaled; supply a bigger logo.png for a crisper icon)
+# 3. icon: the 512x512 master -> .icns (only the 1024 pixel @2x size is upscaled)
 ICONSET="$WORK/Syn3Updater.iconset"; mkdir -p "$ICONSET"
-SRC=src/Syn3Updater.App/Assets/logo.png
+SRC=packaging/icons/syn3updater.png
 for s in 16 32 128 256 512; do
   sips -z $s $s "$SRC" --out "$ICONSET/icon_${s}x${s}.png" >/dev/null
   sips -z $((s*2)) $((s*2)) "$SRC" --out "$ICONSET/icon_${s}x${s}@2x.png" >/dev/null
