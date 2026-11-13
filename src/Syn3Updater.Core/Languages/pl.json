@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Edytować opcje zaawansowane?",
   "Settings.LogLocation": "Lokalizacja Pliku Log",
   "MessageBox.My20CheckCancelled": "Nie wybrano Loga sprawdzającego, anulowano proces! ",
+  "MessageBox.My20CheckBackHomeKnown": "Kontrola MY20 została zakończona, a wynik zapisany, dlatego Syn3 Updater przenosi Cię z powrotem na stronę MENU.\n\nTwój wybór wersji i map został wyczyszczony, ponieważ tryb instalacji zależy od tego wyniku. Wybierz je ponownie, a następnie naciśnij START.",
+  "MessageBox.My20CheckBackHomeUnknown": "Kontrola MY20 nie została zakończona, więc MY20 nadal jest nieznane. Syn3 Updater przenosi Cię z powrotem na stronę MENU.\n\nTwój wybór został zachowany. Naciśnij START, aby uruchomić kontrolę ponownie.",
   "Profiles.DeleteProfile": "Usuń",
   "Profiles.NewProfile": "Nazwa Profilu",
   "Home.Profile": "Profil",

@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Editar opcions avançades?",
   "Settings.LogLocation": "Ubicació del fitxer de registre",
   "MessageBox.My20CheckCancelled": "No s'ha seleccionat cap fitxer de registre de l'Interrogator, s'avorta el procés!",
+  "MessageBox.My20CheckBackHomeKnown": "La comprovació de MY20 s'ha completat i el resultat s'ha desat, així que Syn3 Updater us torna a la pàgina Inici.\n\nS'ha esborrat la selecció de versió i mapes perquè el mode d'instal·lació depèn d'aquest resultat. Torneu-los a triar i premeu Començar.",
+  "MessageBox.My20CheckBackHomeUnknown": "La comprovació de MY20 no s'ha completat, així que MY20 continua sent desconegut. Syn3 Updater us torna a la pàgina Inici.\n\nS'ha conservat la selecció. Premeu Començar per repetir la comprovació.",
   "Profiles.DeleteProfile": "Delete",
   "Profiles.NewProfile": "Nom del perfil",
   "Home.Profile": "Profile",

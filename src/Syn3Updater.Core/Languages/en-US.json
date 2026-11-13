@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Edit Advanced Options?",
   "Settings.LogLocation": "Log File Location",
   "MessageBox.My20CheckCancelled": "No interrogator log file was selected, aborting process!",
+  "MessageBox.My20CheckBackHomeKnown": "The MY20 check is complete and the result is saved, so Syn3 Updater is taking you back to the Home page.\n\nYour release and map selection was cleared because the install mode depends on this result. Choose them again, then press Start.",
+  "MessageBox.My20CheckBackHomeUnknown": "The MY20 check was not completed, so MY20 is still unknown. Syn3 Updater is taking you back to the Home page.\n\nYour selection has been kept. Press Start to run the check again.",
   "Profiles.DeleteProfile": "Delete",
   "Profiles.NewProfile": "Profile Name",
   "Home.Profile": "Profile",

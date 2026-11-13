@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Uygulama Seçeneklerini Düzenle",
   "Settings.LogLocation": "Log Dosya Konumu",
   "MessageBox.My20CheckCancelled": "Sorgulayıcı günlük dosyası seçilmedi, işlem iptal ediliyor!",
+  "MessageBox.My20CheckBackHomeKnown": "MY20 kontrolü tamamlandı ve sonuç kaydedildi, bu yüzden Syn3 Updater sizi Ev sayfasına geri götürüyor.\n\nKurulum modu bu sonuca bağlı olduğu için sürüm ve harita seçiminiz temizlendi. Bunları yeniden seçin, ardından Başlat'a basın.",
+  "MessageBox.My20CheckBackHomeUnknown": "MY20 kontrolü tamamlanmadı, bu yüzden MY20 hâlâ bilinmiyor. Syn3 Updater sizi Ev sayfasına geri götürüyor.\n\nSeçiminiz korundu. Kontrolü yeniden çalıştırmak için Başlat'a basın.",
   "Profiles.DeleteProfile": "Sil",
   "Profiles.NewProfile": "Profil Adı",
   "Home.Profile": "Profil",

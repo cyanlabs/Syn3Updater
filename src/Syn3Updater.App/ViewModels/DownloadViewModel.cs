@@ -241,7 +241,10 @@ public partial class DownloadViewModel : PageViewModel
                 // OK: pick the XML the car wrote and read it, which is what decides MY20 (the same as the Utility page's "Step 3": it says what it found, or that the check was cancelled)
                 await MainWindowViewModel.Instance.Utility.ParseLogFromAsync(UtilityViewModel.InterrogatorLogFolder(root));      // the picker opens in the drive's SyncMyRide folder, where the car wrote it
                 // With MY20 known the install mode has to be worked out again (as v2 did). If it is still unknown (cancelled, a bad file) keep what was chosen: Start asks again.
-                if (Ctx.Profile.My20v2 != null) MainWindowViewModel.Instance.Home.ClearSelections();
+                var my20Known = Ctx.Profile.My20v2 != null;
+                if (my20Known) MainWindowViewModel.Instance.Home.ClearSelections();
+                // The app now goes back to Home, so say so and what happened to the selection (the result itself was shown just before): it is OK that moves on.
+                await Dialogs.Info(Ctx.T(my20Known ? "MessageBox.My20CheckBackHomeKnown" : "MessageBox.My20CheckBackHomeUnknown"));
                 break;
             }
             default:
@@ -295,7 +298,8 @@ public partial class DownloadViewModel : PageViewModel
 
     private static void Return(JobSpec spec)
     {
-        if (spec.Action == UpdateAction.Main) MainWindowViewModel.Instance.ShowHome();
+        // A job ends where it was started: the install and the MY20 check (which Start on Home starts when MY20 is not known yet) end on Home, the utilities on the Utility page.
+        if (spec.Action is UpdateAction.Main or UpdateAction.LogUtilityMy20) MainWindowViewModel.Instance.ShowHome();
         else MainWindowViewModel.Instance.ShowUtility();
     }
 }

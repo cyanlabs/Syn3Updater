@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "แก้ไขตัวเลือกขั้นสูง?",
   "Settings.LogLocation": "ตำแหน่งไฟล์บันทึก",
   "MessageBox.My20CheckCancelled": "ไม่ได้เลือกไฟล์บันทึก Interrogator ยกเลิกการดำเนินการ!",
+  "MessageBox.My20CheckBackHomeKnown": "การตรวจสอบ MY20 เสร็จสมบูรณ์และบันทึกผลแล้ว Syn3 Updater จึงพาคุณกลับไปที่หน้า “หน้าหลัก”\n\nการเลือกเวอร์ชันและแผนที่ของคุณถูกล้างแล้ว เพราะโหมดการติดตั้งขึ้นอยู่กับผลนี้ โปรดเลือกใหม่อีกครั้ง แล้วกด “เริ่ม”",
+  "MessageBox.My20CheckBackHomeUnknown": "การตรวจสอบ MY20 ยังไม่เสร็จสมบูรณ์ ดังนั้น MY20 ยังคงไม่ทราบ Syn3 Updater จะพาคุณกลับไปที่หน้า “หน้าหลัก”\n\nการเลือกของคุณยังอยู่ กด “เริ่ม” เพื่อตรวจสอบอีกครั้ง",
   "Profiles.DeleteProfile": "Delete",
   "Profiles.NewProfile": "ชื่อโปรไฟล์",
   "Home.Profile": "Profile",

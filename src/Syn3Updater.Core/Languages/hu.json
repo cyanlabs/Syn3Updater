@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Szerkesztheti a speciális beállításokat?",
   "Settings.LogLocation": "Log fájl helye",
   "MessageBox.My20CheckCancelled": "Nincs lekérdező naplófájl kiválasztva, megszakítja a folyamatot!",
+  "MessageBox.My20CheckBackHomeKnown": "Az MY20-ellenőrzés befejeződött, az eredmény el van mentve, ezért a Syn3 Updater visszaviszi a Főoldal oldalra.\n\nA verzió- és térképválasztás törlődött, mert a telepítési mód ettől az eredménytől függ. Válassza ki őket újra, majd nyomja meg a Rajt gombot.",
+  "MessageBox.My20CheckBackHomeUnknown": "Az MY20-ellenőrzés nem fejeződött be, ezért az MY20 továbbra is ismeretlen. A Syn3 Updater visszaviszi a Főoldal oldalra.\n\nA választása megmaradt. Az ellenőrzés újrafuttatásához nyomja meg a Rajt gombot.",
   "Profiles.DeleteProfile": "Törlés",
   "Profiles.NewProfile": "Profil név",
   "Home.Profile": "Profil",

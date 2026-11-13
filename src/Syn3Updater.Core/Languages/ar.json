@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "تعديل الخيارات المتقدمة؟",
   "Settings.LogLocation": "موقع ملف التقرير",
   "MessageBox.My20CheckCancelled": "لم يتم اختيار ملف سجل Interrogator، جارٍ إلغاء العملية!",
+  "MessageBox.My20CheckBackHomeKnown": "اكتمل فحص MY20 وتم حفظ النتيجة، لذلك يعيدك Syn3 Updater إلى الصفحة «الرئيسية».\n\nتم مسح اختيارك للإصدار والخرائط لأن وضع التثبيت يعتمد على هذه النتيجة. اختر هما مجدداً ثم اضغط «ابدأ».",
+  "MessageBox.My20CheckBackHomeUnknown": "لم يكتمل فحص MY20، لذلك لا يزال MY20 غير معروف. يعيدك Syn3 Updater إلى الصفحة «الرئيسية».\n\nتم الاحتفاظ باختيارك. اضغط «ابدأ» لإعادة إجراء الفحص.",
   "Profiles.DeleteProfile": "حذف",
   "Profiles.NewProfile": "إسم الملف",
   "Home.Profile": "ملف",

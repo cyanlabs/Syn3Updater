@@ -425,6 +425,9 @@ public class WorkflowTests
         Assert.Equal(Path.Combine(env.UsbDir, "SyncMyRide"), env.Dialogs.FileStarts.Last());   // the picker opened in the drive's SyncMyRide folder, where the car wrote the XML
         Assert.True(File.Exists(Path.Combine(Ctx.Main.LogPath!, "Sync_1_VIN.xml")));      // and was kept with the other logs
         Assert.Empty(env.Main.Home.Packages);                                            // the install mode is worked out again from scratch now that MY20 is known (as v2 did)
+        await AppEnv.Until(() => ReferenceEquals(env.Main.Current, env.Main.Home));       // and the check ends back on Home, where it was started (not on the Utility page)
+        Assert.Contains(env.Dialogs.Messages, m => m == Ctx.T("MessageBox.My20CheckBackHomeKnown"));        // and says so, including that the selection was cleared
+        Assert.DoesNotContain(env.Dialogs.Messages, m => m == Ctx.T("MessageBox.My20CheckBackHomeUnknown"));
     }
 
     [AvaloniaFact]
@@ -438,6 +441,9 @@ public class WorkflowTests
 
         Assert.Null(Ctx.Profile.My20v2);                                                 // still unknown: Start will ask again
         Assert.NotEmpty(env.Main.Home.Packages);                                         // nothing the person chose was thrown away
+        await AppEnv.Until(() => ReferenceEquals(env.Main.Current, env.Main.Home));       // and they are back on Home to press Start again
+        Assert.Contains(env.Dialogs.Messages, m => m == Ctx.T("MessageBox.My20CheckBackHomeUnknown"));      // and told so: the check is not done, the selection was kept
+        Assert.DoesNotContain(env.Dialogs.Messages, m => m == Ctx.T("MessageBox.My20CheckBackHomeKnown"));
     }
 }
 

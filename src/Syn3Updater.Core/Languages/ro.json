@@ -95,6 +95,8 @@
   "Settings.AdvancedModeToggle": "Editați opțiunile avansate",
   "Settings.LogLocation": "Locație fișier jurnal",
   "MessageBox.My20CheckCancelled": "Nu a fost selectat niciun fișier jurnal al interogatorului, interupeti procesul?",
+  "MessageBox.My20CheckBackHomeKnown": "Verificarea MY20 s-a încheiat și rezultatul a fost salvat, așa că Syn3 Updater vă readuce la pagina Acasă.\n\nSelecția de versiune și hărți a fost ștearsă deoarece modul de instalare depinde de acest rezultat. Alegeți-le din nou, apoi apăsați Start.",
+  "MessageBox.My20CheckBackHomeUnknown": "Verificarea MY20 nu s-a încheiat, deci MY20 este încă necunoscut. Syn3 Updater vă readuce la pagina Acasă.\n\nSelecția dvs. a fost păstrată. Apăsați Start pentru a rula din nou verificarea.",
   "Profiles.DeleteProfile": "Stergere",
   "Profiles.NewProfile": "Numele profilului",
   "Home.Profile": "Profil",
