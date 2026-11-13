@@ -1,5 +1,6 @@
 // Renders app pages to PNG with Avalonia's headless backend (no window is ever shown).
-// usage: dotnet run --project tools/Shots -- <outDir> [width] [height] [Page ...] [--light]
+// usage: dotnet run --project tools/Shots -- <outDir> [width] [height] [Page ...] [--light] [--demo] [--scroll]
+// --scroll: after each page's normal shot, page down through it one screenful at a time and save each position as <Page>_<W>x<H>[_light]_scroll<N>.png (N = 2, 3, ...) until the bottom.
 using Avalonia;
 using Avalonia.Headless;
 using Avalonia.Threading;
@@ -18,6 +19,7 @@ int w = args.Length > 1 ? int.Parse(args[1]) : 1100, h = args.Length > 2 ? int.P
 var pages = args.Skip(3).Where(a => !a.StartsWith("--")).ToList();
 bool light = args.Contains("--light");
 bool demo = args.Contains("--demo");
+bool scroll = args.Contains("--scroll");
 Directory.CreateDirectory(outDir);
 
 AppBuilder.Configure<App>()
@@ -101,6 +103,30 @@ var work = Dispatcher.UIThread.InvokeAsync(async () =>
         var file = Path.Combine(outDir, $"{p}_{w}x{h}{(light ? "_light" : "")}.png");
         frame?.Save(file);
         Console.WriteLine(file);
+        if (scroll)      // page down through the page, one screenful per screenshot: what a person sees scrolling a normal-sized window
+        {
+            // the page's own scroll area is the visible one with the most room (not the sidebar or a list inside the page), and only if its content is taller than what shows
+            var sv = win.GetVisualDescendants().OfType<ScrollViewer>()
+                .Where(s => s.IsEffectivelyVisible && s.Extent.Height > s.Viewport.Height + 1)
+                .OrderByDescending(s => s.Viewport.Width * s.Viewport.Height).FirstOrDefault();
+            if (sv != null)
+            {
+                var step = Math.Max(100, sv.Viewport.Height - 80);                  // a little overlap, so nothing falls between two screenshots
+                var max = sv.Extent.Height - sv.Viewport.Height;
+                int n = 1;
+                for (var off = step; ; off += step)
+                {
+                    var to = Math.Min(off, max);
+                    sv.Offset = new Vector(sv.Offset.X, to);
+                    Dispatcher.UIThread.RunJobs(); await Task.Delay(300); Dispatcher.UIThread.RunJobs();
+                    var sfile = Path.Combine(outDir, $"{p}_{w}x{h}{(light ? "_light" : "")}_scroll{++n}.png");
+                    win.CaptureRenderedFrame()?.Save(sfile);
+                    Console.WriteLine(sfile);
+                    if (to >= max) break;
+                }
+                sv.Offset = new Vector(sv.Offset.X, 0);
+            }
+        }
     }
     win.Close();
   }
