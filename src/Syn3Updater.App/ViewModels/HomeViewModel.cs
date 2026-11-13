@@ -350,7 +350,7 @@ public partial class HomeViewModel : PageViewModel
         }
         catch (Exception e)
         {
-            Ctx.Log.Error(e.Message);
+            Ctx.Log.Error(e.ToString());     // the whole exception: the dialog only has the message, and this runs fire-and-forget at start
             await Dialogs.Error(e.Message);
         }
     }

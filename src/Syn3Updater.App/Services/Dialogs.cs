@@ -93,6 +93,21 @@ public static class DialogsImpl
     private static Task<T> OnUi<T>(Func<Task<T>> f) =>
         Dispatcher.UIThread.CheckAccess() ? f() : Dispatcher.UIThread.InvokeAsync(f);
 
+    /// <summary>
+    /// Shows <paramref name="win"/> and completes when it is closed. Modal over <paramref name="owner"/> when that window is on screen; otherwise a stand-alone window in the middle of the screen
+    /// and in the taskbar, because Avalonia refuses to show a dialog over an owner that is not visible yet (the main window is created before it appears, and the Home page can report an
+    /// error that early) and a stand-alone window without a taskbar entry could not be found again.
+    /// </summary>
+    internal static async Task ShowAndWaitAsync(Window win, Window? owner)
+    {
+        if (owner is { IsVisible: true }) { await win.ShowDialog(owner); return; }
+        var closed = new TaskCompletionSource();
+        win.Closed += (_, _) => closed.TrySetResult();
+        win.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        win.ShowInTaskbar = true;
+        win.Show();
+        await closed.Task;
+    }
 
 
     public static Task<int> Show(string message, string title, string[] buttons, IBrush? accent = null, int defaultIndex = 0) => OnUi(async () =>
@@ -122,7 +137,7 @@ public static class DialogsImpl
         }
         panel.Children.Add(row);
         win.Content = panel;
-        if (MainWindow is { } owner) await win.ShowDialog(owner); else { win.Show(); await Task.Delay(Timeout.Infinite); }
+        await ShowAndWaitAsync(win, MainWindow);
         return result;
     });
 
@@ -149,7 +164,7 @@ public static class DialogsImpl
             },
         };
         win.Opened += (_, _) => box.Focus();
-        if (MainWindow is { } owner) await win.ShowDialog(owner); else win.Show();
+        await ShowAndWaitAsync(win, MainWindow);
         return result;
     });
 
