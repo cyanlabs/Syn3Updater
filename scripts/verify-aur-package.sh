@@ -10,7 +10,9 @@ docker run --rm -v "$TARBALL":/in/pkg.tar.gz:ro -v "$HERE/packaging":/packaging:
   useradd -m builder
   # the PKGBUILD names its tarball after pkgver: repack the test tarball under that version
   . /packaging/aur/PKGBUILD
-  mkdir -p /tmp/repack && tar -xzf /in/pkg.tar.gz -C /tmp/repack && mv /tmp/repack/Syn3Updater-* "/tmp/repack/Syn3Updater-$pkgver-linux-x64"
+  mkdir -p /tmp/repack && tar -xzf /in/pkg.tar.gz -C /tmp/repack
+  # the test tarball of a stable version is already named after pkgver: only rename when it is not (mv would refuse to move a folder into itself)
+  src="$(echo /tmp/repack/Syn3Updater-*)"; dst="/tmp/repack/Syn3Updater-$pkgver-linux-x64"; [[ "$src" == "$dst" ]] || mv "$src" "$dst"
   install -d -o builder -g builder /home/builder/b
   tar -C /tmp/repack -czf "/home/builder/b/Syn3Updater-$pkgver-linux-x64.tar.gz" "Syn3Updater-$pkgver-linux-x64"
   cp /packaging/aur/PKGBUILD /home/builder/b/PKGBUILD
