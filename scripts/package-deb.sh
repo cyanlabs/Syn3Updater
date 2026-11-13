@@ -33,6 +33,23 @@ Description: Ford SYNC 3 update USB creator
  .
  Preparing a drive formats it, which erases everything on it.
 CONTROL
+# Refresh the icon cache and the desktop database (which maps syn3updater:// to the launcher). Debian's own triggers usually do this, but only when the trigger packages
+# are present and working; without it a stale /usr/share/icons/hicolor/icon-theme.cache hides the new icon and the launcher shows a blank one.
+for script in postinst postrm; do
+  case "$script" in postinst) when='configure' ;; postrm) when='remove|purge' ;; esac
+  cat > "$STAGE/DEBIAN/$script" <<SCRIPT
+#!/bin/sh
+set -e
+case "\$1" in
+  $when)
+    if command -v gtk-update-icon-cache >/dev/null 2>&1; then gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor >/dev/null 2>&1 || true; fi
+    if command -v update-desktop-database >/dev/null 2>&1; then update-desktop-database -q /usr/share/applications >/dev/null 2>&1 || true; fi
+    ;;
+esac
+exit 0
+SCRIPT
+  chmod 755 "$STAGE/DEBIAN/$script"
+done
 chmod 755 "$STAGE/DEBIAN"; chmod 644 "$STAGE/DEBIAN/control"
 
 FILE="Syn3Updater-$VERSION-$RID.deb"

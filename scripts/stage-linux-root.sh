@@ -3,7 +3,7 @@
 #   /opt/syn3updater/Syn3Updater                      the program (file name has a capital S, as in the tarball)
 #   /usr/bin/syn3updater                              lower-case command -> the program
 #   /usr/share/applications/syn3updater.desktop       launcher (Exec is the exact path of the program)
-#   /usr/share/icons/hicolor/128x128/apps/syn3updater.png
+#   /usr/share/icons/hicolor/<size>x<size>/apps/syn3updater.png   (16 to 512, each really that size)
 #   licence: /usr/share/doc/syn3updater/copyright (deb) or /usr/share/licenses/syn3updater/LICENSE (rpm, arch)
 # usage: scripts/stage-linux-root.sh <tarball> <destdir> <deb|rpm|arch>
 set -euo pipefail
@@ -19,7 +19,11 @@ install -Dm755 "$src/Syn3Updater" "$DEST/opt/syn3updater/Syn3Updater"
 case "$FLAVOR" in arch) marker=pacman ;; *) marker="$FLAVOR" ;; esac
 printf '%s\n' "$marker" > "$DEST/opt/syn3updater/.install-method"; chmod 644 "$DEST/opt/syn3updater/.install-method"
 install -d "$DEST/usr/bin"; ln -sfn /opt/syn3updater/Syn3Updater "$DEST/usr/bin/syn3updater"
-install -Dm644 "$src/syn3updater.png" "$DEST/usr/share/icons/hicolor/128x128/apps/syn3updater.png"
+[[ -d "$src/icons/hicolor" ]] || { echo "no icons/hicolor in $TARBALL" >&2; exit 1; }
+for icon in "$src"/icons/hicolor/*/apps/syn3updater.png; do
+  size="$(basename "$(dirname "$(dirname "$icon")")")"
+  install -Dm644 "$icon" "$DEST/usr/share/icons/hicolor/$size/apps/syn3updater.png"
+done
 install -Dm644 "$HERE/packaging/linux/syn3updater.desktop" "$DEST/usr/share/applications/syn3updater.desktop"
 case "$FLAVOR" in
   deb) lic="usr/share/doc/syn3updater/copyright" ;;

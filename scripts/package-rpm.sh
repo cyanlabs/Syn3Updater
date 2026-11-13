@@ -40,12 +40,20 @@ autoinstall.lst / reformat.lst. Preparing a drive formats it, which erases every
 mkdir -p %{buildroot}
 cp -a %{stagedir}/. %{buildroot}/
 
+%post
+/usr/bin/gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor >/dev/null 2>&1 || :
+/usr/bin/update-desktop-database -q /usr/share/applications >/dev/null 2>&1 || :
+
+%postun
+/usr/bin/gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor >/dev/null 2>&1 || :
+/usr/bin/update-desktop-database -q /usr/share/applications >/dev/null 2>&1 || :
+
 %files
 %defattr(-,root,root,-)
 /opt/syn3updater
 /usr/bin/syn3updater
 /usr/share/applications/syn3updater.desktop
-/usr/share/icons/hicolor/128x128/apps/syn3updater.png
+/usr/share/icons/hicolor/*/apps/syn3updater.png
 %license /usr/share/licenses/syn3updater/LICENSE
 SPEC
 
