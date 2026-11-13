@@ -1,0 +1,14 @@
+; CyanLabs Syn3Updater 2.14.2.2 Stable - downgrade  Mode - Sync 3.4.26057 EU
+
+[SYNCGen3.0_ALL_PRODUCT]
+Item1 = RWDataCleaner TOOL - PU5T-14G386-BB_1690840002000.TAR.GZ
+Open1 = SyncMyRide\PU5T-14G386-BB_1690840002000.TAR.GZ
+Item2 = TOOL - GB5T-14G386-SC_85041.tar.gz
+Open2 = SyncMyRide\GB5T-14G386-SC_85041.tar.gz
+Item3 = APP - 4U5T-14G381-AN_1552583626000.TAR.GZ
+Open3 = SyncMyRide\4U5T-14G381-AN_1552583626000.TAR.GZ
+Options = AutoInstall
+[SYNCGen3.0_ALL]
+Item1 = REFORMAT TOOL - 1u5t-14g386-cb.tar.gz
+Open1 = SyncMyRide\1u5t-14g386-cb.tar.gz
+Options = AutoInstall,Include,Transaction

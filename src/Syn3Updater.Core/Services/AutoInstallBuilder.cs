@@ -24,8 +24,10 @@ public static class AutoInstallBuilder
     private static string Header(string appVersion, string branch, string label, string release, string region) =>
         $"; CyanLabs Syn3Updater {appVersion} {branch} - {label} - {release} {region}{NL}{NL}";
 
-    private static void Entry(StringBuilder sb, int n, string type, string file, bool spaceBeforeEq = true) =>
-        sb.Append($"Item{n} = {type} - {file}{NL}Open{n}{(spaceBeforeEq ? " " : "")}= SyncMyRide\\{file}{NL}");
+    // Every entry reads "OpenN = SyncMyRide\file". v2 wrote the RW data cleaner of the plain (no maps) list as "Open1=" without the space; the space makes no difference to the head unit and is
+    // kept everywhere for consistency (a deliberate difference from v2, noted in InstallRouteListTests).
+    private static void Entry(StringBuilder sb, int n, string type, string file) =>
+        sb.Append($"Item{n} = {type} - {file}{NL}Open{n} = SyncMyRide\\{file}{NL}");
 
     public static string CreateAutoInstall(IEnumerable<Ivsu> queue, SpecialTools tools, UpdateAction action,
         string release, string region, bool modeForced, string appVersion, string branch)
@@ -78,7 +80,7 @@ public static class AutoInstallBuilder
             if (action is not (UpdateAction.LogUtility or UpdateAction.LogUtilityMy20 or UpdateAction.GracenotesRemoval
                 or UpdateAction.VoiceShrinker or UpdateAction.Downgrade or UpdateAction.Upgrade22))
             {
-                Entry(sb, current, "RWDataCleaner TOOL", rw.FileName, spaceBeforeEq: false);
+                Entry(sb, current, "RWDataCleaner TOOL", rw.FileName);
                 current = 2;
             }
             foreach (var item in list) Entry(sb, current++, item.Type, item.FileName);
@@ -92,6 +94,9 @@ public static class AutoInstallBuilder
     {
         var sb = new StringBuilder();
         int i = 0;
+        // a file is restored once: on release Sync 3.3.19052 the downgrade app IS that release's APPS package, so the queue holds it twice and v2 wrote "APPS=<same file>" twice (a v2 bug, kept out on
+        // purpose). The drive is exFAT, where names differ by case only are the same file.
+        var listed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var item in queue)
         {
             if (item.Source == "naviextras") continue;
@@ -105,6 +110,7 @@ public static class AutoInstallBuilder
                     || (item.Md5 == t.DowngradeApp?.Md5 && release != "Sync 3.3.19052")
                     || item.Md5 == t.DowngradeTool?.Md5 || item.Md5 == t.RwDataCleaner?.Md5) continue;
             }
+            if (!listed.Add(item.FileName)) continue;
             i++;
             sb.Append($"{item.Type}={item.FileName}");
             if (i != queue.Count) sb.Append(NL);
@@ -123,17 +129,17 @@ public static class AutoInstallBuilder
         {
             var dtool = t.DowngradeTool ?? throw new InvalidOperationException("Downgrade tool package is required");
             var dapp = t.DowngradeApp ?? throw new InvalidOperationException("Downgrade app package is required");
-            Entry(sb, 1, "RWDataCleaner TOOL", rw.FileName, false);
-            Entry(sb, 2, "TOOL", dtool.FileName, false);
-            Entry(sb, 3, "APP", dapp.FileName, false);
+            Entry(sb, 1, "RWDataCleaner TOOL", rw.FileName);
+            Entry(sb, 2, "TOOL", dtool.FileName);
+            Entry(sb, 3, "APP", dapp.FileName);
             sb.Append($"Options = AutoInstall{NL}[SYNCGen3.0_ALL]{NL}");
-            Entry(sb, 1, "REFORMAT TOOL", reformat.FileName, false);
+            Entry(sb, 1, "REFORMAT TOOL", reformat.FileName);
             sb.Append($"Options = AutoInstall,Include,Transaction{NL}");
         }
         else if (mode == InstallModes.Reformat)
         {
-            Entry(sb, 1, "RWDataCleaner TOOL", rw.FileName, false);
-            Entry(sb, 2, "REFORMAT TOOL ", reformat.FileName, false);
+            Entry(sb, 1, "RWDataCleaner TOOL", rw.FileName);
+            Entry(sb, 2, "REFORMAT TOOL ", reformat.FileName);
             sb.Append("Options = AutoInstall");
         }
         return sb.ToString();

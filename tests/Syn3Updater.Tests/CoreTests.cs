@@ -20,7 +20,7 @@ public class AutoInstallTests
         var s = AutoInstallBuilder.CreateAutoInstall(q, tools, UpdateAction.Main, "Sync 3.4.20282", "EU", false, "3.0.0", "Stable");
 
         Assert.Contains("[SYNCGen3.0_ALL_PRODUCT]\r\n", s);
-        Assert.Contains("Item1 = RWDataCleaner TOOL - rw.tar.gz\r\nOpen1= SyncMyRide\\rw.tar.gz\r\n", s);
+        Assert.Contains("Item1 = RWDataCleaner TOOL - rw.tar.gz\r\nOpen1 = SyncMyRide\\rw.tar.gz\r\n", s);
         Assert.Contains("Item2 = APPS - app.tar.gz\r\nOpen2 = SyncMyRide\\app.tar.gz\r\n", s);
         Assert.Contains("Item3 = VOICE - voice.tar.gz", s);
         Assert.EndsWith("Options = AutoInstall\r\n", s);
