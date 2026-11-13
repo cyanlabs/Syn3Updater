@@ -41,6 +41,17 @@ jobs:
         run: scripts/verify-linux-distro-packages.sh artifacts
       - name: Build the AUR package (from the GitHub release layout) in Arch Linux
         run: scripts/verify-aur-package.sh artifacts/Syn3Updater-0.0.0-check-linux-x64.tar.gz
+      - name: Build the Arch and AUR packages for a stable version (no suffix, so the pacman version is the release version)
+        run: |
+          # every other step here uses 0.0.0-check, whose pacman version (0.0.0check) always differs from it; the first stable release is the first time the two are equal
+          set -euo pipefail
+          stable="$(sed -n 's/^pkgver=//p' packaging/aur/PKGBUILD)"
+          tmp="$(mktemp -d)"
+          tar -xzf artifacts/Syn3Updater-0.0.0-check-linux-x64.tar.gz -C "$tmp"
+          mv "$tmp/Syn3Updater-0.0.0-check-linux-x64" "$tmp/Syn3Updater-$stable-linux-x64"
+          tar -C "$tmp" -czf "$tmp/Syn3Updater-$stable-linux-x64.tar.gz" "Syn3Updater-$stable-linux-x64"
+          scripts/package-arch.sh linux-x64 "$stable" "$tmp/out" "$tmp/Syn3Updater-$stable-linux-x64.tar.gz"
+          scripts/verify-aur-package.sh "$tmp/Syn3Updater-$stable-linux-x64.tar.gz"
 
   windows-package:
     name: Windows package carries the real Launcher

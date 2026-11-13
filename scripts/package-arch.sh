@@ -19,7 +19,9 @@ docker run --rm -e RID="$RID" -e ARCH="$ARCH" -e VERSION="$VERSION" -e PKGVER="$
   pacman -Sy --noconfirm --needed base-devel >/dev/null
   useradd -m builder
   # the PKGBUILD unpacks Syn3Updater-<pkgver>-<rid>: repack the tarball under the pacman version, and point the recipe at it instead of GitHub
-  mkdir -p /tmp/repack && tar -xzf /in/pkg.tar.gz -C /tmp/repack && mv /tmp/repack/Syn3Updater-* "/tmp/repack/Syn3Updater-$PKGVER-$RID"
+  mkdir -p /tmp/repack && tar -xzf /in/pkg.tar.gz -C /tmp/repack
+  # a stable version has no suffix, so the pacman version IS the release version and the folder already has the right name (mv would refuse to move it into itself)
+  src="$(echo /tmp/repack/Syn3Updater-*)"; dst="/tmp/repack/Syn3Updater-$PKGVER-$RID"; [[ "$src" == "$dst" ]] || mv "$src" "$dst"
   install -d -o builder -g builder /home/builder/b
   tar -C /tmp/repack -czf "/home/builder/b/Syn3Updater-$PKGVER-$RID.tar.gz" "Syn3Updater-$PKGVER-$RID"
   cp /aur/PKGBUILD /home/builder/b/PKGBUILD
