@@ -41,7 +41,7 @@ mkdir -p "$dest" "$bin" "$data/applications" "$data/icons/hicolor"
 install -m 755 "$here/Syn3Updater" "$dest/Syn3Updater"
 [[ -f "$here/LICENSE" ]] && install -m 644 "$here/LICENSE" "$dest/LICENSE"
 for icon in "$here"/icons/hicolor/*/apps/syn3updater.png; do
-  size="$(basename "$(dirname "$(dirname "$icon")")")"
+  size="${icon%/apps/*}"; size="${size##*/}"          # the <size>x<size> folder name, with no external command (the updater runs this with a bare PATH)
   mkdir -p "$data/icons/hicolor/$size/apps"; install -m 644 "$icon" "$data/icons/hicolor/$size/apps/syn3updater.png"
 done
 ln -sf "$dest/Syn3Updater" "$bin/syn3updater"
