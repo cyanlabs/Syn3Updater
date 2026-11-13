@@ -18,7 +18,8 @@ public interface IDialogBackend
     Task<int> Show(string message, string title, string[] buttons, bool warning, bool error, int defaultIndex, DialogOptions? options = null);
     /// <summary>Opens a folder picker. <paramref name="startPath"/> is where it opens (its nearest existing parent when the folder is gone); null leaves the choice to the OS.</summary>
     Task<string?> PickFolder(string title, string? startPath = null);
-    Task<string?> PickFile(string title, string filterName, string[] patterns);
+    /// <summary>Opens a file picker. <paramref name="startPath"/> is where it opens (its nearest existing parent when the folder is gone); null leaves the choice to the OS.</summary>
+    Task<string?> PickFile(string title, string filterName, string[] patterns, string? startPath = null);
     /// <summary>Asks for text: one line, or several when <paramref name="multiline"/> (Enter then adds a line and Ctrl+Enter confirms). Returns null when cancelled.</summary>
     Task<string?> Prompt(string title, string message, string initial, bool multiline = false);
     Task SetClipboard(string text);
@@ -44,6 +45,8 @@ public static class Dialogs
     public static Task<string?> PickFolder(string title, string? startPath = null) => Backend.PickFolder(title, startPath);
     public static Task<string?> Prompt(string title, string message, string initial = "", bool multiline = false) => Backend.Prompt(title, message, initial, multiline);
     public static Task<string?> PickFile(string title, string filterName, params string[] patterns) => Backend.PickFile(title, filterName, patterns);
+    /// <summary>Like <see cref="PickFile"/>, opening in <paramref name="startPath"/> (its nearest existing parent when it is gone).</summary>
+    public static Task<string?> PickFileIn(string? startPath, string title, string filterName, params string[] patterns) => Backend.PickFile(title, filterName, patterns, startPath);
     public static Task SetClipboard(string text) => Backend.SetClipboard(text);
     public static Task OpenUrl(string url) => Backend.OpenUrl(url);
 }
@@ -77,7 +80,7 @@ internal sealed class AvaloniaDialogBackend : IDialogBackend
     }
 
     public Task<string?> PickFolder(string title, string? startPath = null) => DialogsImpl.PickFolder(title, startPath);
-    public Task<string?> PickFile(string title, string filterName, string[] patterns) => DialogsImpl.PickFile(title, filterName, patterns);
+    public Task<string?> PickFile(string title, string filterName, string[] patterns, string? startPath = null) => DialogsImpl.PickFile(title, filterName, patterns, startPath);
     public Task SetClipboard(string text) => DialogsImpl.SetClipboard(text);
     public Task OpenUrl(string url) => DialogsImpl.OpenUrl(url);
 }
@@ -178,14 +181,20 @@ public static class DialogsImpl
         return null;
     }
 
-    public static Task<string?> PickFile(string title, string filterName, params string[] patterns) => OnUi(async () =>
+    public static Task<string?> PickFile(string title, string filterName, string[] patterns, string? startPath = null) => OnUi(async () =>
     {
         if (MainWindow?.StorageProvider is not { } sp) return null;
-        var r = await sp.OpenFilePickerAsync(new FilePickerOpenOptions
+        var options = new FilePickerOpenOptions
         {
             Title = title, AllowMultiple = false,
             FileTypeFilter = new[] { new FilePickerFileType(filterName) { Patterns = patterns } },
-        });
+        };
+        if (ExistingFolder(startPath) is { } start)
+        {
+            try { options.SuggestedStartLocation = await sp.TryGetFolderFromPathAsync(start); }
+            catch (Exception e) when (e is ArgumentException or IOException or UnauthorizedAccessException or NotSupportedException) { }     // the OS decides where to open
+        }
+        var r = await sp.OpenFilePickerAsync(options);
         return r.Count > 0 ? r[0].TryGetLocalPath() : null;
     });
 
