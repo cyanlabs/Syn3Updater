@@ -295,7 +295,8 @@ public partial class DownloadViewModel : PageViewModel
 
     private static void Return(JobSpec spec)
     {
-        if (spec.Action == UpdateAction.Main) MainWindowViewModel.Instance.ShowHome();
+        // A job ends where it was started: the install and the MY20 check (which Start on Home starts when MY20 is not known yet) end on Home, the utilities on the Utility page.
+        if (spec.Action is UpdateAction.Main or UpdateAction.LogUtilityMy20) MainWindowViewModel.Instance.ShowHome();
         else MainWindowViewModel.Instance.ShowUtility();
     }
 }
