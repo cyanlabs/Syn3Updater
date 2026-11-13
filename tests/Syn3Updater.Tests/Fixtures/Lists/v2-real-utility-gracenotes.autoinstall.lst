@@ -1,0 +1,6 @@
+; CyanLabs Syn3Updater 2.14.2.2 Stable - Autoinstall Mode - Gracenotes Removal 
+
+[SYNCGen3.0_ALL_PRODUCT]
+Item1 = TOOL - GB5T-14G386-SC_85041.tar.gz
+Open1 = SyncMyRide\GB5T-14G386-SC_85041.tar.gz
+Options = AutoInstall

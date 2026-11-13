@@ -1,0 +1,6 @@
+; CyanLabs Syn3Updater 2.14.2.2 Stable - Autoinstall Mode - Voice Package Shrinker 
+
+[SYNCGen3.0_ALL_PRODUCT]
+Item1 = VOICE - 5U5T-14G391-EM_1598637456000.TAR.GZ
+Open1 = SyncMyRide\5U5T-14G391-EM_1598637456000.TAR.GZ
+Options = AutoInstall
