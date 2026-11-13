@@ -17,6 +17,8 @@
 
   <Application.Resources>
     <ResourceDictionary>
+      <!-- the widest a page's content grows: every tab uses it, so on a wide window all of them centre the same way and their headings share one left edge -->
+      <x:Double x:Key="PageMaxWidth">880</x:Double>
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="AppBg">#13171a</SolidColorBrush>

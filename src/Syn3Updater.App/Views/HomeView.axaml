@@ -13,7 +13,7 @@
   </UserControl.Styles>
   <Grid RowDefinitions="*,Auto">
     <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled">
-      <StackPanel MaxWidth="880" Spacing="16" Margin="28,28,28,24">
+      <StackPanel MaxWidth="{StaticResource PageMaxWidth}" Spacing="16" Margin="28,28,28,24">
 
         <!-- header: title + your current car configuration as chips -->
         <Grid ColumnDefinitions="*,Auto">

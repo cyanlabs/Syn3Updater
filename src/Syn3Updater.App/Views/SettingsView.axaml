@@ -1,6 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels" x:Class="Cyanlabs.Syn3Updater.App.Views.SettingsView">
   <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-    <StackPanel MaxWidth="760" Spacing="16" Margin="28,28,28,24">
+    <StackPanel MaxWidth="{StaticResource PageMaxWidth}" Spacing="16" Margin="28,28,28,24">
       <StackPanel Spacing="4">
         <TextBlock Text="{svc:T Main.Settings}" Classes="title" />
         <TextBlock Text="{svc:T App.Autosave}" Classes="muted" />
