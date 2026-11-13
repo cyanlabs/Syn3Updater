@@ -82,6 +82,7 @@ public class WindowsDriveService : IDriveService
     /// </summary>
     public const string FormatScript = """
         $ErrorActionPreference = 'Stop'
+        $ConfirmPreference = 'None'      # nothing may prompt (-NonInteractive); this covers cmdlets that have no -Confirm parameter of their own
         if (-not (Get-Command Clear-Disk -ErrorAction SilentlyContinue)) { [Console]::Error.WriteLine('The Windows storage cmdlets are not available'); exit 3 }
         try {
           $n = {0}; $keep = '{1}'; $size = {2}; $name = '{3}'
@@ -97,7 +98,7 @@ public class WindowsDriveService : IDriveService
           # after Clear-Disk and can safely be converted to MBR.
           $style = [string](Get-Disk -Number $n).PartitionStyle
           if ($style -eq 'RAW') { Initialize-Disk -Number $n -PartitionStyle MBR }
-          elseif ($style -ne 'MBR') { Set-Disk -Number $n -PartitionStyle MBR -Confirm:$false }
+          elseif ($style -ne 'MBR') { Set-Disk -Number $n -PartitionStyle MBR }          # no -Confirm: Set-Disk has no such parameter
           if ($keep -ne '' -and -not (Get-Volume -DriveLetter $keep -ErrorAction SilentlyContinue)) { $p = New-Partition -DiskNumber $n -UseMaximumSize -DriveLetter $keep }
           else { $p = New-Partition -DiskNumber $n -UseMaximumSize -AssignDriveLetter }
           Format-Volume -Partition $p -FileSystem exFAT -NewFileSystemLabel 'CYANLABS' -Confirm:$false -Force | Out-Null

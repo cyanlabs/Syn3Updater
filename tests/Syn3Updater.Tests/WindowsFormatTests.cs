@@ -41,9 +41,20 @@ public class WindowsFormatTests
         var script = cmd.Calls.Single(c => c.Contains("Clear-Disk"));
         Assert.Contains("$n = 2;", script); Assert.Contains("$keep = 'E'", script);
         Assert.Contains("if ($style -eq 'RAW') { Initialize-Disk -Number $n -PartitionStyle MBR }", script);
-        Assert.Contains("elseif ($style -ne 'MBR') { Set-Disk -Number $n -PartitionStyle MBR -Confirm:$false }", script);
+        Assert.Contains("elseif ($style -ne 'MBR') { Set-Disk -Number $n -PartitionStyle MBR }", script);
         Assert.Contains("-FileSystem exFAT", script); Assert.Contains("-NewFileSystemLabel 'CYANLABS'", script);
         Assert.Contains("BusType -ne 'USB'", script); Assert.Contains("IsSystem", script);          // the script re-checks it is a removable disk itself
+    }
+
+    /// <summary>A user's format failed with "A parameter cannot be found that matches parameter name 'Confirm'": Set-Disk has no -Confirm. The cmdlets that do take it are listed here; any other cmdlet must not be given it (nothing can prompt anyway, see $ConfirmPreference).</summary>
+    [Fact]
+    public void FormatScript_OnlyPassesConfirmToCmdletsThatHaveIt_AndNeverPrompts()
+    {
+        var script = WindowsDriveService.FormatScript;
+        Assert.Contains("$ConfirmPreference = 'None'", script);
+        var withConfirm = script.Split('\n').Select(l => l.Split('#')[0]).Where(l => l.Contains("-Confirm")).ToList();      // code only, not comments
+        Assert.All(withConfirm, l => Assert.True(l.Contains("Clear-Disk") || l.Contains("Format-Volume"), "-Confirm on a cmdlet that may not have it: " + l.Trim()));
+        Assert.DoesNotContain("PartitionStyle MBR -Confirm", script);
     }
 
     [Fact]
@@ -127,7 +138,7 @@ public class WindowsFormatTests
     {
         Assert.Contains("$style = [string](Get-Disk -Number $n).PartitionStyle", WindowsDriveService.FormatScript);
         Assert.Contains("if ($style -eq 'RAW') { Initialize-Disk -Number $n -PartitionStyle MBR }", WindowsDriveService.FormatScript);
-        Assert.Contains("elseif ($style -ne 'MBR') { Set-Disk -Number $n -PartitionStyle MBR -Confirm:$false }", WindowsDriveService.FormatScript);
+        Assert.Contains("elseif ($style -ne 'MBR') { Set-Disk -Number $n -PartitionStyle MBR }", WindowsDriveService.FormatScript);
     }
 
     [Theory]
