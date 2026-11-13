@@ -80,12 +80,20 @@ public class InstallRouteListTests : IDisposable
             "reformat" => new(name, InstallModes.Reformat, UpdateAction.Main, Rel, true, new() { re, rw, apps, voice }, T(true, false), new[] { "autoinstall.lst", "reformat.lst" }),
             // chart: 3.4.19274 or newer, not protected, update apps (G)
             "downgrade" => new(name, InstallModes.Downgrade, UpdateAction.Main, Rel, false, new() { da, dt, re, rw, apps, voice }, T(true, true), new[] { "autoinstall.lst", "reformat.lst" }),
-            // the one release whose downgrade app is itself restored by the reformat
-            "downgrade-3.3.19052" => new(name, InstallModes.Downgrade, UpdateAction.Main, "Sync 3.3.19052", false, new() { da, dt, re, rw, apps, voice }, T(true, true), new[] { "autoinstall.lst", "reformat.lst" }),
+            // the one release whose downgrade app is itself restored by the reformat: it IS that release's APPS package, so the queue holds the same file twice (as with the real release) and it is restored once
+            "downgrade-3.3.19052" => Downgrade3319052(name, rw, re, dt, voice),
             // the utility actions (log utility and friends): one special package, no RWDataCleaner entry
             "utility-logutility" => new(name, InstallModes.Autoinstall, UpdateAction.LogUtility, Rel, false, new() { P("TOOL", "LOGUTILITY.TAR.GZ") }, T(false, false), new[] { "autoinstall.lst" }),
             _ => throw new ArgumentOutOfRangeException(nameof(name)),
         };
+    }
+
+    private static Route Downgrade3319052(string name, Ivsu rw, Ivsu re, Ivsu dt, Ivsu voice)
+    {
+        Ivsu App() => P("APPS", "DOWNGRADEAPP.TAR.GZ");        // two objects, one file: what the release and the downgrade tool each bring
+        var da = App();
+        return new(name, InstallModes.Downgrade, UpdateAction.Main, "Sync 3.3.19052", false, new() { da, dt, re, rw, App(), voice },
+            new SpecialTools { RwDataCleaner = rw, ReformatTool = re, DowngradeApp = da, DowngradeTool = dt }, new[] { "autoinstall.lst", "reformat.lst" });
     }
 
     public static IEnumerable<object[]> RouteNames() => new[]
@@ -134,7 +142,7 @@ public class InstallRouteListTests : IDisposable
         var onDrive = Directory.GetFiles(syncDir).Select(Path.GetFileName).OrderBy(n => n, StringComparer.Ordinal).ToArray();
 
         // the drive holds exactly the queue, byte for byte
-        Assert.Equal(r.Queue.Select(i => i.FileName).OrderBy(n => n, StringComparer.Ordinal), onDrive);
+        Assert.Equal(r.Queue.Select(i => i.FileName).Distinct().OrderBy(n => n, StringComparer.Ordinal), onDrive);
         foreach (var i in r.Queue) Assert.Equal(Content(i.FileName), File.ReadAllBytes(Path.Combine(syncDir, i.FileName)));
 
         // every files autoinstall.lst opens exists, and the CRLF rule holds (the head unit cannot read bare LF)
@@ -241,6 +249,148 @@ public class InstallRouteListTests : IDisposable
         Assert.Equal(Golden("autoinstall-nomaps.autoinstall.lst"), File.ReadAllText(Path.Combine(usb, "autoinstall.lst")));
     }
 
+    // ---------------------------------------------------------------- a real list written by v2
+
+    /// <summary>
+    /// The autoinstall.lst released v2.14.2.2 wrote for an "Only Update Maps" EU install with the F13 maps (MAP_LICENSE, four VOICE_NAV and nine maps over the three install phases). The queue is rebuilt from that run's
+    /// file list and order (RW data cleaner, the maps, the voice packages, MAP_LICENSE last) with the files' exact sizes: the split of the packages over the three phases is a heuristic that is sensitive to the exact bytes
+    /// (rounded sizes give a different split), so only the real sizes can reproduce it.
+    /// </summary>
+    [Fact]
+    public void The_list_v2_really_wrote_for_an_only_update_maps_install_is_reproduced_exactly()
+    {
+        var rw = new Ivsu { Type = "TOOL", Name = "rw", FileName = "PU5T-14G386-BB_1690840002000.TAR.GZ", FileSize = 3274 };
+        Ivsu I(string type, string file, long size) => new() { Type = type, Name = file, FileName = file + ".TAR.GZ", FileSize = size };
+        var queue = new List<Ivsu>      // the order v2 validated and copied them in, which is the order it built the list from
+        {
+            rw,
+            I("MAP", "1U5T-14G421-BAM_1748461682000", 2636386111), I("MAP", "1U5T-14G421-BBM_1748459859000", 565784666), I("MAP", "1U5T-14G421-BCM_1748460093000", 1881158964),
+            I("MAP", "1U5T-14G421-BDM_1748460770000", 1203345420), I("MAP", "1U5T-14G421-BEM_1748461035000", 1905857183), I("MAP", "1U5T-14G421-BFM_1748461472000", 2718539641),
+            I("MAP", "1U5T-14G421-BGM_1748462187000", 2237870090), I("MAP", "1U5T-14G421-BHM_1748462644000", 2819348621), I("MAP", "1U5T-14G421-BJM_1748462970000", 27217674),
+            I("VOICE_NAV", "4U5T-14G422-BAM_1748464396000", 2619527429), I("VOICE_NAV", "4U5T-14G422-BBM_1748464677000", 2518313299),
+            I("VOICE_NAV", "4U5T-14G422-BCM_1748464896000", 1897092415), I("VOICE_NAV", "4U5T-14G422-BDM_1748465073000", 2287351448),
+            I("MAP_LICENSE", "1U5T-14G424-BP_1748959609000", 1731),
+        };
+        var v3 = AutoInstallBuilder.CreateAutoInstall(queue, new SpecialTools { RwDataCleaner = rw }, UpdateAction.Main, "Only Update Maps", "EU", false, "2.14.2.2", "Stable");
+        Assert.Equal(Golden("v2-real-only-update-maps-eu.autoinstall.lst"), v3);
+    }
+
+    /// <summary>
+    /// The two files released v2.14.2.2 wrote for a reformat of an EU unit on 3.0.23219 (MY20 off) with the F13 maps: the real <c>reformat.lst</c> and <c>autoinstall.lst</c>. The queue is v2's: the reformat tool and
+    /// the RW data cleaner first, then the ticked packages with MAP_LICENSE last. Both tools are left out of reformat.lst. Final bytes cannot be seen in a paste: reformat.lst ends with a line break (v2 counts the two
+    /// filtered-out tools in its "last line" test) and autoinstall.lst does not (v2 appends no line break after a reformat list's last Options line).
+    /// </summary>
+    [Fact]
+    public void The_reformat_and_autoinstall_lists_v2_really_wrote_for_a_reformat_are_reproduced_exactly()
+    {
+        Ivsu I(string type, string file) => new() { Type = type, Name = file, FileName = file, Md5 = file, FileSize = 1000 };
+        var re = I("TOOL", "1u5t-14g386-cb.tar.gz"); var rw = I("TOOL", "PU5T-14G386-BB_1690840002000.TAR.GZ");
+        var tools = new SpecialTools { ReformatTool = re, RwDataCleaner = rw };
+        var queue = new List<Ivsu>
+        {
+            re, rw,
+            I("VOICE", "5U5T-14G391-AT_1660763323000.TAR.GZ"), I("GRACENOTES", "4U5T-14G423-AC_1615425645000.TAR.GZ"), I("ENH_DAB", "1U5T-14G658-AH_1644006443000.TAR.GZ"), I("APPS", "NU5T-14G381-AE_1778770590000.TAR.GZ"),
+            I("MAP", "1U5T-14G421-BAM_1748461682000.TAR.GZ"), I("MAP", "1U5T-14G421-BBM_1748459859000.TAR.GZ"), I("MAP", "1U5T-14G421-BCM_1748460093000.TAR.GZ"),
+            I("MAP", "1U5T-14G421-BDM_1748460770000.TAR.GZ"), I("MAP", "1U5T-14G421-BEM_1748461035000.TAR.GZ"), I("MAP", "1U5T-14G421-BFM_1748461472000.TAR.GZ"),
+            I("MAP", "1U5T-14G421-BGM_1748462187000.TAR.GZ"), I("MAP", "1U5T-14G421-BHM_1748462644000.TAR.GZ"), I("MAP", "1U5T-14G421-BJM_1748462970000.TAR.GZ"),
+            I("VOICE_NAV", "4U5T-14G422-BAM_1748464396000.TAR.GZ"), I("VOICE_NAV", "4U5T-14G422-BBM_1748464677000.TAR.GZ"), I("VOICE_NAV", "4U5T-14G422-BCM_1748464896000.TAR.GZ"), I("VOICE_NAV", "4U5T-14G422-BDM_1748465073000.TAR.GZ"),
+            I("MAP_LICENSE", "1U5T-14G424-BP_1748959609000.TAR.GZ"),
+        };
+        const string release = "Sync 3.4.26057";
+        Assert.Equal(Golden("v2-real-reformat-eu.reformat.lst"), AutoInstallBuilder.CreateReformatList(queue, InstallModes.Reformat, tools, release));
+        Assert.Equal(Golden("v2-real-reformat-eu.autoinstall.lst"), AutoInstallBuilder.CreateReformatAutoInstall(InstallModes.Reformat, tools, release, "EU", false, "2.14.2.2", "Stable"));
+    }
+
+    /// <summary>
+    /// The two files released v2.14.2.2 wrote for a downgrade of an EU 3.4.26057 unit (MY20 off) with the F13 maps: the real <c>reformat.lst</c> and <c>autoinstall.lst</c>. The queue is the one v2 built (the
+    /// downgrade app and tool, the reformat tool and the RW data cleaner first, then the ticked packages with MAP_LICENSE last), rebuilt from its log; the tool packages are told apart by their md5, as the app does.
+    /// This release is not 3.3.19052, so the downgrade app is in autoinstall.lst but NOT in reformat.lst. The paste cannot show a file's final bytes: both end with a line break, because v2's code counts the
+    /// filtered-out tools in its "last line" test for reformat.lst and appends one after the last Options line of a downgrade autoinstall.lst.
+    /// </summary>
+    [Fact]
+    public void The_reformat_and_autoinstall_lists_v2_really_wrote_for_a_downgrade_are_reproduced_exactly()
+    {
+        Ivsu I(string type, string file) => new() { Type = type, Name = file, FileName = file, Md5 = file, FileSize = 1000 };
+        var da = I("APP", "4U5T-14G381-AN_1552583626000.TAR.GZ"); var dt = I("TOOL", "GB5T-14G386-SC_85041.tar.gz");
+        var re = I("TOOL", "1u5t-14g386-cb.tar.gz"); var rw = I("TOOL", "PU5T-14G386-BB_1690840002000.TAR.GZ");
+        var tools = new SpecialTools { DowngradeApp = da, DowngradeTool = dt, ReformatTool = re, RwDataCleaner = rw };
+        var queue = new List<Ivsu>
+        {
+            da, dt, re, rw,
+            I("VOICE", "5U5T-14G391-AT_1660763323000.TAR.GZ"), I("GRACENOTES", "4U5T-14G423-AC_1615425645000.TAR.GZ"), I("ENH_DAB", "1U5T-14G658-AH_1644006443000.TAR.GZ"), I("APPS", "NU5T-14G381-AE_1778770590000.TAR.GZ"),
+            I("MAP", "1U5T-14G421-BAM_1748461682000.TAR.GZ"), I("MAP", "1U5T-14G421-BBM_1748459859000.TAR.GZ"), I("MAP", "1U5T-14G421-BCM_1748460093000.TAR.GZ"),
+            I("MAP", "1U5T-14G421-BDM_1748460770000.TAR.GZ"), I("MAP", "1U5T-14G421-BEM_1748461035000.TAR.GZ"), I("MAP", "1U5T-14G421-BFM_1748461472000.TAR.GZ"),
+            I("MAP", "1U5T-14G421-BGM_1748462187000.TAR.GZ"), I("MAP", "1U5T-14G421-BHM_1748462644000.TAR.GZ"), I("MAP", "1U5T-14G421-BJM_1748462970000.TAR.GZ"),
+            I("VOICE_NAV", "4U5T-14G422-BAM_1748464396000.TAR.GZ"), I("VOICE_NAV", "4U5T-14G422-BBM_1748464677000.TAR.GZ"), I("VOICE_NAV", "4U5T-14G422-BCM_1748464896000.TAR.GZ"), I("VOICE_NAV", "4U5T-14G422-BDM_1748465073000.TAR.GZ"),
+            I("MAP_LICENSE", "1U5T-14G424-BP_1748959609000.TAR.GZ"),
+        };
+        const string release = "Sync 3.4.26057";
+        Assert.Equal(Golden("v2-real-downgrade-eu.reformat.lst"), AutoInstallBuilder.CreateReformatList(queue, InstallModes.Downgrade, tools, release));
+        Assert.Equal(Golden("v2-real-downgrade-eu.autoinstall.lst"), AutoInstallBuilder.CreateReformatAutoInstall(InstallModes.Downgrade, tools, release, "EU", false, "2.14.2.2", "Stable"));
+    }
+
+    /// <summary>
+    /// The two files released v2.14.2.2 wrote for a downgrade with release Sync 3.3.19052 (EU, F13 maps, MY20 off), the one release where the downgrade app is restored by the reformat. On this release the downgrade
+    /// app IS the release's own APPS package (same file, same md5), so the queue holds it twice. v2 wrote <c>APPS=4U5T-14G381-AN...</c> twice in reformat.lst; that is a v2 bug and v3 deliberately writes it once. The
+    /// expected reformat.lst is therefore v2's real file with that one repeated line removed (the one deliberate difference); autoinstall.lst is v2's real file unchanged.
+    /// </summary>
+    [Fact]
+    public void The_downgrade_to_3_3_19052_lists_match_what_v2_wrote_except_the_repeated_APPS_line_is_written_once()
+    {
+        Ivsu I(string type, string file) => new() { Type = type, Name = file, FileName = file, Md5 = file, FileSize = 1000 };
+        var da = I("APPS", "4U5T-14G381-AN_1552583626000.TAR.GZ"); var dt = I("TOOL", "GB5T-14G386-SC_85041.tar.gz");
+        var re = I("TOOL", "1u5t-14g386-cb.tar.gz"); var rw = I("TOOL", "PU5T-14G386-BB_1690840002000.TAR.GZ");
+        var tools = new SpecialTools { DowngradeApp = da, DowngradeTool = dt, ReformatTool = re, RwDataCleaner = rw };
+        var queue = new List<Ivsu>
+        {
+            da, dt, re, rw,
+            I("APPS", "4U5T-14G381-AN_1552583626000.TAR.GZ"),            // the release's own APPS package: the same file as the downgrade app
+            I("VOICE", "4U5T-14G391-AJ_1552513063000.TAR.GZ"), I("GRACENOTES", "4U5T-14G423-AA_123694.tar.gz"), I("ENH_DAB", "1U5T-14G658-AD_1544799507000.TAR.GZ"),
+            I("MAP", "1U5T-14G421-BAM_1748461682000.TAR.GZ"), I("MAP", "1U5T-14G421-BBM_1748459859000.TAR.GZ"), I("MAP", "1U5T-14G421-BCM_1748460093000.TAR.GZ"),
+            I("MAP", "1U5T-14G421-BDM_1748460770000.TAR.GZ"), I("MAP", "1U5T-14G421-BEM_1748461035000.TAR.GZ"), I("MAP", "1U5T-14G421-BFM_1748461472000.TAR.GZ"),
+            I("MAP", "1U5T-14G421-BGM_1748462187000.TAR.GZ"), I("MAP", "1U5T-14G421-BHM_1748462644000.TAR.GZ"), I("MAP", "1U5T-14G421-BJM_1748462970000.TAR.GZ"),
+            I("VOICE_NAV", "4U5T-14G422-BAM_1748464396000.TAR.GZ"), I("VOICE_NAV", "4U5T-14G422-BBM_1748464677000.TAR.GZ"), I("VOICE_NAV", "4U5T-14G422-BCM_1748464896000.TAR.GZ"), I("VOICE_NAV", "4U5T-14G422-BDM_1748465073000.TAR.GZ"),
+            I("MAP_LICENSE", "1U5T-14G424-BP_1748959609000.TAR.GZ"),
+        };
+        const string release = "Sync 3.3.19052";
+        var reformat = AutoInstallBuilder.CreateReformatList(queue, InstallModes.Downgrade, tools, release);
+        Assert.Equal(Golden("v2-real-downgrade-3.3.19052-eu.reformat.lst"), reformat);
+        Assert.Equal(1, Regex.Matches(reformat, "APPS=4U5T-14G381-AN").Count);
+        Assert.Equal(Golden("v2-real-downgrade-3.3.19052-eu.autoinstall.lst"), AutoInstallBuilder.CreateReformatAutoInstall(InstallModes.Downgrade, tools, release, "EU", false, "2.14.2.2", "Stable"));
+    }
+
+    [Theory]
+    [InlineData("AN_1552583626000.TAR.GZ", "AN_1552583626000.TAR.GZ")]
+    [InlineData("AN_1552583626000.TAR.GZ", "an_1552583626000.tar.gz")]        // exFAT: names that differ by case only are one file
+    public void A_file_the_queue_names_twice_is_restored_once_in_reformat_lst(string first, string second)
+    {
+        var rw = new Ivsu { Type = "TOOL", FileName = "rw", Md5 = "rw" }; var re = new Ivsu { Type = "TOOL", FileName = "re", Md5 = "re" };
+        var tools = new SpecialTools { RwDataCleaner = rw, ReformatTool = re };
+        var q = new List<Ivsu> { re, rw, new() { Type = "APPS", FileName = first, Md5 = "a" }, new() { Type = "APPS", FileName = second, Md5 = "a" }, new() { Type = "VOICE", FileName = "v", Md5 = "v" } };
+        Assert.Equal($"APPS={first}\r\nVOICE=v\r\n", AutoInstallBuilder.CreateReformatList(q, InstallModes.Reformat, tools, "Sync 3.4"));
+    }
+
+    /// <summary>
+    /// The autoinstall.lst released v2.14.2.2 wrote for a plain install without maps ("Keep Existing Maps", EU, 3.4.26057): the RW data cleaner, voice, gracenotes, enhanced DAB and the apps. The fixture is v2's real
+    /// file unchanged. v3 differs from it in exactly one place, on purpose: v2 wrote the RW data cleaner's line as <c>Open1=</c> without the space that every other line has, and v3 writes <c>Open1 = </c> like the rest
+    /// (the space makes no difference to the head unit). So the expectation is v2's real file with that one space added.
+    /// </summary>
+    [Fact]
+    public void The_list_v2_really_wrote_for_an_install_without_maps_is_reproduced_except_for_the_space_in_Open1()
+    {
+        Ivsu I(string type, string file) => new() { Type = type, Name = file, FileName = file, Md5 = file, FileSize = 1000 };
+        var rw = I("TOOL", "PU5T-14G386-BB_1690840002000.TAR.GZ");
+        var queue = new List<Ivsu>
+        {
+            rw, I("VOICE", "5U5T-14G391-AT_1660763323000.TAR.GZ"), I("GRACENOTES", "4U5T-14G423-AC_1615425645000.TAR.GZ"),
+            I("ENH_DAB", "1U5T-14G658-AH_1644006443000.TAR.GZ"), I("APPS", "NU5T-14G381-AE_1778770590000.TAR.GZ"),
+        };
+        var v3 = AutoInstallBuilder.CreateAutoInstall(queue, new SpecialTools { RwDataCleaner = rw }, UpdateAction.Main, "Sync 3.4.26057", "EU", false, "2.14.2.2", "Stable");
+        var real = Golden("v2-real-no-maps-eu.autoinstall.lst");
+        Assert.Contains("Open1= SyncMyRide", real);                                        // the fixture really is v2's quirk
+        Assert.Equal(real.Replace("Open1= SyncMyRide", "Open1 = SyncMyRide"), v3);         // v3 = v2 + the one deliberate difference
+    }
+
     // ---------------------------------------------------------------- 4. the builders against v2's code
 
     /// <summary>A literal port of v2 <c>DownloadViewModelService.CreateAutoInstallFile</c>. The only change is the size unit: v2 cast bytes to uint (wrong over 4 GB), v3 passes KiB.</summary>
@@ -285,7 +435,8 @@ public class InstallRouteListTests : IDisposable
             int current = 1;
             if (action is not (UpdateAction.LogUtility or UpdateAction.LogUtilityMy20 or UpdateAction.GracenotesRemoval or UpdateAction.VoiceShrinker or UpdateAction.Downgrade or UpdateAction.Upgrade22))
             {
-                sb.Append($"Item{current} = RWDataCleaner TOOL - {rw.FileName}{nl}Open{current}= SyncMyRide\\{rw.FileName}{nl}");
+                // the one deliberate difference from v2: v2 wrote "Open1=" here without the space, v3 writes "Open1 = " like every other entry
+                sb.Append($"Item{current} = RWDataCleaner TOOL - {rw.FileName}{nl}Open{current} = SyncMyRide\\{rw.FileName}{nl}");
                 current = 2;
             }
             foreach (var item in ivsuList) { sb.Append($"Item{current} = {item.Type} - {item.FileName}{nl}Open{current} = SyncMyRide\\{item.FileName}{nl}"); current++; }
@@ -313,17 +464,17 @@ public class InstallRouteListTests : IDisposable
         var sb = new StringBuilder($"; CyanLabs Syn3Updater {AppVersion} {Branch} - {mode} {(forced ? "FORCED " : "")} Mode - {release} {region}{nl}{nl}[SYNCGen3.0_ALL_PRODUCT]{nl}");
         if (mode == "downgrade")
         {
-            sb.Append($"Item1 = RWDataCleaner TOOL - {t.RwDataCleaner!.FileName}{nl}Open1= SyncMyRide\\{t.RwDataCleaner.FileName}{nl}");
-            sb.Append($"Item2 = TOOL - {t.DowngradeTool!.FileName}{nl}Open2= SyncMyRide\\{t.DowngradeTool.FileName}{nl}");
-            sb.Append($"Item3 = APP - {t.DowngradeApp!.FileName}{nl}Open3= SyncMyRide\\{t.DowngradeApp.FileName}{nl}");
+            sb.Append($"Item1 = RWDataCleaner TOOL - {t.RwDataCleaner!.FileName}{nl}Open1 = SyncMyRide\\{t.RwDataCleaner.FileName}{nl}");
+            sb.Append($"Item2 = TOOL - {t.DowngradeTool!.FileName}{nl}Open2 = SyncMyRide\\{t.DowngradeTool.FileName}{nl}");
+            sb.Append($"Item3 = APP - {t.DowngradeApp!.FileName}{nl}Open3 = SyncMyRide\\{t.DowngradeApp.FileName}{nl}");
             sb.Append($"Options = AutoInstall{nl}[SYNCGen3.0_ALL]{nl}");
-            sb.Append($"Item1 = REFORMAT TOOL - {t.ReformatTool!.FileName}{nl}Open1= SyncMyRide\\{t.ReformatTool.FileName}{nl}");
+            sb.Append($"Item1 = REFORMAT TOOL - {t.ReformatTool!.FileName}{nl}Open1 = SyncMyRide\\{t.ReformatTool.FileName}{nl}");
             sb.Append("Options = AutoInstall,Include,Transaction").Append(nl);
         }
         else if (mode == "reformat")
         {
-            sb.Append($"Item1 = RWDataCleaner TOOL - {t.RwDataCleaner!.FileName}{nl}Open1= SyncMyRide\\{t.RwDataCleaner.FileName}{nl}");
-            sb.Append($"Item2 = REFORMAT TOOL  - {t.ReformatTool!.FileName}{nl}Open2= SyncMyRide\\{t.ReformatTool.FileName}{nl}");
+            sb.Append($"Item1 = RWDataCleaner TOOL - {t.RwDataCleaner!.FileName}{nl}Open1 = SyncMyRide\\{t.RwDataCleaner.FileName}{nl}");
+            sb.Append($"Item2 = REFORMAT TOOL  - {t.ReformatTool!.FileName}{nl}Open2 = SyncMyRide\\{t.ReformatTool.FileName}{nl}");
             sb.Append("Options = AutoInstall");
         }
         return (reformatlst, sb.ToString());
