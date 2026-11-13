@@ -1,6 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="using:Cyanlabs.Syn3Updater.App.Services" xmlns:vm="using:Cyanlabs.Syn3Updater.App.ViewModels"
              x:Class="Cyanlabs.Syn3Updater.App.Views.LogsView">
-  <Grid RowDefinitions="Auto,*" MaxWidth="{StaticResource PageMaxWidth}" Margin="28,28,28,16" RowSpacing="16">
+  <Grid RowDefinitions="Auto,*" Margin="28,28,28,16" RowSpacing="16">
     <Grid ColumnDefinitions="*,Auto">
       <StackPanel Spacing="4">
         <TextBlock Text="{svc:T Main.Logs}" Classes="title" />
