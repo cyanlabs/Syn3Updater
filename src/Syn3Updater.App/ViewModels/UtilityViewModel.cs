@@ -152,10 +152,16 @@ public partial class UtilityViewModel : PageViewModel
     }
 
     // ---------- interrogator log ----------
+    /// <summary>Where the picker for the car's XML opens: the SyncMyRide folder of the drive (that is where the car writes it). A folder that is not there (the drive came back under another name) falls back to the nearest one that is.</summary>
+    public static string? InterrogatorLogFolder(string? driveRoot) => string.IsNullOrWhiteSpace(driveRoot) ? null : Path.Combine(driveRoot, "SyncMyRide");
+
     [RelayCommand]
-    private async Task ParseLogAsync()
+    private Task ParseLogAsync() => ParseLogFromAsync(InterrogatorLogFolder(SelectedDrive?.MountPath));
+
+    /// <summary>Picks the XML the car wrote (the picker opens in <paramref name="startFolder"/>), reads it and sets MY20 from it.</summary>
+    public async Task ParseLogFromAsync(string? startFolder)
     {
-        var path = await Dialogs.PickFile(Ctx.T("Utility.PickInterrogatorTitle"), Ctx.T("Utility.PickInterrogatorFilter"), "*.xml");
+        var path = await Dialogs.PickFileIn(startFolder, Ctx.T("Utility.PickInterrogatorTitle"), Ctx.T("Utility.PickInterrogatorFilter"), "*.xml");
         if (path == null) { await Dialogs.Info(Ctx.T("MessageBox.My20CheckCancelled")); return; }
         try
         {

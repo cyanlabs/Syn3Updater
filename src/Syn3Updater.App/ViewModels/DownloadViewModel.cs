@@ -239,7 +239,7 @@ public partial class DownloadViewModel : PageViewModel
                 var notice = Ctx.T("MessageBox.LogUtilityCompleteMy20");
                 if (await CompletedAsync(notice)) await Dialogs.Info(notice);
                 // OK: pick the XML the car wrote and read it, which is what decides MY20 (the same as the Utility page's "Step 3": it says what it found, or that the check was cancelled)
-                await MainWindowViewModel.Instance.Utility.ParseLogCommand.ExecuteAsync(null);
+                await MainWindowViewModel.Instance.Utility.ParseLogFromAsync(UtilityViewModel.InterrogatorLogFolder(root));      // the picker opens in the drive's SyncMyRide folder, where the car wrote it
                 // With MY20 known the install mode has to be worked out again (as v2 did). If it is still unknown (cancelled, a bad file) keep what was chosen: Start asks again.
                 if (Ctx.Profile.My20v2 != null) MainWindowViewModel.Instance.Home.ClearSelections();
                 break;

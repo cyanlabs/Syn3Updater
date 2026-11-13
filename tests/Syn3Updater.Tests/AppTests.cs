@@ -422,6 +422,7 @@ public class WorkflowTests
         await AppEnv.Until(() => env.Dialogs.Messages.Contains(Ctx.T("MessageBox.My20Found")));
 
         Assert.True(Ctx.Profile.My20v2);                                                 // the log decided
+        Assert.Equal(Path.Combine(env.UsbDir, "SyncMyRide"), env.Dialogs.FileStarts.Last());   // the picker opened in the drive's SyncMyRide folder, where the car wrote the XML
         Assert.True(File.Exists(Path.Combine(Ctx.Main.LogPath!, "Sync_1_VIN.xml")));      // and was kept with the other logs
         Assert.Empty(env.Main.Home.Packages);                                            // the install mode is worked out again from scratch now that MY20 is known (as v2 did)
     }
@@ -596,6 +597,29 @@ public class PageViewModelTests
         await u.ParseLogCommand.ExecuteAsync(null); Assert.Contains(env.Dialogs.Messages, m => m == Ctx.T("MessageBox.My20CheckCancelled"));
         var bad = Path.Combine(env.Dir, "bad.xml"); File.WriteAllText(bad, "<nope/>"); env.Dialogs.FileToPick = bad;
         await u.ParseLogCommand.ExecuteAsync(null); Assert.Contains(env.Dialogs.Messages, m => m == Ctx.T("MessageBox.LogUtilityInvalidFile"));
+    }
+
+    [AvaloniaFact]
+    public async Task Utility_Step3_OpensThePickerInTheSelectedDrivesSyncMyRideFolder_Or_WhereTheOsChoosesWithNoDrive()
+    {
+        using var env = new AppEnv(); var u = env.Main.Utility;
+        env.Dialogs.FileToPick = null;                                                   // only the folder the picker opens in matters here
+
+        await u.ParseLogCommand.ExecuteAsync(null);                                      // no drive selected
+        Assert.Null(env.Dialogs.FileStarts.Last());
+
+        u.SelectedDrive = new DriveInfoModel { IsFolder = true, MountPath = env.UsbDir, Name = "f" };
+        await u.ParseLogCommand.ExecuteAsync(null);
+        Assert.Equal(Path.Combine(env.UsbDir, "SyncMyRide"), env.Dialogs.FileStarts.Last());
+    }
+
+    [Fact]
+    public void The_interrogator_picker_starts_in_the_drives_SyncMyRide_folder_and_nowhere_in_particular_without_a_drive()
+    {
+        Assert.Null(UtilityViewModel.InterrogatorLogFolder(null));
+        Assert.Null(UtilityViewModel.InterrogatorLogFolder(""));
+        Assert.Null(UtilityViewModel.InterrogatorLogFolder("  "));
+        Assert.Equal(Path.Combine("/media/CYANLABS", "SyncMyRide"), UtilityViewModel.InterrogatorLogFolder("/media/CYANLABS"));
     }
 
     [AvaloniaFact]
