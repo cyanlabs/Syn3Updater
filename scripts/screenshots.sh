@@ -13,7 +13,7 @@
 #   --quick   only dark, and only the first size (about a minute for the tabs) instead of the whole set
 #   --only    just these groups, comma separated: tabs, scroll, home, banner, required, dialogs (default: all; --quick alone means tabs)
 #   --out     where to write (default artifacts/screenshots/<timestamp>, which is git-ignored)
-#   SIZES="1100x800 720x800" scripts/screenshots.sh     other sizes (WxH, space separated); the window's minimum width is 640
+#   SIZES="1100x800 720x800" scripts/screenshots.sh     other or extra sizes (WxH, space separated; default just 1100x800); the window's minimum width is 640
 #
 # Each run uses a throwaway home folder, so it never reads or changes your real settings, profiles or logs (the --demo data writes
 # sample log files). The pages still call the live CyanLabs API for releases and news, so they need a network to look their best.
@@ -34,7 +34,7 @@ while (($#)); do
   shift
 done
 OUT="${OUT:-artifacts/screenshots/$(date +%Y%m%d-%H%M%S)}"
-read -r -a SIZE_LIST <<< "${SIZES:-1100x800 720x800}"
+read -r -a SIZE_LIST <<< "${SIZES:-1100x800}"
 
 echo "building tools/Shots ..."
 dotnet build tools/Shots -c Release -v quiet --nologo >/dev/null

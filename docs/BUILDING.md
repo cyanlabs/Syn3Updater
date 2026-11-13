@@ -44,7 +44,7 @@ dotnet run --project tools/Shots -- out 1100 800 Home Settings --demo [--light]
 
 This renders pages to PNG with Avalonia's headless backend (nothing is shown on screen). It is useful for checking layouts at different widths and themes.
 
-To capture everything in one go (every tab at two sizes in dark and light, each tab scrolled down a screenful at a time, Home in each install mode, the update banner states, the required-update screen and the first-start dialogs):
+To capture everything in one go (every tab in dark and light, each tab scrolled down a screenful at a time, Home in each install mode, the update banner states, the required-update screen and the first-start dialogs):
 
 ```sh
 scripts/screenshots.sh              # into artifacts/screenshots/<timestamp>/ (git-ignored), one flat folder
