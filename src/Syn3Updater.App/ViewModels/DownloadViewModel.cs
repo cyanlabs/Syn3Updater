@@ -93,12 +93,13 @@ public partial class DownloadViewModel : PageViewModel
         finally { Ejecting = false; }
     }
 
-    /// <summary>Completion message; when a real drive was written it also offers to eject it right away.</summary>
-    private async Task CompletedAsync(string message)
+    /// <summary>Completion message; when a real drive was written it also offers to eject it right away. True when the person chose to eject (and so has left the notice).</summary>
+    private async Task<bool> CompletedAsync(string message)
     {
-        if (!CanEject) { await Dialogs.Info(message); return; }
+        if (!CanEject) { await Dialogs.Info(message); return false; }
         var choice = await Dialogs.Show(message, Ctx.T("String.Notice"), new[] { Ctx.T("String.OK"), Ctx.T("App.EjectDrive") }, 0);
         if (choice == 1) await EjectAsync();
+        return choice == 1;
     }
     [ObservableProperty] private string _fileCounter = "";
     [ObservableProperty] private string _currentFile = "";
@@ -232,8 +233,17 @@ public partial class DownloadViewModel : PageViewModel
                 await CompletedAsync(Ctx.T("MessageBox.LogUtilityComplete"));
                 break;
             case UpdateAction.LogUtilityMy20:
-                await CompletedAsync(Ctx.T("MessageBox.LogUtilityCompleteMy20"));
+            {
+                // The notice tells the person to take the drive to the car and, once it is back in this computer, to click OK and select the XML file. Eject closes that notice
+                // (the drive is on its way to the car), so it is shown again for the OK that means "it is back in".
+                var notice = Ctx.T("MessageBox.LogUtilityCompleteMy20");
+                if (await CompletedAsync(notice)) await Dialogs.Info(notice);
+                // OK: pick the XML the car wrote and read it, which is what decides MY20 (the same as the Utility page's "Step 3": it says what it found, or that the check was cancelled)
+                await MainWindowViewModel.Instance.Utility.ParseLogCommand.ExecuteAsync(null);
+                // With MY20 known the install mode has to be worked out again (as v2 did). If it is still unknown (cancelled, a bad file) keep what was chosen: Start asks again.
+                if (Ctx.Profile.My20v2 != null) MainWindowViewModel.Instance.Home.ClearSelections();
                 break;
+            }
             default:
                 await CompletedAsync(Ctx.T("MessageBox.GenericUtilityComplete"));
                 break;
